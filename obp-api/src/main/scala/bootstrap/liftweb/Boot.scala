@@ -380,30 +380,30 @@ class Boot extends MdcLoggable {
 //        }
 //    }
 
-    //If use_custom_webapp=true, this will copy all the files from `OBP-API/obp-api/src/main/webapp` to `OBP-API/obp-api/src/main/resources/custom_webapp`
-    if (APIUtil.getPropsAsBoolValue("use_custom_webapp", false)){
-      //this `LiftRules.getResource` will get the path of `OBP-API/obp-api/src/main/webapp`: 
-      LiftRules.getResource("/").map { url =>
-        // this following will get the path of `OBP-API/obp-api/src/main/resources/custom_webapp`
-        val source = if (getClass().getClassLoader().getResource("custom_webapp") == null)
-          throw new RuntimeException("If you set `use_custom_webapp = true`, custom_webapp folder can not be Empty!!")
-        else
-          getClass().getClassLoader().getResource("custom_webapp").getPath
-        val srcDir = new File(source);
-
-        // The destination directory to copy to. This directory
-        // doesn't exists and will be created during the copy
-        // directory process.
-        val destDir = new File(url.getPath)
-
-        // Copy source directory into destination directory
-        // including its child directories and files. When
-        // the destination directory is not exists it will
-        // be created. This copy process also preserve the
-        // date information of the file.
-        FileUtils.copyDirectory(srcDir, destDir)
-      }
-    }
+//    //If use_custom_webapp=true, this will copy all the files from `OBP-API/obp-api/src/main/webapp` to `OBP-API/obp-api/src/main/resources/custom_webapp`
+//    if (APIUtil.getPropsAsBoolValue("use_custom_webapp", false)){
+//      //this `LiftRules.getResource` will get the path of `OBP-API/obp-api/src/main/webapp`: 
+//      LiftRules.getResource("/").map { url =>
+//        // this following will get the path of `OBP-API/obp-api/src/main/resources/custom_webapp`
+//        val source = if (getClass().getClassLoader().getResource("custom_webapp") == null)
+//          throw new RuntimeException("If you set `use_custom_webapp = true`, custom_webapp folder can not be Empty!!")
+//        else
+//          getClass().getClassLoader().getResource("custom_webapp").getPath
+//        val srcDir = new File(source);
+//
+//        // The destination directory to copy to. This directory
+//        // doesn't exists and will be created during the copy
+//        // directory process.
+//        val destDir = new File(url.getPath)
+//
+//        // Copy source directory into destination directory
+//        // including its child directories and files. When
+//        // the destination directory is not exists it will
+//        // be created. This copy process also preserve the
+//        // date information of the file.
+//        FileUtils.copyDirectory(srcDir, destDir)
+//      }
+//    }
     
     // ensure our relational database's tables are created/fit the schema
     val connector = APIUtil.getPropsValue("connector").openOrThrowException("no connector set")
@@ -432,7 +432,7 @@ class Boot extends MdcLoggable {
     }
     
     // where to search snippets
-    LiftRules.addToPackages("code")
+//    LiftRules.addToPackages("code")
 
     
     // H2 web console
@@ -448,64 +448,64 @@ class Boot extends MdcLoggable {
 
 
 
+//
+//    // here must modify apiPathZero: initiate the value, because obp-commons can't get apiPathZero value.
+//    // obp-api depends obp-commons, but obp-commons should not depends obp-api
+//    ApiVersion.setUrlPrefix(ApiPathZero)
+//
+//    // Add the various API versions
+//    ScannedApis.versionMapScannedApis.keys.foreach(enableVersionIfAllowed) // process all scanned apis versions
+//    enableVersionIfAllowed(ApiVersion.v1_2_1)
+//    enableVersionIfAllowed(ApiVersion.v1_3_0)
+//    enableVersionIfAllowed(ApiVersion.v1_4_0)
+//    enableVersionIfAllowed(ApiVersion.v2_0_0)
+//    enableVersionIfAllowed(ApiVersion.v2_1_0)
+//    enableVersionIfAllowed(ApiVersion.v2_2_0)
+//    enableVersionIfAllowed(ApiVersion.v3_0_0)
+//    enableVersionIfAllowed(ApiVersion.v3_1_0)
+//    enableVersionIfAllowed(ApiVersion.v4_0_0)
+//    enableVersionIfAllowed(ApiVersion.v5_0_0)
+//    enableVersionIfAllowed(ApiVersion.v5_1_0)
+//    enableVersionIfAllowed(ApiVersion.`dynamic-endpoint`)
+//    enableVersionIfAllowed(ApiVersion.`dynamic-entity`)
 
-    // here must modify apiPathZero: initiate the value, because obp-commons can't get apiPathZero value.
-    // obp-api depends obp-commons, but obp-commons should not depends obp-api
-    ApiVersion.setUrlPrefix(ApiPathZero)
-
-    // Add the various API versions
-    ScannedApis.versionMapScannedApis.keys.foreach(enableVersionIfAllowed) // process all scanned apis versions
-    enableVersionIfAllowed(ApiVersion.v1_2_1)
-    enableVersionIfAllowed(ApiVersion.v1_3_0)
-    enableVersionIfAllowed(ApiVersion.v1_4_0)
-    enableVersionIfAllowed(ApiVersion.v2_0_0)
-    enableVersionIfAllowed(ApiVersion.v2_1_0)
-    enableVersionIfAllowed(ApiVersion.v2_2_0)
-    enableVersionIfAllowed(ApiVersion.v3_0_0)
-    enableVersionIfAllowed(ApiVersion.v3_1_0)
-    enableVersionIfAllowed(ApiVersion.v4_0_0)
-    enableVersionIfAllowed(ApiVersion.v5_0_0)
-    enableVersionIfAllowed(ApiVersion.v5_1_0)
-    enableVersionIfAllowed(ApiVersion.`dynamic-endpoint`)
-    enableVersionIfAllowed(ApiVersion.`dynamic-entity`)
-
-    def enableOpenIdConnectApis = {
-      //  OpenIdConnect endpoint and validator
-      if (APIUtil.getPropsAsBoolValue("openid_connect.enabled", false)) {
-        LiftRules.dispatch.append(OpenIdConnect)
-      }
-    }
-    def enableAPIs: LiftRules#RulesSeq[DispatchPF] = {
-
-      //OAuth API call
-      LiftRules.statelessDispatch.append(OAuthHandshake)
-
-      // JWT auth endpoints
-      if (APIUtil.getPropsAsBoolValue("allow_direct_login", true)) {
-        LiftRules.statelessDispatch.append(DirectLogin)
-      }
-      
-      // TODO Wrap these with enableVersionIfAllowed as well
-      //add management apis
-      LiftRules.statelessDispatch.append(ImporterAPI)
-    }
-
-    APIUtil.getPropsValue("server_mode", "apis,portal") match {
-      // Instance runs as the portal only
-      case mode if mode == "portal" => // Callback url in case of OpenID Connect MUST be enabled at portal side
-        enableOpenIdConnectApis
-      // Instance runs as the APIs only
-      case mode if mode == "apis" => 
-        enableAPIs
-      // Instance runs as the portal and APIs as well
-      // This is default mode
-      case mode if mode.contains("apis") && mode.contains("portal") => 
-        enableAPIs
-        enableOpenIdConnectApis
-      // Failure
-      case _ =>
-        throw new RuntimeException("The props server_mode`is not properly set. Allowed cases: { server_mode=portal, server_mode=apis, server_mode=apis,portal }")
-    }
+//    def enableOpenIdConnectApis = {
+//      //  OpenIdConnect endpoint and validator
+//      if (APIUtil.getPropsAsBoolValue("openid_connect.enabled", false)) {
+//        LiftRules.dispatch.append(OpenIdConnect)
+//      }
+//    }
+//    def enableAPIs: LiftRules#RulesSeq[DispatchPF] = {
+//
+//      //OAuth API call
+//      LiftRules.statelessDispatch.append(OAuthHandshake)
+//
+//      // JWT auth endpoints
+//      if (APIUtil.getPropsAsBoolValue("allow_direct_login", true)) {
+//        LiftRules.statelessDispatch.append(DirectLogin)
+//      }
+//      
+//      // TODO Wrap these with enableVersionIfAllowed as well
+//      //add management apis
+//      LiftRules.statelessDispatch.append(ImporterAPI)
+//    }
+//
+//    APIUtil.getPropsValue("server_mode", "apis,portal") match {
+//      // Instance runs as the portal only
+//      case mode if mode == "portal" => // Callback url in case of OpenID Connect MUST be enabled at portal side
+//        enableOpenIdConnectApis
+//      // Instance runs as the APIs only
+//      case mode if mode == "apis" => 
+//        enableAPIs
+//      // Instance runs as the portal and APIs as well
+//      // This is default mode
+//      case mode if mode.contains("apis") && mode.contains("portal") => 
+//        enableAPIs
+//        enableOpenIdConnectApis
+//      // Failure
+//      case _ =>
+//        throw new RuntimeException("The props server_mode`is not properly set. Allowed cases: { server_mode=portal, server_mode=apis, server_mode=apis,portal }")
+//    }
     
 
     //LiftRules.statelessDispatch.append(AccountsAPI)
@@ -515,15 +515,15 @@ class Boot extends MdcLoggable {
     // Resource Docs are used in the process of surfacing endpoints so we enable them explicitly
     // to avoid a circular dependency.
     // Make the (currently identical) endpoints available to different versions.
-    LiftRules.statelessDispatch.append(ResourceDocs140)
-    LiftRules.statelessDispatch.append(ResourceDocs200)
-    LiftRules.statelessDispatch.append(ResourceDocs210)
-    LiftRules.statelessDispatch.append(ResourceDocs220)
-    LiftRules.statelessDispatch.append(ResourceDocs300)
-    LiftRules.statelessDispatch.append(ResourceDocs310)
-    LiftRules.statelessDispatch.append(ResourceDocs400)
-    LiftRules.statelessDispatch.append(ResourceDocs500)
-    LiftRules.statelessDispatch.append(ResourceDocs510)
+//    LiftRules.statelessDispatch.append(ResourceDocs140)
+//    LiftRules.statelessDispatch.append(ResourceDocs200)
+//    LiftRules.statelessDispatch.append(ResourceDocs210)
+//    LiftRules.statelessDispatch.append(ResourceDocs220)
+//    LiftRules.statelessDispatch.append(ResourceDocs300)
+//    LiftRules.statelessDispatch.append(ResourceDocs310)
+//    LiftRules.statelessDispatch.append(ResourceDocs400)
+//    LiftRules.statelessDispatch.append(ResourceDocs500)
+//    LiftRules.statelessDispatch.append(ResourceDocs510)
     ////////////////////////////////////////////////////
 
     
@@ -551,79 +551,79 @@ class Boot extends MdcLoggable {
     // Locale.setDefault(locale) // TODO Explain why this line of code introduce weird side effects
     logger.info("Default Project Locale is :" + locale)
     
-    // Cookie name
-    val localeCookieName = "SELECTED_LOCALE"
-    LiftRules.localeCalculator = {
-      case fullReq @ Full(req) => {
-        // Check against a set cookie, or the locale sent in the request 
-        def currentLocale : Locale = {
-          S.findCookie(localeCookieName).flatMap {
-            cookie => cookie.value.map(I18NUtil.computeLocale)
-          } openOr locale
-        }
+//    // Cookie name
+//    val localeCookieName = "SELECTED_LOCALE"
+//    LiftRules.localeCalculator = {
+//      case fullReq @ Full(req) => {
+//        // Check against a set cookie, or the locale sent in the request 
+//        def currentLocale : Locale = {
+//          S.findCookie(localeCookieName).flatMap {
+//            cookie => cookie.value.map(I18NUtil.computeLocale)
+//          } openOr locale
+//        }
+//
+//        // Check to see if the user explicitly requests a new locale 
+//        // In case it's true we use that value to set up a new cookie value
+//        ObpS.param(PARAM_LOCALE) match {
+//          case Full(requestedLocale) if requestedLocale != null && APIUtil.checkShortString(requestedLocale)==SILENCE_IS_GOLDEN => {
+//            val computedLocale: Locale = I18NUtil.computeLocale(requestedLocale)
+//            // Simon: if we are not using resource_user.last_used_local we don't need to set it. It is not returned in the Agent User endpoint. Thus, for now, we don't need to set it in the database.
+//            // val sessionId = S.session.map(_.uniqueId).openOr("")
+//            // AuthUser.updateComputedLocale(sessionId, computedLocale.toString())
+//            computedLocale
+//          }
+//          case _ => currentLocale
+//        }
+//      }
+//      case _ => locale
+//    }
 
-        // Check to see if the user explicitly requests a new locale 
-        // In case it's true we use that value to set up a new cookie value
-        ObpS.param(PARAM_LOCALE) match {
-          case Full(requestedLocale) if requestedLocale != null && APIUtil.checkShortString(requestedLocale)==SILENCE_IS_GOLDEN => {
-            val computedLocale: Locale = I18NUtil.computeLocale(requestedLocale)
-            // Simon: if we are not using resource_user.last_used_local we don't need to set it. It is not returned in the Agent User endpoint. Thus, for now, we don't need to set it in the database.
-            // val sessionId = S.session.map(_.uniqueId).openOr("")
-            // AuthUser.updateComputedLocale(sessionId, computedLocale.toString())
-            computedLocale
-          }
-          case _ => currentLocale
-        }
-      }
-      case _ => locale
-    }
 
-
-    //for XSS vulnerability, set X-Frame-Options header as DENY
-    LiftRules.supplementalHeaders.default.set(
-      ("X-Frame-Options", "DENY") ::
-        Nil
-    )
+//    //for XSS vulnerability, set X-Frame-Options header as DENY
+//    LiftRules.supplementalHeaders.default.set(
+//      ("X-Frame-Options", "DENY") ::
+//        Nil
+//    )
     
     // Make a transaction span the whole HTTP request
-    S.addAround(DB.buildLoanWrapper)
-    logger.info("Note: We added S.addAround(DB.buildLoanWrapper) so each HTTP request uses ONE database transaction.")
+//    S.addAround(DB.buildLoanWrapper)
+//    logger.info("Note: We added S.addAround(DB.buildLoanWrapper) so each HTTP request uses ONE database transaction.")
     
     Mailer.devModeSend.default.set( (m : MimeMessage) => {
       logger.info("Would have sent email if not in dev mode: " + m.getContent)
     })
     
-    LiftRules.exceptionHandler.prepend{
-      case(_, r, e) if e.isInstanceOf[NullPointerException] && e.getMessage.contains("Looking for Connection Identifier") => {
-        logger.error(s"Exception being returned to browser when processing url is ${r.request.uri}, method is ${r.request.method}, exception detail is $e", e)
-        JsonResponse(
-          Extraction.decompose(ErrorMessage(code = 500, message = s"${ErrorMessages.DatabaseConnectionClosedError}")),
-          500
-        )
-      }
-      case(Props.RunModes.Development, r, e) => {
-        logger.error(s"Exception being returned to browser when processing url is ${r.request.uri}, method is ${r.request.method}, exception detail is $e", e)
-        JsonResponse(
-          Extraction.decompose(ErrorMessage(code = 500, message = s"${ErrorMessages.InternalServerError} ${showExceptionAtJson(e)}")),
-          500
-        )
-      }
-      case (_, r , e) => {
-        sendExceptionEmail(e)
-        logger.error(s"Exception being returned to browser when processing url is ${r.request.uri}, method is ${r.request.method}, exception detail is $e", e)
-        JsonResponse(
-          Extraction.decompose(ErrorMessage(code = 500, message = s"${ErrorMessages.InternalServerError}")),
-          500
-        )
-      }
-    }
-    
-    LiftRules.uriNotFound.prepend{
-      case (r, _) => NotFoundAsResponse(errorJsonResponse(
-        s"${ErrorMessages.InvalidUri}Current Url is (${r.uri.toString}), Current Content-Type Header is (${r.headers.find(_._1.equals("Content-Type")).map(_._2).getOrElse("")})", 
-        404)
-      )
-    }
+//    LiftRules.exceptionHandler.prepend{
+//      case(_, r, e) if e.isInstanceOf[NullPointerException] && e.getMessage.contains("Looking for Connection Identifier") => {
+//        logger.error(s"Exception being returned to browser when processing url is ${r.request.uri}, method is ${r.request.method}, exception detail is $e", e)
+//        JsonResponse(
+//          Extraction.decompose(ErrorMessage(code = 500, message = s"${ErrorMessages.DatabaseConnectionClosedError}")),
+//          500
+//        )
+//      }
+//      case(Props.RunModes.Development, r, e) => {
+//        logger.error(s"Exception being returned to browser when processing url is ${r.request.uri}, method is ${r.request.method}, exception detail is $e", e)
+//        JsonResponse(
+//          Extraction.decompose(ErrorMessage(code = 500, message = s"${ErrorMessages.InternalServerError} ${showExceptionAtJson(e)}")),
+//          500
+//        )
+//      }
+//      case (_, r , e) => {
+//        sendExceptionEmail(e)
+//        logger.error(s"Exception being returned to browser when processing url is ${r.request.uri}, method is ${r.request.method}, exception detail is $e", e)
+//        JsonResponse(
+//          Extraction.decompose(ErrorMessage(code = 500, message = s"${ErrorMessages.InternalServerError}")),
+//          500
+//        )
+//      }
+//    }
+//    
+//    LiftRules.uriNotFound.prepend{
+//      case (r, _) => NotFoundAsResponse(errorJsonResponse(
+//        s"${ErrorMessages.InvalidUri}Current Url is (${r.uri.toString}), Current Content-Type Header is (${r.headers.find(_._1.equals("Content-Type")).map(_._2).getOrElse("")})", 
+//        404)
+//      )
+//    }
 
     if ( !APIUtil.getPropsAsLongValue("transaction_request_status_scheduler_delay").isEmpty ) {
       val delay = APIUtil.getPropsAsLongValue("transaction_request_status_scheduler_delay").openOrThrowException("Incorrect value for transaction_request_status_scheduler_delay, please provide number of seconds.")
@@ -642,66 +642,66 @@ class Boot extends MdcLoggable {
       case false => // Do not start it
     }
 
-    object UsernameLockedChecker  {
-      def onBeginServicing(session: LiftSession, req: Req): Unit = {
-        logger.debug(s"Hello from UsernameLockedChecker.onBeginServicing")
-        checkIsLocked()
-        logger.debug(s"Bye from UsernameLockedChecker.onBeginServicing")
-      }
-      def onSessionActivate(session: LiftSession): Unit = {
-        logger.debug(s"Hello from UsernameLockedChecker.onSessionActivate")
-        checkIsLocked()
-        logger.debug(s"Bye from UsernameLockedChecker.onSessionActivate")
-      }
-      def onSessionPassivate(session: LiftSession): Unit = {
-        logger.debug(s"Hello from UsernameLockedChecker.onSessionPassivate")
-        checkIsLocked()
-        logger.debug(s"Bye from UsernameLockedChecker.onSessionPassivate")
-      }
-      private def checkIsLocked(): Unit = {
-        AuthUser.currentUser match {
-          case Full(user) =>
-            LoginAttempt.userIsLocked(localIdentityProvider, user.username.get) match {
-              case true => 
-                AuthUser.logoutCurrentUser
-                logger.warn(s"checkIsLocked says: User ${user.username.get} has been logged out because it is locked.")
-              case false => // Do nothing
-                logger.debug(s"checkIsLocked says: User ${user.username.get} is not locked.")
-            }
-          case _ => // No user found
-            logger.debug(s"checkIsLocked says: No User Found.")
-        }
-      }
-    }
-    LiftSession.onBeginServicing = UsernameLockedChecker.onBeginServicing _ :: LiftSession.onBeginServicing
-    LiftSession.onSessionActivate = UsernameLockedChecker.onSessionActivate _ :: LiftSession.onSessionActivate
-    LiftSession.onSessionPassivate = UsernameLockedChecker.onSessionPassivate _ :: LiftSession.onSessionPassivate
-    
+//    object UsernameLockedChecker  {
+//      def onBeginServicing(session: LiftSession, req: Req): Unit = {
+//        logger.debug(s"Hello from UsernameLockedChecker.onBeginServicing")
+//        checkIsLocked()
+//        logger.debug(s"Bye from UsernameLockedChecker.onBeginServicing")
+//      }
+//      def onSessionActivate(session: LiftSession): Unit = {
+//        logger.debug(s"Hello from UsernameLockedChecker.onSessionActivate")
+//        checkIsLocked()
+//        logger.debug(s"Bye from UsernameLockedChecker.onSessionActivate")
+//      }
+//      def onSessionPassivate(session: LiftSession): Unit = {
+//        logger.debug(s"Hello from UsernameLockedChecker.onSessionPassivate")
+//        checkIsLocked()
+//        logger.debug(s"Bye from UsernameLockedChecker.onSessionPassivate")
+//      }
+//      private def checkIsLocked(): Unit = {
+//        AuthUser.currentUser match {
+//          case Full(user) =>
+//            LoginAttempt.userIsLocked(localIdentityProvider, user.username.get) match {
+//              case true => 
+//                AuthUser.logoutCurrentUser
+//                logger.warn(s"checkIsLocked says: User ${user.username.get} has been logged out because it is locked.")
+//              case false => // Do nothing
+//                logger.debug(s"checkIsLocked says: User ${user.username.get} is not locked.")
+//            }
+//          case _ => // No user found
+//            logger.debug(s"checkIsLocked says: No User Found.")
+//        }
+//      }
+//    }
+//    LiftSession.onBeginServicing = UsernameLockedChecker.onBeginServicing _ :: LiftSession.onBeginServicing
+//    LiftSession.onSessionActivate = UsernameLockedChecker.onSessionActivate _ :: LiftSession.onSessionActivate
+//    LiftSession.onSessionPassivate = UsernameLockedChecker.onSessionPassivate _ :: LiftSession.onSessionPassivate
+//    
     // Sanity check for incompatible Props values for Scopes.
     sanityCheckOPropertiesRegardingScopes()
-    // export one Connector's methods as endpoints, it is just for develop
-    APIUtil.getPropsValue("connector.name.export.as.endpoints").foreach { connectorName =>
-      // validate whether "connector.name.export.as.endpoints" have set a correct value
-      APIUtil.getPropsValue("connector") match {
-        case Full("star") =>
-          val starConnectorTypes = APIUtil.getPropsValue("starConnector_supported_types","mapped")
-            .trim
-            .split("""\s*,\s*""")
-
-          val allSupportedConnectors: List[String] = Connector.nameToConnector.keys.toList
-            .filter(it => starConnectorTypes.exists(it.startsWith(_)))
-
-          assert(allSupportedConnectors.contains(connectorName), s"connector.name.export.as.endpoints=$connectorName, this value should be one of ${allSupportedConnectors.mkString(",")}")
-
-        case _ if connectorName == "mapped" =>
-          Functions.doNothing
-
-        case Full(connector) =>
-          assert(connector == connectorName, s"When 'connector=$connector', this props must be: connector.name.export.as.endpoints=$connector, but current it is $connectorName")
-      }
-
-      ConnectorEndpoints.registerConnectorEndpoints
-    }
+//    // export one Connector's methods as endpoints, it is just for develop
+//    APIUtil.getPropsValue("connector.name.export.as.endpoints").foreach { connectorName =>
+//      // validate whether "connector.name.export.as.endpoints" have set a correct value
+//      APIUtil.getPropsValue("connector") match {
+//        case Full("star") =>
+//          val starConnectorTypes = APIUtil.getPropsValue("starConnector_supported_types","mapped")
+//            .trim
+//            .split("""\s*,\s*""")
+//
+//          val allSupportedConnectors: List[String] = Connector.nameToConnector.keys.toList
+//            .filter(it => starConnectorTypes.exists(it.startsWith(_)))
+//
+//          assert(allSupportedConnectors.contains(connectorName), s"connector.name.export.as.endpoints=$connectorName, this value should be one of ${allSupportedConnectors.mkString(",")}")
+//
+//        case _ if connectorName == "mapped" =>
+//          Functions.doNothing
+//
+//        case Full(connector) =>
+//          assert(connector == connectorName, s"When 'connector=$connector', this props must be: connector.name.export.as.endpoints=$connector, but current it is $connectorName")
+//      }
+//
+//      ConnectorEndpoints.registerConnectorEndpoints
+//    }
     if(HydraUtil.integrateWithHydra && HydraUtil.mirrorConsumerInHydra) {
       createHydraClients()
     }
@@ -755,52 +755,52 @@ class Boot extends MdcLoggable {
     Schemifier.schemify(true, Schemifier.infoF _, ToSchemify.models: _*)
   }
 
-  private def showExceptionAtJson(error: Throwable): String = {
-    val formattedError = "Message: " + error.toString  + error.getStackTrace.map(_.toString).mkString(" ")
-
-    val formattedCause = error.getCause match {
-      case null => ""
-      case cause: Throwable => "Caught and thrown by: " + showExceptionAtJson(cause)
-    }
-
-    formattedError + formattedCause
-  }
-
-  private def sendExceptionEmail(exception: Throwable): Unit = {
-    import Mailer.{From, PlainMailBodyType, Subject, To}
-    import net.liftweb.util.Helpers.now
-
-    val outputStream = new java.io.ByteArrayOutputStream
-    val printStream = new java.io.PrintStream(outputStream)
-    exception.printStackTrace(printStream)
-    val currentTime = now.toString
-    val stackTrace = new String(outputStream.toByteArray)
-    val error = currentTime + ": " + stackTrace
-    val host = Constant.HostName
-
-    val mailSent = for {
-      from <- APIUtil.getPropsValue("mail.exception.sender.address") ?~ "Could not send mail: Missing props param for 'from'"
-      // no spaces, comma separated e.g. mail.api.consumer.registered.notification.addresses=notify@example.com,notify2@example.com,notify3@example.com
-      toAddressesString <- APIUtil.getPropsValue("mail.exception.registered.notification.addresses") ?~ "Could not send mail: Missing props param for 'to'"
-    } yield {
-
-      //technically doesn't work for all valid email addresses so this will mess up if someone tries to send emails to "foo,bar"@example.com
-      val to = toAddressesString.split(",").toList
-      val toParams = to.map(To(_))
-      val params = PlainMailBodyType(error) :: toParams
-
-      //this is an async call
-      Mailer.sendMail(
-        From(from),
-        Subject(s"you got an exception on $host"),
-        params :_*
-      )
-    }
-
-    //if Mailer.sendMail wasn't called (note: this actually isn't checking if the mail failed to send as that is being done asynchronously)
-    if(mailSent.isEmpty)
-      logger.warn(s"Exception notification failed: $mailSent")
-  }
+//  private def showExceptionAtJson(error: Throwable): String = {
+//    val formattedError = "Message: " + error.toString  + error.getStackTrace.map(_.toString).mkString(" ")
+//
+//    val formattedCause = error.getCause match {
+//      case null => ""
+//      case cause: Throwable => "Caught and thrown by: " + showExceptionAtJson(cause)
+//    }
+//
+//    formattedError + formattedCause
+//  }
+//
+//  private def sendExceptionEmail(exception: Throwable): Unit = {
+//    import Mailer.{From, PlainMailBodyType, Subject, To}
+//    import net.liftweb.util.Helpers.now
+//
+//    val outputStream = new java.io.ByteArrayOutputStream
+//    val printStream = new java.io.PrintStream(outputStream)
+//    exception.printStackTrace(printStream)
+//    val currentTime = now.toString
+//    val stackTrace = new String(outputStream.toByteArray)
+//    val error = currentTime + ": " + stackTrace
+//    val host = Constant.HostName
+//
+//    val mailSent = for {
+//      from <- APIUtil.getPropsValue("mail.exception.sender.address") ?~ "Could not send mail: Missing props param for 'from'"
+//      // no spaces, comma separated e.g. mail.api.consumer.registered.notification.addresses=notify@example.com,notify2@example.com,notify3@example.com
+//      toAddressesString <- APIUtil.getPropsValue("mail.exception.registered.notification.addresses") ?~ "Could not send mail: Missing props param for 'to'"
+//    } yield {
+//
+//      //technically doesn't work for all valid email addresses so this will mess up if someone tries to send emails to "foo,bar"@example.com
+//      val to = toAddressesString.split(",").toList
+//      val toParams = to.map(To(_))
+//      val params = PlainMailBodyType(error) :: toParams
+//
+//      //this is an async call
+//      Mailer.sendMail(
+//        From(from),
+//        Subject(s"you got an exception on $host"),
+//        params :_*
+//      )
+//    }
+//
+//    //if Mailer.sendMail wasn't called (note: this actually isn't checking if the mail failed to send as that is being done asynchronously)
+//    if(mailSent.isEmpty)
+//      logger.warn(s"Exception notification failed: $mailSent")
+//  }
   
   /**
    *  there will be a default bank and two default accounts in obp mapped mode.                                               
