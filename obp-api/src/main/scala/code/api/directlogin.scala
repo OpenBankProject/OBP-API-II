@@ -271,6 +271,54 @@ object DirectLogin extends RestHelper with MdcLoggable {
       case _ => Map("error" -> ErrorMessages.MissingDirectLoginHeader)
     }
   }
+  //return a Map containing the directLogin parameters : prameter -> value
+  private def getAllParametersHttp4s(req: org.http4s.Request[cats.effect.IO]): Map[String, String] = {
+    def toMap(parametersList: String) = {
+      //transform the string "directLogin_prameter="value""
+      //to a tuple (directLogin_parameter,Decoded(value))
+      def dynamicListExtract(input: String) = {
+        val directLoginPossibleParameters =
+          List(
+            "consumer_key",
+            "token",
+            "username",
+            "password"
+          )
+        if (input contains "=") {
+          val split = input.split("=", 2)
+          val parameterValue = split(1).replaceAll("^\"|\"$", "");
+          //add only OAuth parameters and not empty
+          if (directLoginPossibleParameters.contains(split(0)) && !parameterValue.isEmpty)
+            Some(split(0), parameterValue) // return key , value
+          else
+            None
+        }
+        else
+          None
+      }
+      //we delete the "DirectLogin" prefix and trim the white spaces that may exist in the string
+      val cleanedParameterList = parametersList.stripPrefix("DirectLogin").split(",").map(_.trim()).toList
+      val params = Map(cleanedParameterList.flatMap(dynamicListExtract _): _*)
+      params
+    }
+
+    Full(req) match {
+      // Recommended header style i.e. DirectLogin: username=s, password=s, consumer_key=s
+      case Full(a) if a.headers.headers.exists(a => a.name.toString == "DirectLogin") =>
+        toMap(a.headers.headers.find(a =>a.name.toString =="DirectLogin").head.value) //.openOrThrowException(attemptedToOpenAnEmptyBox + " => getAllParameters"))
+      // Deprecated header style i.e. Authorization: DirectLogin username=s, password=s, consumer_key=s
+      case Full(a) => a.headers.headers.find(a =>a.name.toString =="Authorization").map(_.value) match {
+        case Some(value) => {
+          if (value.contains("DirectLogin"))
+            toMap(value)
+          else
+            Map("error" -> ErrorMessages.InvalidDirectLoginHeader)
+        }
+        case _ => Map("error" -> ErrorMessages.MissingDirectLoginHeader)
+      }
+      case _ => Map("error" -> ErrorMessages.MissingDirectLoginHeader)
+    }
+  }
 
 
   //Check if the request (access token or request token) is valid and return a tuple
@@ -415,6 +463,87 @@ object DirectLogin extends RestHelper with MdcLoggable {
     }
 
   }
+  //Check if the request (access token or request token) is valid and return a tuple
+  def validatorFutureHttp4s(req: org.http4s.Request[cats.effect.IO], requestType : String, httpMethod : String) : Future[(Int, String, Map[String,String])] = {
+
+    def validAccessTokenFuture(tokenKey: String) = {
+      Tokens.tokens.vend.getTokenByKeyAndTypeFuture(tokenKey, TokenType.Access) map {
+        case Full(token) => token.isValid /*match {
+          case true => 
+            // Only last issued token is considered as a valid one
+            val isNotLastIssuedToken = Token.findAll(
+              By(Token.userForeignKey, token.userForeignKey.get), 
+              By(Token.consumerId, token.consumerId.get),
+              By_>(Token.expirationDate, token.expirationDate.get)
+            ).size > 0
+            if(isNotLastIssuedToken) false else true
+          case false => false
+        }*/
+        case _ => false
+      }
+    }
+
+    var message = ""
+    var httpCode: Int = 500
+
+    val parameters = getAllParametersHttp4s(req)
+
+    //are all the necessary directLogin parameters present?
+    val missingParams = missingDirectLoginParameters(parameters, requestType)
+    //guard maximum length and content of strings (a-z, 0-9 etc.) for parameters
+    val validParams = validDirectLoginParameters(parameters)
+
+    val validF =
+      if (requestType == "protectedResource") {
+        validAccessTokenFuture(parameters.getOrElse("token", ""))
+      } else if (requestType == "authorizationToken" &&
+                APIUtil.getPropsAsBoolValue("direct_login_consumer_key_mandatory", true))
+      {
+        APIUtil.registeredApplicationFuture(parameters.getOrElse("consumer_key", ""))
+      } else {
+        Future{true}
+      }
+
+    // Please note that after this point S.request for instance cannot be used directly
+    // If you need it later assign it to some variable and pass it
+    for {
+      valid <- validF
+    } yield {
+      if (parameters.get("error").isDefined) {
+        message = parameters.get("error").getOrElse("")
+        httpCode = 400
+      }
+      else if (missingParams.nonEmpty) {
+        message = ErrorMessages.DirectLoginMissingParameters + missingParams.mkString(", ")
+        httpCode = 400
+      }
+      else if(SILENCE_IS_GOLDEN != validParams.mkString("")){
+        message = validParams.mkString("")
+        httpCode = 400
+      }
+      else if ( requestType == "protectedResource" &&
+                !valid
+      ) {
+        message = ErrorMessages.DirectLoginInvalidToken + parameters.getOrElse("token", "")
+        httpCode = 401
+      }
+      //check if the application is registered and active
+      else if ( requestType == "authorizationToken" &&
+                APIUtil.getPropsAsBoolValue("direct_login_consumer_key_mandatory", true) &&
+                !valid)
+      {
+        logger.error("application: " + parameters.getOrElse("consumer_key", "") + " not found")
+        message = ErrorMessages.InvalidConsumerKey
+        httpCode = 401
+      }
+      else
+        httpCode = 200
+      if(message.nonEmpty)
+        logger.error("error message : " + message)
+      (httpCode, message, parameters)
+    }
+
+  }
 
   private def generateTokenAndSecret(claims: JWTClaimsSet): (String, String) =
   {
@@ -479,6 +608,18 @@ object DirectLogin extends RestHelper with MdcLoggable {
     }
     for {
       (httpCode, message, directLoginParameters) <- validatorFuture("protectedResource", httpMethod)
+      _ <- Future { if (httpCode == 400 || httpCode == 401) Empty else Full("ok") } map { x => fullBoxOrException(x ?~! message) }
+      consumer <- OAuthHandshake.getConsumerFromTokenFuture(200, (if (directLoginParameters.isDefinedAt("token")) directLoginParameters.get("token") else Empty))
+      user <- OAuthHandshake.getUserFromTokenFuture(200, (if (directLoginParameters.isDefinedAt("token")) directLoginParameters.get("token") else Empty))
+    } yield {
+      (user, Some(sc.copy(user = user, directLoginParams = directLoginParameters, consumer = consumer)))
+    }
+  }
+
+  def getUserFromDirectLoginHeaderFutureHttp4s(req: org.http4s.Request[cats.effect.IO], sc: CallContext) : Future[(Box[User], Option[CallContext])] = {
+    val httpMethod = req.method.name
+    for {
+      (httpCode, message, directLoginParameters) <- validatorFutureHttp4s(req, "protectedResource", httpMethod)
       _ <- Future { if (httpCode == 400 || httpCode == 401) Empty else Full("ok") } map { x => fullBoxOrException(x ?~! message) }
       consumer <- OAuthHandshake.getConsumerFromTokenFuture(200, (if (directLoginParameters.isDefinedAt("token")) directLoginParameters.get("token") else Empty))
       user <- OAuthHandshake.getUserFromTokenFuture(200, (if (directLoginParameters.isDefinedAt("token")) directLoginParameters.get("token") else Empty))

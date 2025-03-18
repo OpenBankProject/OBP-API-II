@@ -6,7 +6,8 @@ import code.api.util.ApiTag._
 import code.api.util.ErrorMessages._
 import code.api.util.FutureUtil.EndpointContext
 import code.api.util.NewStyle.HttpCode
-import code.api.util.{ApiRole, NewStyle}
+import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
+import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.BankId
@@ -20,7 +21,6 @@ import cats.effect._
 import org.http4s.{HttpRoutes, _}
 import org.http4s.dsl.io._
 import cats.implicits._
-import code.api.util.{APIUtil, CustomJsonFormats}
 import code.bankconnectors.Connector
 import code.model.dataAccess.MappedBank
 import com.openbankproject.commons.model.BankCommons
@@ -42,7 +42,6 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.ember.server.EmberServerBuilder
 import com.comcast.ip4s._
-
 import cats.effect.IO
 import org.http4s.{HttpRoutes, Request, Response}
 import org.http4s.dsl.io._
@@ -53,9 +52,9 @@ object Http4s130 {
   implicit val formats: Formats = CustomJsonFormats.formats
   implicit def convertAnyToJsonString(any: Any): String =  prettyRender(Extraction.decompose(any))
   
-  val apiVersion: ScannedApiVersion = ApiVersion.v1_3_0
-
-  case class CallContext(userId: String, requestId: String)
+  val version : ApiVersion = ApiVersion.v1_3_0 //  "1.3.0"
+  val versionStatus = ApiVersionStatus.DEPRECATED.toString
+  
   import cats.effect.unsafe.implicits.global
   val callContextKey: Key[CallContext] = Key.newKey[IO, CallContext].unsafeRunSync()
   
@@ -63,7 +62,7 @@ object Http4s130 {
   
 
     def withCallContext(routes: HttpRoutes[IO]): HttpRoutes[IO] = Kleisli { req: Request[IO] =>
-      val callContext = CallContext(userId = "example-user", requestId = java.util.UUID.randomUUID().toString)
+      val callContext = CallContext()
       val updatedAttributes = req.attributes.insert(callContextKey, callContext)
       val updatedReq = req.withAttributes(updatedAttributes)
       routes(updatedReq)
@@ -80,25 +79,25 @@ object Http4s130 {
           _ <- Future() // Just start async call
         } yield {
           convertAnyToJsonString(
-            JSONFactory.getApiInfoJSON(OBPAPI1_3_0.version, s"Hello, ${callContext.userId}! Your request ID is ${callContext.requestId}.")
+            JSONFactory.getApiInfoJSON(version, versionStatus)
           )
         }
       )))
 
-//    case req @ GET -> Root / apiVersion / "cards" => {
-//      Ok(IO.fromFuture(IO({
-//        val callContext = req.attributes.lookup(callContextKey).get.asInstanceOf[CallContext]
-//        import com.openbankproject.commons.ExecutionContext.Implicits.global
-//        for {
-//          (Full(u), callContext) <- authenticatedAccess(None)
-//          (cards, callContext) <- NewStyle.function.getPhysicalCardsForUser(u, callContext)
-//        } yield {
-//          convertAnyToJsonString(
-//          JSONFactory1_3_0.createPhysicalCardsJSON(cards, u)
-//          )
-//        }
-//      })))
-//    }
+    case req @ GET -> Root / apiVersion / "cards" => {
+      Ok(IO.fromFuture(IO({
+        val callContext = req.attributes.lookup(callContextKey).get.asInstanceOf[CallContext]
+        import com.openbankproject.commons.ExecutionContext.Implicits.global
+        for {
+          (Full(u), callContext) <- authenticatedAccessHttp4s(req, CallContext())
+          (cards, callContext) <- NewStyle.function.getPhysicalCardsForUser(u, callContext)
+        } yield {
+          convertAnyToJsonString(
+            JSONFactory1_3_0.createPhysicalCardsJSON(cards, u)
+          )
+        }
+      })))
+    }
   }
 
   val wrappedRoutesV130Services = CallContextMiddleware.withCallContext(v130Services)

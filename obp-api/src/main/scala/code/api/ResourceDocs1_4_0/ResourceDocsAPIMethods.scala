@@ -49,7 +49,7 @@ import scala.concurrent.Future
 
 // JObject creation
 import code.api.v1_2_1.{APIInfoJSON, APIMethods121, HostedBy, OBPAPI1_2_1}
-import code.api.v1_3_0.{APIMethods130, OBPAPI1_3_0}
+//import code.api.v1_3_0.{APIMethods130, OBPAPI1_3_0}
 import code.api.v2_0_0.{APIMethods200, OBPAPI2_0_0}
 import code.api.v2_1_0.{APIMethods210, OBPAPI2_1_0}
 
@@ -64,7 +64,7 @@ import scala.concurrent.duration._
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 
 
-trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMethods210 with APIMethods200 with APIMethods140 with APIMethods130 with APIMethods121{
+trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMethods210 with APIMethods200 with APIMethods140  with APIMethods121{
   //needs to be a RestHelper to get access to JsonGet, JsonPost, etc.
   // We add previous APIMethods so we have access to the Resource Docs
   self: OBPRestHelper =>
@@ -150,7 +150,7 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
         case ApiVersion.v2_1_0 => OBPAPI2_1_0.routes
         case ApiVersion.v2_0_0 => OBPAPI2_0_0.routes
         case ApiVersion.v1_4_0 => OBPAPI1_4_0.routes
-        case ApiVersion.v1_3_0 => OBPAPI1_3_0.routes
+//        case ApiVersion.v1_3_0 => OBPAPI1_3_0.routes
         case ApiVersion.v1_2_1 => OBPAPI1_2_1.routes
         case version: ScannedApiVersion => ScannedApis.versionMapScannedApis(version).routes
         case _                 => Nil

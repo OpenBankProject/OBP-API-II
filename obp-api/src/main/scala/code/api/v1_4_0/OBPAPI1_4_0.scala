@@ -86,10 +86,10 @@ object OBPAPI1_4_0 extends OBPRestHelper with APIMethods140 with MdcLoggable wit
   )
 
     // New in 1.3.0
-    val endpointsOf1_3_0 = List(
-    Implementations1_3_0.getCards,
-    Implementations1_3_0.getCardsForBank
-  )
+//    val endpointsOf1_3_0 = List(
+//    Implementations1_3_0.getCards,
+//    Implementations1_3_0.getCardsForBank
+//  )
 
 
     // New in 1.4.0
@@ -116,7 +116,7 @@ object OBPAPI1_4_0 extends OBPRestHelper with APIMethods140 with MdcLoggable wit
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
   val routes : List[OBPEndpoint] =
     getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs) ::: 
-      getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs) :::
+//      getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs) :::
       getAllowedEndpoints(endpointsOf1_4_0, Implementations1_4_0.resourceDocs)
 
   registerRoutes(routes, allResourceDocs, apiPrefix)

@@ -85,9 +85,9 @@ object OBPAPI2_2_0 extends OBPRestHelper with APIMethods130 with APIMethods140 w
 
 
   // Possible Endpoints 1.3.0
-  val endpointsOf1_3_0 = Implementations1_3_0.getCards ::
-                         Implementations1_3_0.getCardsForBank ::
-                         Nil
+//  val endpointsOf1_3_0 = Implementations1_3_0.getCards ::
+//                         Implementations1_3_0.getCardsForBank ::
+//                         Nil
 
 
 
@@ -203,7 +203,7 @@ object OBPAPI2_2_0 extends OBPRestHelper with APIMethods130 with APIMethods140 w
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
   val routes : List[OBPEndpoint] =
     getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs) :::
-      getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs) :::
+//      getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs) :::
       getAllowedEndpoints(endpointsOf1_4_0, Implementations1_4_0.resourceDocs) :::
       getAllowedEndpoints(endpointsOf2_0_0, Implementations2_0_0.resourceDocs) :::
       getAllowedEndpoints(endpointsOf2_1_0, Implementations2_1_0.resourceDocs) :::
