@@ -92,13 +92,27 @@ object Http4s130 {
           (Full(u), callContext) <- authenticatedAccessHttp4s(req, CallContext())
           (cards, callContext) <- NewStyle.function.getPhysicalCardsForUser(u, callContext)
         } yield {
-          convertAnyToJsonString(
-            JSONFactory1_3_0.createPhysicalCardsJSON(cards, u)
-          )
+          convertAnyToJsonString(JSONFactory1_3_0.createPhysicalCardsJSON(cards, u))
+        }
+      })))
+    }
+
+    case req @ GET -> Root / apiVersion / "banks" / bankId / "cards"  => {
+      Ok(IO.fromFuture(IO({ 
+        import com.openbankproject.commons.ExecutionContext.Implicits.global
+        for {
+          (Full(u), callContext) <- authenticatedAccessHttp4s(req, CallContext())
+          httpParams <- NewStyle.function.extractHttpParamsFromUrl(req.uri.renderString)
+          (obpQueryParams, callContext) <- createQueriesByHttpParamsFuture(httpParams, callContext)
+          _ <- NewStyle.function.hasEntitlement(bankId, u.userId, ApiRole.canGetCardsForBank, callContext)
+          (bank, callContext) <- NewStyle.function.getBank(BankId(bankId), callContext)
+          (cards, callContext) <- NewStyle.function.getPhysicalCardsForBank(bank, u, obpQueryParams, callContext)
+        } yield {
+          convertAnyToJsonString(JSONFactory1_3_0.createPhysicalCardsJSON(cards, u))
         }
       })))
     }
   }
 
-  val wrappedRoutesV130Services = CallContextMiddleware.withCallContext(v130Services)
+  val wrappedRoutesV130Services: HttpRoutes[IO] = CallContextMiddleware.withCallContext(v130Services)
 }
