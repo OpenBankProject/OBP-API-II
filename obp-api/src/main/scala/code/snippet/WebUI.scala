@@ -164,13 +164,13 @@ class WebUI extends MdcLoggable{
   }
 
   val sdksExternalHtmlLink = getWebUiPropsValue("webui_featured_sdks_external_link","")
-  
+
   val sdksExternalHtmlContent = try {
       Source.fromURL(sdksExternalHtmlLink, "UTF-8").mkString
   } catch {
     case _ : Throwable => "<h1>SDK Showcases is wrong, please check the props `webui_featured_sdks_external_link` </h1>"
   }
-  
+
   // webui_featured_sdks_external_link props, we can set the sdks here. check the `SDK Showcases` in Homepage, and you can see all the sdks.
   def featuredExternalSdksHtml: CssSel = {
     if (sdksExternalHtmlLink.isEmpty) {
@@ -189,7 +189,7 @@ class WebUI extends MdcLoggable{
   }
 
   val mainFaqHtmlLink = getWebUiPropsValue("webui_main_faq_external_link","")
-  
+
   val mainFaqExternalHtmlContent = try {
     Source.fromURL(mainFaqHtmlLink, "UTF-8").mkString
   } catch {
@@ -220,7 +220,7 @@ class WebUI extends MdcLoggable{
 
 
 
-  
+
   private def getBaseUrlWithQuery = {
     val tags = S.attr("tags") openOr ""
     val locale = S.locale.toString
@@ -243,7 +243,7 @@ class WebUI extends MdcLoggable{
     val baseUrlWithQuery: String = s"$getBaseUrlWithQuery#group-Dynamic-Entity-Manage"
     ".api-explorer-link-dynamic-entity a [href]" #> scala.xml.Unparsed(baseUrlWithQuery)
   }
-  
+
   def wrapPropsUrlLocaleParameter (propsKey: String) = {
     val localeString = S.locale.toString
     // Note the Props value might contain a query parameter e.g. ?psd2=true
@@ -265,7 +265,7 @@ class WebUI extends MdcLoggable{
         ".api-manager-link a [href]" #> wrapPropsUrlLocaleParameter("webui_api_manager_url")
     }
   }
-  
+
   // Link to OBP-CLI
   def obpCliLink: CssSel = {
     ".obp-cli-link a [href]" #> scala.xml.Unparsed(getWebUiPropsValue("webui_obp_cli_url", "https://github.com/OpenBankProject/OBP-CLI"))
@@ -292,7 +292,7 @@ class WebUI extends MdcLoggable{
     val hostname = scala.xml.Unparsed(Constant.HostName)
       ".api-link a [href]" #> hostname
   }
-  
+
   // 
   def commitIdLink: CssSel = {
     val commitId = scala.xml.Unparsed(APIUtil.gitCommit)
@@ -305,7 +305,7 @@ class WebUI extends MdcLoggable{
   def sofiLink: CssSel = {
     ".sofi-link a [href]" #> wrapPropsUrlLocaleParameter("webui_sofi_url")
   }
-  
+
   // Terms&Conditions
   def termsAndConditions: CssSel = {
     ".termsAndConditions-link a [href]" #> scala.xml.Unparsed(getWebUiPropsValue("webui_agree_terms_url", "/terms-and-conditions"))
@@ -344,7 +344,7 @@ class WebUI extends MdcLoggable{
     "#footer-div-social a *" #> scala.xml.Unparsed(webUiPropsValueForTitle) &
       "#footer-div-social a [href]" #> scala.xml.Unparsed(webUiPropsValueForLink)
   }
-  
+
   def sandboxIntroductionLink: CssSel = {
     val webUiApiDocumentation = getWebUiPropsValue("webui_api_documentation_url",s"${getServerUrl}/introduction")
     "#sandbox-introduction-link [href]" #> scala.xml.Unparsed(webUiApiDocumentation)
@@ -362,7 +362,7 @@ class WebUI extends MdcLoggable{
         ".subscriptions-button-text *" #> scala.xml.Unparsed(webuiSubscriptionsButtonText)
     }
   }
-  
+
 
   def subscriptionsInvitationText: CssSel = {
     val webuiSubscriptionsInvitationText = getWebUiPropsValue("webui_subscriptions_invitation_text", s"")
@@ -373,7 +373,7 @@ class WebUI extends MdcLoggable{
       ".subscriptions_invitation_text *" #> scala.xml.Unparsed(webuiSubscriptionsInvitationText)
     }
   }
-  
+
   def technicalFaqsAnchor: CssSel = {
     "#technical-faqs-anchor [href]" #> scala.xml.Unparsed(s"${getServerUrl}#technical-faqs")
   }
@@ -417,7 +417,7 @@ class WebUI extends MdcLoggable{
   def faqDataText: CssSel = {
     ".faq-data-text *" #> scala.xml.Unparsed(getWebUiPropsValue("webui_faq_data_text", "This depends on the end point and/or OBP instance you are using. A combination of synthetic, anonymised and real data may be available. Please ask support for more information."))
   }
-  
+
   def currentYearText: CssSel = {
     val year = APIUtil.currentYear
     "#copyright-year *" #> scala.xml.Unparsed(year)
