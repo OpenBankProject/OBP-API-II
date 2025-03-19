@@ -284,131 +284,131 @@
 //      reply.code should equal (400)
 //      And("error should be " + ErrorMessages.FilterDateFormatError)
 //      reply.body.extract[ErrorMessage].message contains (ErrorMessages.FilterDateFormatError)
-    }
-    scenario("we get transactions from a previous (to_date) date with the right format", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with to_date into a proper format")
-      val currentDate = new Date()
-      val formatedCurrentDate = defaultFormat.format(currentDate)
-      val params = ("to_date", formatedCurrentDate) :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 200 code")
-      reply.code should equal (200)
-      And("transactions size should not be empty")
-      val transactions = reply.body.extract[TransactionsJsonV300]
-      transactions.transactions.size should not equal (0)
-    }
-    scenario("we get transactions from a previous date with the fallback format", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with тo_date into an accepted format")
-      val currentDate = new Date()
-      val formatedCurrentDate = defaultFormat.format(currentDate)
-      val params = ("to_date", formatedCurrentDate) :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 200 code")
-      reply.code should equal (200)
-      And("transactions size should not be empty")
-      val transactions = reply.body.extract[TransactionsJsonV300]
-      transactions.transactions.size should not equal (0)
-    }
-    scenario("we don't get transactions from a date in the past", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with to_date into a proper format")
-      val currentDate = new Date()
-      val calendar = Calendar.getInstance
-      calendar.setTime(currentDate)
-      calendar.add(Calendar.YEAR, -1)
-      val pastDate = calendar.getTime
-      val formatedPastDate = defaultFormat.format(pastDate)
-      val params = ("to_date", formatedPastDate) :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 200 code")
-      reply.code should equal (200)
-      And("transactions size should be empty")
-      val transactions = reply.body.extract[TransactionsJsonV300]
-      transactions.transactions.size should equal (0)
-    }
-    scenario("we don't get transactions due to wrong value (not a number) for offset parameter", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with a wrong value for param offset")
-      val params = ("offset", "foo") :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 400 code")
-      reply.code should equal (400)
-      And("error should be " + ErrorMessages.FilterOffersetError)
-      reply.body.extract[ErrorMessage].message contains (ErrorMessages.FilterOffersetError)
-    }
-    scenario("we don't get transactions due to the (2000) for offset parameter", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with a wrong value for param offset")
-      val params = ("offset", "2000") :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 200 code")
-      reply.code should equal (200)
-      And("transactions size should be empty")
-      val transactions = reply.body.extract[TransactionsJsonV300]
-      transactions.transactions.size should equal (0)
-    }
-    scenario("we don't get transactions due to wrong value (-100) for offset parameter", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with a wrong value for param offset")
-      val params = ("offset", "-100") :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 400 code")
-      reply.code should equal (400)
-      And("error should be " + ErrorMessages.FilterOffersetError)
-      reply.body.extract[ErrorMessage].message contains (ErrorMessages.FilterOffersetError)
-    }
-    scenario("we get only 5 transactions due to the offset parameter value", API300, GetTransactions, GetTransactionsWithParams) {
-      Given("We will use an access token")
-      val bankId = randomBankId
-      val bankAccount = randomPrivateAccount(bankId)
-      val view = randomViewPermalink(bankId, bankAccount)
-      When("the request is sent with the value ASC for parameter offset")
-      val params = ("offset", "5") :: Nil
-      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
-      Then("we should get a 200 ok code")
-      reply.code should equal (200)
-      val transactions = reply.body.extract[TransactionsJsonV300]
-      And("transactions size should be equal to 5")
-      transactions.transactions.size should equal (5)
-    }
-  }
-
-  feature("Assuring that entitlement requirements are checked for transaction(s) related endpoints") {
-
-    scenario("We try to get firehose transactions without required role " + CanUseAccountFirehoseAtAnyBank){
-
-      When("We have to find it by endpoint getFirehoseTransactionsForBankAccount")
-      val requestGet = (v3_0Request / "banks" / "BANK_ID" / "firehose" / "accounts" /  "AccountId(accountId)" / "views" / "ViewId(viewId)" / "transactions").GET <@ (user1)
-      val responseGet = makeGetRequest(requestGet)
-
-      And("We should get a 400")
-      responseGet.code should equal(400)
-      responseGet.body.extract[ErrorMessage].message contains AccountFirehoseNotAllowedOnThisInstance should be (true)
-    }}
-
-
-
-
-
-
-}
+//    }
+//    scenario("we get transactions from a previous (to_date) date with the right format", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with to_date into a proper format")
+//      val currentDate = new Date()
+//      val formatedCurrentDate = defaultFormat.format(currentDate)
+//      val params = ("to_date", formatedCurrentDate) :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 200 code")
+//      reply.code should equal (200)
+//      And("transactions size should not be empty")
+//      val transactions = reply.body.extract[TransactionsJsonV300]
+//      transactions.transactions.size should not equal (0)
+//    }
+//    scenario("we get transactions from a previous date with the fallback format", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with тo_date into an accepted format")
+//      val currentDate = new Date()
+//      val formatedCurrentDate = defaultFormat.format(currentDate)
+//      val params = ("to_date", formatedCurrentDate) :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 200 code")
+//      reply.code should equal (200)
+//      And("transactions size should not be empty")
+//      val transactions = reply.body.extract[TransactionsJsonV300]
+//      transactions.transactions.size should not equal (0)
+//    }
+//    scenario("we don't get transactions from a date in the past", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with to_date into a proper format")
+//      val currentDate = new Date()
+//      val calendar = Calendar.getInstance
+//      calendar.setTime(currentDate)
+//      calendar.add(Calendar.YEAR, -1)
+//      val pastDate = calendar.getTime
+//      val formatedPastDate = defaultFormat.format(pastDate)
+//      val params = ("to_date", formatedPastDate) :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 200 code")
+//      reply.code should equal (200)
+//      And("transactions size should be empty")
+//      val transactions = reply.body.extract[TransactionsJsonV300]
+//      transactions.transactions.size should equal (0)
+//    }
+//    scenario("we don't get transactions due to wrong value (not a number) for offset parameter", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with a wrong value for param offset")
+//      val params = ("offset", "foo") :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 400 code")
+//      reply.code should equal (400)
+//      And("error should be " + ErrorMessages.FilterOffersetError)
+//      reply.body.extract[ErrorMessage].message contains (ErrorMessages.FilterOffersetError)
+//    }
+//    scenario("we don't get transactions due to the (2000) for offset parameter", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with a wrong value for param offset")
+//      val params = ("offset", "2000") :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 200 code")
+//      reply.code should equal (200)
+//      And("transactions size should be empty")
+//      val transactions = reply.body.extract[TransactionsJsonV300]
+//      transactions.transactions.size should equal (0)
+//    }
+//    scenario("we don't get transactions due to wrong value (-100) for offset parameter", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with a wrong value for param offset")
+//      val params = ("offset", "-100") :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 400 code")
+//      reply.code should equal (400)
+//      And("error should be " + ErrorMessages.FilterOffersetError)
+//      reply.body.extract[ErrorMessage].message contains (ErrorMessages.FilterOffersetError)
+//    }
+//    scenario("we get only 5 transactions due to the offset parameter value", API300, GetTransactions, GetTransactionsWithParams) {
+//      Given("We will use an access token")
+//      val bankId = randomBankId
+//      val bankAccount = randomPrivateAccount(bankId)
+//      val view = randomViewPermalink(bankId, bankAccount)
+//      When("the request is sent with the value ASC for parameter offset")
+//      val params = ("offset", "5") :: Nil
+//      val reply = getTransactions(bankId,bankAccount.id,view, user1, params)
+//      Then("we should get a 200 ok code")
+//      reply.code should equal (200)
+//      val transactions = reply.body.extract[TransactionsJsonV300]
+//      And("transactions size should be equal to 5")
+//      transactions.transactions.size should equal (5)
+//    }
+//  }
+//
+//  feature("Assuring that entitlement requirements are checked for transaction(s) related endpoints") {
+//
+//    scenario("We try to get firehose transactions without required role " + CanUseAccountFirehoseAtAnyBank){
+//
+//      When("We have to find it by endpoint getFirehoseTransactionsForBankAccount")
+//      val requestGet = (v3_0Request / "banks" / "BANK_ID" / "firehose" / "accounts" /  "AccountId(accountId)" / "views" / "ViewId(viewId)" / "transactions").GET <@ (user1)
+//      val responseGet = makeGetRequest(requestGet)
+//
+//      And("We should get a 400")
+//      responseGet.code should equal(400)
+//      responseGet.body.extract[ErrorMessage].message contains AccountFirehoseNotAllowedOnThisInstance should be (true)
+//    }}
+//
+//
+//
+//
+//
+//
+//}

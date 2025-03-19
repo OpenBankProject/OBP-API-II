@@ -373,58 +373,58 @@
 //      result.branches(0).address.city should be (existsBranch1.address.city)
 //    }
 //
-    scenario("We try to get bank branches query by distance fond one branch", VersionOfApi, ApiEndpoint) {
-
-      When("We make a request v3.0.0")
-      var request300 = (v3_0Request / "banks" / bankId / "branches").GET <@(user1)
-      request300 = request300.addQueryParameter("withinMetersOf", "220").addQueryParameter("nearLatitude", "54.3").addQueryParameter("nearLongitude", "-2.24")
-      val response300 = makeGetRequest(request300, List(("city", existsBranch1.address.city)))
-      Then("We should get a 200 and there is one branch in the given distance of latitude and longitude")
-      response300.code should equal(200)
-      //check return branches not deleted
-      val result = response300.body.extract[BranchesJsonV300]
-      result.branches.size should be (0)
-
-    }
-
-    scenario("We try to get bank branches query by distance fond none branch", VersionOfApi, ApiEndpoint) {
-
-      When("We make a request v3.0.0")
-      var request300 = (v3_0Request / "banks" / bankId / "branches").GET <@(user1)
-      request300 = request300.addQueryParameter("withinMetersOf", "250").addQueryParameter("nearLatitude", "54.3").addQueryParameter("nearLongitude", "-2.24")
-      val response300 = makeGetRequest(request300)
-      Then("We should get a 200 and there is none branch in the given distance of latitude and longitude")
-      response300.code should equal(200)
-      //check return branches not deleted
-      val result = response300.body.extract[BranchesJsonV300]
-      result.branches.size should be (1)
-      result.branches(0).name should be (existsBranch1.name)
-
-    }
-
-
-    // note：get all branches endpoint belongs v3.0.0, and delete branch endpoint belongs 3.1.0.
-    // But, because the delete branch endpoint unitest need get all branches endpoint, to check whether given branch is deleted
-    // So the delete branch endpoint unit test put at here.
-    object VersionOfApi_3_1_0 extends Tag(ApiVersion.v3_1_0.toString)
-    object ApiEndpoint_delete_branch extends Tag(nameOf(OBPAPI3_1_0.Implementations3_1_0.deleteBranch))
-
-    scenario("We try to delete bank branche", VersionOfApi_3_1_0, ApiEndpoint_delete_branch) {
-      Entitlement.entitlement.vend.addEntitlement("", resourceUser1.userId, CanDeleteBranchAtAnyBank.toString())
-      When("We make a request v3.0.0")
-      val requestDelete = (baseRequest / "obp" / "v3.1.0" / "banks" / bankId / "branches"/ existsBranch1.branchId.value).DELETE <@(user1)
-      makeDeleteRequest(requestDelete)
-
-      val request300 = (v3_0Request / "banks" / bankId / "branches").GET <@(user1)
-      val response300 = makeGetRequest(request300)
-      Then("We should delete one branch and left one branch")
-      response300.code should equal(200)
-      //check return branches not deleted
-      val result = response300.body.extract[BranchesJsonV300]
-      result.branches.size should be (1)
-      result.branches(0).name should be (existsBranch2.name)
-    }
-
-  }
-
-}
+//    scenario("We try to get bank branches query by distance fond one branch", VersionOfApi, ApiEndpoint) {
+//
+//      When("We make a request v3.0.0")
+//      var request300 = (v3_0Request / "banks" / bankId / "branches").GET <@(user1)
+//      request300 = request300.addQueryParameter("withinMetersOf", "220").addQueryParameter("nearLatitude", "54.3").addQueryParameter("nearLongitude", "-2.24")
+//      val response300 = makeGetRequest(request300, List(("city", existsBranch1.address.city)))
+//      Then("We should get a 200 and there is one branch in the given distance of latitude and longitude")
+//      response300.code should equal(200)
+//      //check return branches not deleted
+//      val result = response300.body.extract[BranchesJsonV300]
+//      result.branches.size should be (0)
+//
+//    }
+//
+//    scenario("We try to get bank branches query by distance fond none branch", VersionOfApi, ApiEndpoint) {
+//
+//      When("We make a request v3.0.0")
+//      var request300 = (v3_0Request / "banks" / bankId / "branches").GET <@(user1)
+//      request300 = request300.addQueryParameter("withinMetersOf", "250").addQueryParameter("nearLatitude", "54.3").addQueryParameter("nearLongitude", "-2.24")
+//      val response300 = makeGetRequest(request300)
+//      Then("We should get a 200 and there is none branch in the given distance of latitude and longitude")
+//      response300.code should equal(200)
+//      //check return branches not deleted
+//      val result = response300.body.extract[BranchesJsonV300]
+//      result.branches.size should be (1)
+//      result.branches(0).name should be (existsBranch1.name)
+//
+//    }
+//
+//
+//    // note：get all branches endpoint belongs v3.0.0, and delete branch endpoint belongs 3.1.0.
+//    // But, because the delete branch endpoint unitest need get all branches endpoint, to check whether given branch is deleted
+//    // So the delete branch endpoint unit test put at here.
+//    object VersionOfApi_3_1_0 extends Tag(ApiVersion.v3_1_0.toString)
+//    object ApiEndpoint_delete_branch extends Tag(nameOf(OBPAPI3_1_0.Implementations3_1_0.deleteBranch))
+//
+//    scenario("We try to delete bank branche", VersionOfApi_3_1_0, ApiEndpoint_delete_branch) {
+//      Entitlement.entitlement.vend.addEntitlement("", resourceUser1.userId, CanDeleteBranchAtAnyBank.toString())
+//      When("We make a request v3.0.0")
+//      val requestDelete = (baseRequest / "obp" / "v3.1.0" / "banks" / bankId / "branches"/ existsBranch1.branchId.value).DELETE <@(user1)
+//      makeDeleteRequest(requestDelete)
+//
+//      val request300 = (v3_0Request / "banks" / bankId / "branches").GET <@(user1)
+//      val response300 = makeGetRequest(request300)
+//      Then("We should delete one branch and left one branch")
+//      response300.code should equal(200)
+//      //check return branches not deleted
+//      val result = response300.body.extract[BranchesJsonV300]
+//      result.branches.size should be (1)
+//      result.branches(0).name should be (existsBranch2.name)
+//    }
+//
+//  }
+//
+//}

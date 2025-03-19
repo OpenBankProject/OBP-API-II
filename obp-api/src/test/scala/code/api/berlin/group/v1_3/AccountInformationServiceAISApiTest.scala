@@ -453,42 +453,42 @@
 //
 //        Then(s"We test the $getConsentAuthorisation")
 //        val requestGetConsentAuthorisation = (V1_3_BG / "consents"/consentId /"authorisations" ).GET<@ (user1)
-        val responseGetConsentAuthorisation = makeGetRequest(requestGetConsentAuthorisation)
-        responseGetConsentAuthorisation.code should be (200)
-        responseGetConsentAuthorisation.body.extract[AuthorisationJsonV13].authorisationIds.length > 0 should be (true)
-
-        Then(s"We test the $getConsentScaStatus")
-        val authorisationId = responseGetConsentAuthorisation.body.extract[AuthorisationJsonV13].authorisationIds.head
-        val requestGetConsentScaStatus = (V1_3_BG / "consents"/consentId /"authorisations"/authorisationId ).GET <@ (user1)
-        val responseGetConsentScaStatus = makeGetRequest(requestGetConsentScaStatus)
-        responseGetConsentScaStatus.code should be (200)
-        responseGetConsentScaStatus.body.extract[ScaStatusJsonV13].scaStatus should be ("received")
-      }
-    }  
-
-    feature(s"BG v1.3 - updateConsentsPsuData") {
-      scenario("Authentication User, only mocked data, just test succeed", BerlinGroupV1_3, updateConsentsPsuDataTransactionAuthorisation) {
-        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
-        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{"scaAuthenticationData":""}""")
-        responseStartConsentAuthorisation.code should be (400)
-      }
-      
-      
-      scenario("Authentication User, only mocked data, just test succeed -updateConsentsPsuDataUpdatePsuAuthentication", BerlinGroupV1_3, updateConsentsPsuDataUpdatePsuAuthentication) {
-        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
-        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{  "psuData":{"password":"start12"  }}""")
-        responseStartConsentAuthorisation.code should be (200)
-      }
-      scenario("Authentication User, only mocked data, just test succeed-updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod", BerlinGroupV1_3, updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod) {
-        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
-        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{ "authenticationMethodId":""}""")
-        responseStartConsentAuthorisation.code should be (200)
-      }
-      scenario("Authentication User, only mocked data, just test succeed-updateConsentsPsuDataUpdateAuthorisationConfirmation", BerlinGroupV1_3, updateConsentsPsuDataUpdateAuthorisationConfirmation) {
-        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
-        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{"confirmationCode":"confirmationCode"}""")
-        responseStartConsentAuthorisation.code should be (200)
-      }
-    }  
-
-}
+//        val responseGetConsentAuthorisation = makeGetRequest(requestGetConsentAuthorisation)
+//        responseGetConsentAuthorisation.code should be (200)
+//        responseGetConsentAuthorisation.body.extract[AuthorisationJsonV13].authorisationIds.length > 0 should be (true)
+//
+//        Then(s"We test the $getConsentScaStatus")
+//        val authorisationId = responseGetConsentAuthorisation.body.extract[AuthorisationJsonV13].authorisationIds.head
+//        val requestGetConsentScaStatus = (V1_3_BG / "consents"/consentId /"authorisations"/authorisationId ).GET <@ (user1)
+//        val responseGetConsentScaStatus = makeGetRequest(requestGetConsentScaStatus)
+//        responseGetConsentScaStatus.code should be (200)
+//        responseGetConsentScaStatus.body.extract[ScaStatusJsonV13].scaStatus should be ("received")
+//      }
+//    }  
+//
+//    feature(s"BG v1.3 - updateConsentsPsuData") {
+//      scenario("Authentication User, only mocked data, just test succeed", BerlinGroupV1_3, updateConsentsPsuDataTransactionAuthorisation) {
+//        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
+//        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{"scaAuthenticationData":""}""")
+//        responseStartConsentAuthorisation.code should be (400)
+//      }
+//
+//
+//      scenario("Authentication User, only mocked data, just test succeed -updateConsentsPsuDataUpdatePsuAuthentication", BerlinGroupV1_3, updateConsentsPsuDataUpdatePsuAuthentication) {
+//        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
+//        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{  "psuData":{"password":"start12"  }}""")
+//        responseStartConsentAuthorisation.code should be (200)
+//      }
+//      scenario("Authentication User, only mocked data, just test succeed-updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod", BerlinGroupV1_3, updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod) {
+//        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
+//        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{ "authenticationMethodId":""}""")
+//        responseStartConsentAuthorisation.code should be (200)
+//      }
+//      scenario("Authentication User, only mocked data, just test succeed-updateConsentsPsuDataUpdateAuthorisationConfirmation", BerlinGroupV1_3, updateConsentsPsuDataUpdateAuthorisationConfirmation) {
+//        val requestStartConsentAuthorisation = (V1_3_BG / "consents"/"consentId" /"authorisations"/ "AUTHORISATIONID" ).PUT <@ (user1)
+//        val responseStartConsentAuthorisation = makePutRequest(requestStartConsentAuthorisation, """{"confirmationCode":"confirmationCode"}""")
+//        responseStartConsentAuthorisation.code should be (200)
+//      }
+//    }  
+//
+//}

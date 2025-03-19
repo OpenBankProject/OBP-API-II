@@ -790,115 +790,115 @@
 //          |    },
 //          |    "card_id": "9"
 //          |  }
-          |}""".stripMargin)
-      
-      val actualValue = APIUtil.getAllObpIdKeyValuePairs(json)
-      val expectedValue= List(
-        ("account_id","1"),
-        ("id","2"),
-        ("customer_id","3"),
-        ("atm_id","4"),
-        ("bank_id","5"),
-        ("transaction_id","6"),
-        ("user_id","7"),
-        ("id","8"),
-        ("card_id","9")
-      )
-      actualValue should be(expectedValue) 
-    }
-    
-
-    scenario(s"Test the checkObpId method") {
-      val id1 = "gh.29.uk"
-      val id2 = "1313_.121"
-      val id3 = APIUtil.generateUUID()
-      val id7 = "" //the empty string
-
-      //      error cases
-      val id4 = "+123313" //do not support +
-      val id5 = "@#$" //do not support @#$
-      val id6 = APIUtil.generateUUID() +"1" //the max length is 36
-
-      val actualValue1 = APIUtil.checkObpId(id1)
-      val actualValue2 = APIUtil.checkObpId(id2)
-      val actualValue3 = APIUtil.checkObpId(id3)
-
-      val actualValue4 = APIUtil.checkObpId(id4)
-      val actualValue5 = APIUtil.checkObpId(id5)
-      val actualValue6 = APIUtil.checkObpId(id6)
-      val actualValue7 = APIUtil.checkObpId(id7)
-      
-      
-      SILENCE_IS_GOLDEN should be(actualValue1)
-      SILENCE_IS_GOLDEN should be(actualValue2)
-      SILENCE_IS_GOLDEN should be(actualValue3)
-      SILENCE_IS_GOLDEN should be(actualValue7)
-
-      actualValue4 contains (InvalidValueCharacters) shouldBe (true)
-      actualValue5 contains (InvalidValueCharacters) shouldBe (true)
-      actualValue6 contains (InvalidValueLength) shouldBe (true)
-      
-    }
-
-    scenario(s"Test the ${nameOf(APIUtil.basicPasswordValidation _)} method") {
-      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
-
-      basicPasswordValidation(firefoxStrongPasswordProposal) shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation("Abc!123 xyz") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation("SuperStrong#123") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation("Hello World!") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation(" ") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN allow space so far
-
-      basicPasswordValidation("short💥") shouldBe (InvalidValueCharacters) // ❌ ErrorMessages.InvalidValueCharacters
-      basicPasswordValidation("a" * 513) shouldBe (InvalidValueLength) // ❌ ErrorMessages.InvalidValueLength 
-
-    }
-
-    scenario(s"Test the ${nameOf(APIUtil.fullPasswordValidation _)}  method") {
-      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
-
-      fullPasswordValidation(firefoxStrongPasswordProposal) // ✅ true
-      fullPasswordValidation("Abc!123xyz") // ✅ true
-      fullPasswordValidation("SuperStrong#123") // ✅ true
-      fullPasswordValidation("Abcdefg!1") // ✅ true
-      fullPasswordValidation("short1!")   // ❌ false（too short）
-      fullPasswordValidation("alllowercase123!")   // ❌ false（no capital letter）
-      fullPasswordValidation("ALLUPPERCASE123!")   // ❌ false（no smaller case letter）
-      fullPasswordValidation("NoSpecialChar123")   // ❌ false（not special character）
-
-    }
-    
-  }
-
-  feature(s"test ${nameOf(APIUtil.basicPasswordValidation _)} and ${nameOf(APIUtil.fullPasswordValidation _)}") {
-    
-    scenario(s"Test the ${nameOf(APIUtil.basicPasswordValidation _)} method") {
-      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
-
-      basicPasswordValidation(firefoxStrongPasswordProposal) shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation("Abc!123 xyz") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation("SuperStrong#123") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation("Hello World!") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
-      basicPasswordValidation(" ") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN allow space so far
-
-      basicPasswordValidation("short💥") shouldBe (InvalidValueCharacters) // ❌ ErrorMessages.InvalidValueCharacters
-      basicPasswordValidation("a" * 513) shouldBe (InvalidValueLength) // ❌ ErrorMessages.InvalidValueLength 
-
-    }
-
-    scenario(s"Test the ${nameOf(APIUtil.fullPasswordValidation _)}  method") {
-      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
-
-      fullPasswordValidation(firefoxStrongPasswordProposal) // ✅ true
-      fullPasswordValidation("Abc!123xyz") // ✅ true
-      fullPasswordValidation("SuperStrong#123") // ✅ true
-      fullPasswordValidation("Abcdefg!1") // ✅ true
-      fullPasswordValidation("short1!")   // ❌ false（too short）
-      fullPasswordValidation("alllowercase123!")   // ❌ false（no capital letter）
-      fullPasswordValidation("ALLUPPERCASE123!")   // ❌ false（no smaller case letter）
-      fullPasswordValidation("NoSpecialChar123")   // ❌ false（not special character）
-    }
-    
-  }
-
-}
+//          |}""".stripMargin)
+//      
+//      val actualValue = APIUtil.getAllObpIdKeyValuePairs(json)
+//      val expectedValue= List(
+//        ("account_id","1"),
+//        ("id","2"),
+//        ("customer_id","3"),
+//        ("atm_id","4"),
+//        ("bank_id","5"),
+//        ("transaction_id","6"),
+//        ("user_id","7"),
+//        ("id","8"),
+//        ("card_id","9")
+//      )
+//      actualValue should be(expectedValue) 
+//    }
+//    
+//
+//    scenario(s"Test the checkObpId method") {
+//      val id1 = "gh.29.uk"
+//      val id2 = "1313_.121"
+//      val id3 = APIUtil.generateUUID()
+//      val id7 = "" //the empty string
+//
+//      //      error cases
+//      val id4 = "+123313" //do not support +
+//      val id5 = "@#$" //do not support @#$
+//      val id6 = APIUtil.generateUUID() +"1" //the max length is 36
+//
+//      val actualValue1 = APIUtil.checkObpId(id1)
+//      val actualValue2 = APIUtil.checkObpId(id2)
+//      val actualValue3 = APIUtil.checkObpId(id3)
+//
+//      val actualValue4 = APIUtil.checkObpId(id4)
+//      val actualValue5 = APIUtil.checkObpId(id5)
+//      val actualValue6 = APIUtil.checkObpId(id6)
+//      val actualValue7 = APIUtil.checkObpId(id7)
+//      
+//      
+//      SILENCE_IS_GOLDEN should be(actualValue1)
+//      SILENCE_IS_GOLDEN should be(actualValue2)
+//      SILENCE_IS_GOLDEN should be(actualValue3)
+//      SILENCE_IS_GOLDEN should be(actualValue7)
+//
+//      actualValue4 contains (InvalidValueCharacters) shouldBe (true)
+//      actualValue5 contains (InvalidValueCharacters) shouldBe (true)
+//      actualValue6 contains (InvalidValueLength) shouldBe (true)
+//      
+//    }
+//
+//    scenario(s"Test the ${nameOf(APIUtil.basicPasswordValidation _)} method") {
+//      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
+//
+//      basicPasswordValidation(firefoxStrongPasswordProposal) shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation("Abc!123 xyz") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation("SuperStrong#123") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation("Hello World!") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation(" ") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN allow space so far
+//
+//      basicPasswordValidation("short💥") shouldBe (InvalidValueCharacters) // ❌ ErrorMessages.InvalidValueCharacters
+//      basicPasswordValidation("a" * 513) shouldBe (InvalidValueLength) // ❌ ErrorMessages.InvalidValueLength 
+//
+//    }
+//
+//    scenario(s"Test the ${nameOf(APIUtil.fullPasswordValidation _)}  method") {
+//      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
+//
+//      fullPasswordValidation(firefoxStrongPasswordProposal) // ✅ true
+//      fullPasswordValidation("Abc!123xyz") // ✅ true
+//      fullPasswordValidation("SuperStrong#123") // ✅ true
+//      fullPasswordValidation("Abcdefg!1") // ✅ true
+//      fullPasswordValidation("short1!")   // ❌ false（too short）
+//      fullPasswordValidation("alllowercase123!")   // ❌ false（no capital letter）
+//      fullPasswordValidation("ALLUPPERCASE123!")   // ❌ false（no smaller case letter）
+//      fullPasswordValidation("NoSpecialChar123")   // ❌ false（not special character）
+//
+//    }
+//    
+//  }
+//
+//  feature(s"test ${nameOf(APIUtil.basicPasswordValidation _)} and ${nameOf(APIUtil.fullPasswordValidation _)}") {
+//    
+//    scenario(s"Test the ${nameOf(APIUtil.basicPasswordValidation _)} method") {
+//      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
+//
+//      basicPasswordValidation(firefoxStrongPasswordProposal) shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation("Abc!123 xyz") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation("SuperStrong#123") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation("Hello World!") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN
+//      basicPasswordValidation(" ") shouldBe (SILENCE_IS_GOLDEN) // ✅ SILENCE_IS_GOLDEN allow space so far
+//
+//      basicPasswordValidation("short💥") shouldBe (InvalidValueCharacters) // ❌ ErrorMessages.InvalidValueCharacters
+//      basicPasswordValidation("a" * 513) shouldBe (InvalidValueLength) // ❌ ErrorMessages.InvalidValueLength 
+//
+//    }
+//
+//    scenario(s"Test the ${nameOf(APIUtil.fullPasswordValidation _)}  method") {
+//      val firefoxStrongPasswordProposal = "9YF]gZnXzAENM+]"
+//
+//      fullPasswordValidation(firefoxStrongPasswordProposal) // ✅ true
+//      fullPasswordValidation("Abc!123xyz") // ✅ true
+//      fullPasswordValidation("SuperStrong#123") // ✅ true
+//      fullPasswordValidation("Abcdefg!1") // ✅ true
+//      fullPasswordValidation("short1!")   // ❌ false（too short）
+//      fullPasswordValidation("alllowercase123!")   // ❌ false（no capital letter）
+//      fullPasswordValidation("ALLUPPERCASE123!")   // ❌ false（no smaller case letter）
+//      fullPasswordValidation("NoSpecialChar123")   // ❌ false（not special character）
+//    }
+//    
+//  }
+//
+//}

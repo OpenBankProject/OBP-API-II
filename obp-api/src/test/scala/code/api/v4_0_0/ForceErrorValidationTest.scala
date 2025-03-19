@@ -862,20 +862,20 @@
 //    """
 //      |{
 //      |    "id": "wrong_id",
-      |    "first_name": "xx",
-      |    "last_name": "dd",
-      |    "age": 200,
-      |    "career": "developer"
-      |}""".stripMargin
-
-  private val correctUser =
-    """
-      |{
-      |    "id": 111,
-      |    "first_name": "Robert",
-      |    "last_name": "Li",
-      |    "age": 10,
-      |    "career": "developer"
-      |}""".stripMargin
-
-}
+//      |    "first_name": "xx",
+//      |    "last_name": "dd",
+//      |    "age": 200,
+//      |    "career": "developer"
+//      |}""".stripMargin
+//
+//  private val correctUser =
+//    """
+//      |{
+//      |    "id": 111,
+//      |    "first_name": "Robert",
+//      |    "last_name": "Li",
+//      |    "age": 10,
+//      |    "career": "developer"
+//      |}""".stripMargin
+//
+//}

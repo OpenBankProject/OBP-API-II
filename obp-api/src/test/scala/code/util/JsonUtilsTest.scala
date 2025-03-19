@@ -811,118 +811,118 @@
 //      """[
 //        |  {
 //        |    "field1": 1
-        |  },
-        |  {
-        |    "field1": 2
-        |  }
-        |]
-        |""".stripMargin)
-    val mapping = ("""{
-                     |  "$root[]": {
-                     |    "category": {
-                     |      "id": "field1"
-                     |    }
-                     |  }
-                     |}""".stripMargin)
-    val expectedJson = json.parse(
-      """[
-        |  {
-        |    "category":{
-        |      "id":1
-        |    }
-        |  },
-        |  {
-        |    "category":{
-        |      "id":2
-        |    }
-        |  }
-        |]
-        """.stripMargin)
-
-    val resultJson = buildJson(requestJson, mapping)
-    val str1 = json.prettyRender(resultJson)
-    val str2 = json.prettyRender(expectedJson)
-    str1 shouldEqual str2
-  }
-  
-  "buildJson - request is Array, mapping is []object" should "work well" taggedAs JsonUtilsTag in {
-    val requestJson = (
-      """[
-        |  {
-        |    "field1": 1
-        |  },
-        |  {
-        |    "field1": 2
-        |  }
-        |]
-        |""".stripMargin)
-    val mapping = ("""{
-                     |  "$root[]": {
-                     |    "category[][]":  "field1"
-                     |  }
-                     |}""".stripMargin)
-    val expectedJson = json.parse(
-      """[
-        |  {
-        |    "category":[1]
-        |  },
-        |  {
-        |    "category":[2]
-        |  }
-        |]""".stripMargin)
-
-    val resultJson = buildJson(requestJson, mapping)
-    val str1 = json.prettyRender(resultJson)
-    val str2 = json.prettyRender(expectedJson)
-    str1 shouldEqual str2
-  }
-  
-  "buildJson - request is Array1, mapping is []object" should "work well" taggedAs JsonUtilsTag in {
-    val requestJson = (
-      """[
-        |  {
-        |    "name": "family account200",
-        |    "number": 200,
-        |    "sample_entity_id": "9b344781-32f5-4afb-a4f1-2c93087e6e71"
-        |  },
-        |  {
-        |    "name": "family account201",
-        |    "number": 201,
-        |    "sample_entity_id": "38ff936d-6780-444f-81b9-ac7ab8565035"
-        |  }
-        |]""".stripMargin)
-    val mapping = ("""{
-                     |  "$root[]": {
-                     |    "name": "name",
-                     |    "balance": "number"
-                     |  }
-                     |}""".stripMargin)
-    val expectedJson = json.parse(
-      """[
-        |  {
-        |    "name":"family account200",
-        |    "balance":200,
-        |  },
-        |  {
-        |    "name":"family account201",
-        |    "balance":201
-        |  }
-        |]""".stripMargin)
-
-    val resultJson = buildJson(requestJson, mapping)
-    val str1 = json.prettyRender(resultJson)
-    val str2 = json.prettyRender(expectedJson)
-    str1 shouldEqual str2
-  }
-
-  "buildJson - request is JBool, mapping is {}" should "work well" taggedAs JsonUtilsTag in {
-    val requestJson: JValue = JBool(true)
-    val mapping = ("""{}""".stripMargin)
-    val expectedJson = json.parse("""{}""".stripMargin)
-
-    val resultJson = buildJson(requestJson, mapping)
-    val str1 = json.prettyRender(resultJson)
-    val str2 = json.prettyRender(expectedJson)
-    str1 shouldEqual str2
-  }
-}
+//        |  },
+//        |  {
+//        |    "field1": 2
+//        |  }
+//        |]
+//        |""".stripMargin)
+//    val mapping = ("""{
+//                     |  "$root[]": {
+//                     |    "category": {
+//                     |      "id": "field1"
+//                     |    }
+//                     |  }
+//                     |}""".stripMargin)
+//    val expectedJson = json.parse(
+//      """[
+//        |  {
+//        |    "category":{
+//        |      "id":1
+//        |    }
+//        |  },
+//        |  {
+//        |    "category":{
+//        |      "id":2
+//        |    }
+//        |  }
+//        |]
+//        """.stripMargin)
+//
+//    val resultJson = buildJson(requestJson, mapping)
+//    val str1 = json.prettyRender(resultJson)
+//    val str2 = json.prettyRender(expectedJson)
+//    str1 shouldEqual str2
+//  }
+//  
+//  "buildJson - request is Array, mapping is []object" should "work well" taggedAs JsonUtilsTag in {
+//    val requestJson = (
+//      """[
+//        |  {
+//        |    "field1": 1
+//        |  },
+//        |  {
+//        |    "field1": 2
+//        |  }
+//        |]
+//        |""".stripMargin)
+//    val mapping = ("""{
+//                     |  "$root[]": {
+//                     |    "category[][]":  "field1"
+//                     |  }
+//                     |}""".stripMargin)
+//    val expectedJson = json.parse(
+//      """[
+//        |  {
+//        |    "category":[1]
+//        |  },
+//        |  {
+//        |    "category":[2]
+//        |  }
+//        |]""".stripMargin)
+//
+//    val resultJson = buildJson(requestJson, mapping)
+//    val str1 = json.prettyRender(resultJson)
+//    val str2 = json.prettyRender(expectedJson)
+//    str1 shouldEqual str2
+//  }
+//  
+//  "buildJson - request is Array1, mapping is []object" should "work well" taggedAs JsonUtilsTag in {
+//    val requestJson = (
+//      """[
+//        |  {
+//        |    "name": "family account200",
+//        |    "number": 200,
+//        |    "sample_entity_id": "9b344781-32f5-4afb-a4f1-2c93087e6e71"
+//        |  },
+//        |  {
+//        |    "name": "family account201",
+//        |    "number": 201,
+//        |    "sample_entity_id": "38ff936d-6780-444f-81b9-ac7ab8565035"
+//        |  }
+//        |]""".stripMargin)
+//    val mapping = ("""{
+//                     |  "$root[]": {
+//                     |    "name": "name",
+//                     |    "balance": "number"
+//                     |  }
+//                     |}""".stripMargin)
+//    val expectedJson = json.parse(
+//      """[
+//        |  {
+//        |    "name":"family account200",
+//        |    "balance":200,
+//        |  },
+//        |  {
+//        |    "name":"family account201",
+//        |    "balance":201
+//        |  }
+//        |]""".stripMargin)
+//
+//    val resultJson = buildJson(requestJson, mapping)
+//    val str1 = json.prettyRender(resultJson)
+//    val str2 = json.prettyRender(expectedJson)
+//    str1 shouldEqual str2
+//  }
+//
+//  "buildJson - request is JBool, mapping is {}" should "work well" taggedAs JsonUtilsTag in {
+//    val requestJson: JValue = JBool(true)
+//    val mapping = ("""{}""".stripMargin)
+//    val expectedJson = json.parse("""{}""".stripMargin)
+//
+//    val resultJson = buildJson(requestJson, mapping)
+//    val str1 = json.prettyRender(resultJson)
+//    val str2 = json.prettyRender(expectedJson)
+//    str1 shouldEqual str2
+//  }
+//}

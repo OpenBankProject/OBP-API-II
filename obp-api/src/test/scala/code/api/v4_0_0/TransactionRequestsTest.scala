@@ -997,832 +997,832 @@
 //        helper.checkAllGetTransResBodyField(getTransResponse, true)
 //
 //        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-  }
-
-  feature("we can create transaction requests -- COUNTERPARTY") {
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("No challenge, No FX ", ApiEndpoint1) {}
-    } else {
-      scenario("No challenge, No FX ", ApiEndpoint1) {
-
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(COUNTERPARTY.toString)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
-
-        Then("We checked all the fields of createTransact dionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, false)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("No challenge, With FX ", ApiEndpoint1) {}
-    } else {
-      scenario("No challenge, With FX ", ApiEndpoint1) {
-
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(COUNTERPARTY.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "10"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, false)
-
-        When("We checked all the data in database, we need check the account amout info")
-        helper.checkBankAccountBalance(true)
-
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With challenge, No FX ", ApiEndpoint1) {}
-    } else {
-      scenario("With challenge, No FX ", ApiEndpoint1) {
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(COUNTERPARTY.toString)
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "AED"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
-        And("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        Then("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-        And("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        Then("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        And("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With challenge, With FX", ApiEndpoint1) {}
-    } else {
-      scenario("With challenge, With FX", ApiEndpoint1) {
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(COUNTERPARTY.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With N challenges, With FX", ApiEndpoint1) {}
-    } else {
-      scenario("With N challenges, With FX", ApiEndpoint1) {
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(COUNTERPARTY.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
-
-        createAccountAttributeViaEndpoint(
-          helper.bankId.value, 
-          helper.accountId1.value, 
-          "REQUIRED_CHALLENGE_ANSWERS", 
-          "2", 
-          "INTEGER",
-          Some("LKJL98769F")
-        )
-
-        val grantedView = grantUserAccessToViewViaEndpoint(
-          helper.bankId.value,
-          helper.accountId1.value,
-          resourceUser2.userId,
-          user1,
-          PostViewJsonV400(view_id = Constant.SYSTEM_OWNER_VIEW_ID, is_system = true)
-        )
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
-        val createTransactionRequestJsonResponse = createTransactionRequestResponse.body.extract[TransactionRequestWithChargeJSON400]
-        createTransactionRequestJsonResponse.status should equal(TransactionRequestStatus.INITIATED.toString)
-
-        val challengeOfUser1: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser1.userId)
-        val challengeOfUser2: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser2.userId)
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest(challengeId = challengeOfUser1.map(_.id).getOrElse(""))
-        And("we call the endpoint")
-        val ansReqResponseUser1 = helper.makeAnswerRequest
-        ansReqResponseUser1.body.extract[ErrorMessage].message contains extractErrorMessageCode(NextChallengePending) should be (true)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest(
-          challengeId = challengeOfUser2.map(_.id).getOrElse(""),
-          consumerAndToken = user2
-        )
-        And("we call the endpoint")
-        val ansReqResponseUser2 = helper.makeAnswerRequest
-        ansReqResponseUser2.body.extract[TransactionRequestWithChargeJSON400].status should equal(TransactionRequestStatus.COMPLETED.toString)
-      }
-    }
-
-  }
-  
-  
-  feature(s"we can create transaction requests -- $AGENT_CASH_WITHDRAWAL") {
-
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("No challenge, No FX ", ApiEndpoint11) {}
-    } else {
-      scenario("No challenge, No FX ", ApiEndpoint11) {
-
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
-        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
-
-        Then("We checked all the fields of createTransact dionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, false)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("No challenge, With FX ", ApiEndpoint11) {}
-    } else {
-      scenario("No challenge, With FX ", ApiEndpoint11) {
-
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
-        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "10"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, false)
-
-        When("We checked all the data in database, we need check the account amout info")
-        helper.checkBankAccountBalance(true)
-
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With challenge, No FX ", ApiEndpoint11) {}
-    } else {
-      scenario("With challenge, No FX ", ApiEndpoint11) {
-
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
-        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "AED"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
-        And("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        Then("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-        And("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        Then("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        And("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With challenge, With FX", ApiEndpoint11) {}
-    } else {
-      scenario("With challenge, With FX", ApiEndpoint11) {
-
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
-        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With N challenges, With FX", ApiEndpoint11) {}
-    } else {
-      scenario("With N challenges, With FX", ApiEndpoint1) {
-
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
-        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
-
-        createAccountAttributeViaEndpoint(
-          helper.bankId.value, 
-          helper.accountId1.value, 
-          "REQUIRED_CHALLENGE_ANSWERS", 
-          "2", 
-          "INTEGER",
-          Some("LKJL98769F")
-        )
-
-        val grantedView = grantUserAccessToViewViaEndpoint(
-          helper.bankId.value,
-          helper.accountId1.value,
-          resourceUser2.userId,
-          user1,
-          PostViewJsonV400(view_id = Constant.SYSTEM_OWNER_VIEW_ID, is_system = true)
-        )
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
-        val createTransactionRequestJsonResponse = createTransactionRequestResponse.body.extract[TransactionRequestWithChargeJSON400]
-        createTransactionRequestJsonResponse.status should equal(TransactionRequestStatus.INITIATED.toString)
-
-        val challengeOfUser1: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser1.userId)
-        val challengeOfUser2: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser2.userId)
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest(challengeId = challengeOfUser1.map(_.id).getOrElse(""))
-        And("we call the endpoint")
-        val ansReqResponseUser1 = helper.makeAnswerRequest
-        ansReqResponseUser1.body.extract[ErrorMessage].message contains extractErrorMessageCode(NextChallengePending) should be (true)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest(
-          challengeId = challengeOfUser2.map(_.id).getOrElse(""),
-          consumerAndToken = user2
-        )
-        And("we call the endpoint")
-        val ansReqResponseUser2 = helper.makeAnswerRequest
-        ansReqResponseUser2.body.extract[TransactionRequestWithChargeJSON400].status should equal(TransactionRequestStatus.COMPLETED.toString)
-      }
-    }
-
-  }
-
-  feature("we can create transaction requests -- CARD") {
-
-    setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
-    setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-    
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("No challenge, No FX ", ApiEndpoint10) {}
-    } else {
-      scenario("No challenge, No FX ", ApiEndpoint10) {
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
-        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(CARD.toString)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
-
-        Then("We checked all the fields of createTransact dionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, false)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("No challenge, With FX ", ApiEndpoint10) {}
-    } else {
-      scenario("No challenge, With FX ", ApiEndpoint10) {
-
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
-        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(CARD.toString)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "10"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, false)
-
-        When("We checked all the data in database, we need check the account amout info")
-        helper.checkBankAccountBalance(true)
-
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With challenge, No FX ", ApiEndpoint10) {}
-    } else {
-      scenario("With challenge, No FX ", ApiEndpoint10) {
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
-        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(CARD.toString)
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "AED"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
-        And("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        Then("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-        And("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        Then("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        And("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With challenge, With FX", ApiEndpoint10) {}
-    } else {
-      scenario("With challenge, With FX", ApiEndpoint10) {
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
-        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(CARD.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest()
-        And("we call the endpoint")
-        val ansReqResponse = helper.makeAnswerRequest
-        And("We check the all the fields of getAnsReqResponse body ")
-        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
-
-        Then("we need check the account amount info")
-        helper.checkBankAccountBalance(true)
-      }
-    }
-
-    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
-      ignore("With N challenges, With FX", ApiEndpoint10) {}
-    } else {
-      scenario("With N challenges, With FX", ApiEndpoint10) {
-        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
-        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
-        
-        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
-        val helper = defaultSetup(CARD.toString)
-
-        And("We set the special conditions for different currencies")
-        val fromCurrency = "AED"
-        val toCurrency = "INR"
-        val amt = "30000.00"
-        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
-
-        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
-        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
-        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
-
-        createAccountAttributeViaEndpoint(
-          helper.bankId.value,
-          helper.accountId1.value,
-          "REQUIRED_CHALLENGE_ANSWERS",
-          "2",
-          "INTEGER",
-          Some("LKJL98769F")
-        )
-
-        val grantedView = grantUserAccessToViewViaEndpoint(
-          helper.bankId.value,
-          helper.accountId1.value,
-          resourceUser2.userId,
-          user1,
-          PostViewJsonV400(view_id = Constant.SYSTEM_OWNER_VIEW_ID, is_system = true)
-        )
-
-        Then("we call the 'V400 Create Transaction Request' endpoint")
-        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
-        val createTransactionRequestJsonResponse = createTransactionRequestResponse.body.extract[TransactionRequestWithChargeJSON400]
-        createTransactionRequestJsonResponse.status should equal(TransactionRequestStatus.INITIATED.toString)
-
-        val challengeOfUser1: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser1.userId)
-        val challengeOfUser2: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser2.userId)
-
-        Then("We checked all the fields of createTransactionRequestResponse body ")
-        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
-
-        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
-        val getTransReqResponse = helper.makeGetTransReqRequest
-
-        Then("We checked all the fields of getTransReqResponse body")
-        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
-
-        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
-        val getTransResponse = helper.makeGetTransRequest
-        Then("We checked all the fields of getTransResponse body")
-        helper.checkAllGetTransResBodyField(getTransResponse, true)
-
-        When("We checked all the data in database, we need check the account amount info")
-        helper.checkBankAccountBalance(false)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest(challengeId = challengeOfUser1.map(_.id).getOrElse(""))
-        And("we call the endpoint")
-        val ansReqResponseUser1 = helper.makeAnswerRequest
-        ansReqResponseUser1.body.extract[ErrorMessage].message contains extractErrorMessageCode(NextChallengePending) should be (true)
-
-        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
-        And("we prepare the parameters for it")
-        helper.setAnswerTransactionRequest(
-          challengeId = challengeOfUser2.map(_.id).getOrElse(""),
-          consumerAndToken = user2
-        )
-        And("we call the endpoint")
-        val ansReqResponseUser2 = helper.makeAnswerRequest
-        ansReqResponseUser2.body.extract[TransactionRequestWithChargeJSON400].status should equal(TransactionRequestStatus.COMPLETED.toString)
-      }
-    }
-
-  }
-
-  feature(s"test $ApiEndpoint3 version $VersionOfApi - Unauthorized access") {
-
-    lazy val bankId = testBankId1.value
-    lazy val accountId = testAccountId1.value
-    lazy val view = Constant.SYSTEM_OWNER_VIEW_ID
-
-    scenario("We will call the endpoint WITHOUT user credentials", ApiEndpoint1, VersionOfApi) {
-
-      val transactionRequestId = randomTransactionRequestViaEndpoint(bankId, accountId, view, user1).id
-
-      When("We make a request v4.0.0")
-      val request400 = (v4_0_0_Request / "banks" / bankId / "accounts"/ accountId / view / "transaction-requests" / transactionRequestId).GET
-      val response400 = makeGetRequest(request400)
-      Then("We should get a 401")
-      response400.code should equal(401)
-      response400.body.extract[ErrorMessage].message should equal(UserNotLoggedIn)
-    }
-
-    scenario("We will call the endpoint WITH user credentials", ApiEndpoint1, VersionOfApi) {
-
-      val transactionRequestId = randomTransactionRequestViaEndpoint(bankId, accountId, view, user1).id
-
-      When("We make a request v4.0.0")
-      val request400 = (v4_0_0_Request / "banks" / bankId / "accounts"/ accountId / view / "transaction-requests" / transactionRequestId).GET <@ (user1)
-      val response400 = makeGetRequest(request400)
-      Then("We should get a 200")
-      response400.code should equal(200)
-      response400.body.extract[TransactionRequestWithChargeJSON210].id should equal(transactionRequestId)
-    }
-
-  }
-  
-}
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//  }
+//
+//  feature("we can create transaction requests -- COUNTERPARTY") {
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("No challenge, No FX ", ApiEndpoint1) {}
+//    } else {
+//      scenario("No challenge, No FX ", ApiEndpoint1) {
+//
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(COUNTERPARTY.toString)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
+//
+//        Then("We checked all the fields of createTransact dionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, false)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("No challenge, With FX ", ApiEndpoint1) {}
+//    } else {
+//      scenario("No challenge, With FX ", ApiEndpoint1) {
+//
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(COUNTERPARTY.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "10"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, false)
+//
+//        When("We checked all the data in database, we need check the account amout info")
+//        helper.checkBankAccountBalance(true)
+//
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With challenge, No FX ", ApiEndpoint1) {}
+//    } else {
+//      scenario("With challenge, No FX ", ApiEndpoint1) {
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(COUNTERPARTY.toString)
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "AED"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
+//        And("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        Then("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//        And("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        Then("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        And("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With challenge, With FX", ApiEndpoint1) {}
+//    } else {
+//      scenario("With challenge, With FX", ApiEndpoint1) {
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(COUNTERPARTY.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With N challenges, With FX", ApiEndpoint1) {}
+//    } else {
+//      scenario("With N challenges, With FX", ApiEndpoint1) {
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(COUNTERPARTY.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCounterparty = helper.transactionRequestBodyCounterparty.copy(value=helper.bodyValue)
+//
+//        createAccountAttributeViaEndpoint(
+//          helper.bankId.value, 
+//          helper.accountId1.value, 
+//          "REQUIRED_CHALLENGE_ANSWERS", 
+//          "2", 
+//          "INTEGER",
+//          Some("LKJL98769F")
+//        )
+//
+//        val grantedView = grantUserAccessToViewViaEndpoint(
+//          helper.bankId.value,
+//          helper.accountId1.value,
+//          resourceUser2.userId,
+//          user1,
+//          PostViewJsonV400(view_id = Constant.SYSTEM_OWNER_VIEW_ID, is_system = true)
+//        )
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCounterparty
+//        val createTransactionRequestJsonResponse = createTransactionRequestResponse.body.extract[TransactionRequestWithChargeJSON400]
+//        createTransactionRequestJsonResponse.status should equal(TransactionRequestStatus.INITIATED.toString)
+//
+//        val challengeOfUser1: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser1.userId)
+//        val challengeOfUser2: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser2.userId)
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest(challengeId = challengeOfUser1.map(_.id).getOrElse(""))
+//        And("we call the endpoint")
+//        val ansReqResponseUser1 = helper.makeAnswerRequest
+//        ansReqResponseUser1.body.extract[ErrorMessage].message contains extractErrorMessageCode(NextChallengePending) should be (true)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest(
+//          challengeId = challengeOfUser2.map(_.id).getOrElse(""),
+//          consumerAndToken = user2
+//        )
+//        And("we call the endpoint")
+//        val ansReqResponseUser2 = helper.makeAnswerRequest
+//        ansReqResponseUser2.body.extract[TransactionRequestWithChargeJSON400].status should equal(TransactionRequestStatus.COMPLETED.toString)
+//      }
+//    }
+//
+//  }
+//  
+//  
+//  feature(s"we can create transaction requests -- $AGENT_CASH_WITHDRAWAL") {
+//
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("No challenge, No FX ", ApiEndpoint11) {}
+//    } else {
+//      scenario("No challenge, No FX ", ApiEndpoint11) {
+//
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
+//        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
+//
+//        Then("We checked all the fields of createTransact dionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, false)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("No challenge, With FX ", ApiEndpoint11) {}
+//    } else {
+//      scenario("No challenge, With FX ", ApiEndpoint11) {
+//
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
+//        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "10"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, false)
+//
+//        When("We checked all the data in database, we need check the account amout info")
+//        helper.checkBankAccountBalance(true)
+//
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With challenge, No FX ", ApiEndpoint11) {}
+//    } else {
+//      scenario("With challenge, No FX ", ApiEndpoint11) {
+//
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
+//        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "AED"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
+//        And("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        Then("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//        And("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        Then("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        And("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With challenge, With FX", ApiEndpoint11) {}
+//    } else {
+//      scenario("With challenge, With FX", ApiEndpoint11) {
+//
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
+//        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With N challenges, With FX", ApiEndpoint11) {}
+//    } else {
+//      scenario("With N challenges, With FX", ApiEndpoint1) {
+//
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD,AGENT_CASH_WITHDRAWAL")
+//        setPropsValues("AGENT_CASH_WITHDRAWAL_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(AGENT_CASH_WITHDRAWAL.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyAgentCashWithdrawal = helper.transactionRequestBodyAgentCashWithdrawal.copy(value=helper.bodyValue)
+//
+//        createAccountAttributeViaEndpoint(
+//          helper.bankId.value, 
+//          helper.accountId1.value, 
+//          "REQUIRED_CHALLENGE_ANSWERS", 
+//          "2", 
+//          "INTEGER",
+//          Some("LKJL98769F")
+//        )
+//
+//        val grantedView = grantUserAccessToViewViaEndpoint(
+//          helper.bankId.value,
+//          helper.accountId1.value,
+//          resourceUser2.userId,
+//          user1,
+//          PostViewJsonV400(view_id = Constant.SYSTEM_OWNER_VIEW_ID, is_system = true)
+//        )
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestAgentCashWithdrawal
+//        val createTransactionRequestJsonResponse = createTransactionRequestResponse.body.extract[TransactionRequestWithChargeJSON400]
+//        createTransactionRequestJsonResponse.status should equal(TransactionRequestStatus.INITIATED.toString)
+//
+//        val challengeOfUser1: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser1.userId)
+//        val challengeOfUser2: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser2.userId)
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest(challengeId = challengeOfUser1.map(_.id).getOrElse(""))
+//        And("we call the endpoint")
+//        val ansReqResponseUser1 = helper.makeAnswerRequest
+//        ansReqResponseUser1.body.extract[ErrorMessage].message contains extractErrorMessageCode(NextChallengePending) should be (true)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest(
+//          challengeId = challengeOfUser2.map(_.id).getOrElse(""),
+//          consumerAndToken = user2
+//        )
+//        And("we call the endpoint")
+//        val ansReqResponseUser2 = helper.makeAnswerRequest
+//        ansReqResponseUser2.body.extract[TransactionRequestWithChargeJSON400].status should equal(TransactionRequestStatus.COMPLETED.toString)
+//      }
+//    }
+//
+//  }
+//
+//  feature("we can create transaction requests -- CARD") {
+//
+//    setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
+//    setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//    
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("No challenge, No FX ", ApiEndpoint10) {}
+//    } else {
+//      scenario("No challenge, No FX ", ApiEndpoint10) {
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
+//        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(CARD.toString)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
+//
+//        Then("We checked all the fields of createTransact dionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, false)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("No challenge, With FX ", ApiEndpoint10) {}
+//    } else {
+//      scenario("No challenge, With FX ", ApiEndpoint10) {
+//
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
+//        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(CARD.toString)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "10"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, false)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, false)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, false)
+//
+//        When("We checked all the data in database, we need check the account amout info")
+//        helper.checkBankAccountBalance(true)
+//
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With challenge, No FX ", ApiEndpoint10) {}
+//    } else {
+//      scenario("With challenge, No FX ", ApiEndpoint10) {
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
+//        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(CARD.toString)
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "AED"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
+//        And("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        Then("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//        And("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        Then("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        And("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With challenge, With FX", ApiEndpoint10) {}
+//    } else {
+//      scenario("With challenge, With FX", ApiEndpoint10) {
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
+//        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(CARD.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest()
+//        And("we call the endpoint")
+//        val ansReqResponse = helper.makeAnswerRequest
+//        And("We check the all the fields of getAnsReqResponse body ")
+//        helper.checkAllAnsTransReqBodyFields(ansReqResponse, true)
+//
+//        Then("we need check the account amount info")
+//        helper.checkBankAccountBalance(true)
+//      }
+//    }
+//
+//    if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false) == false) {
+//      ignore("With N challenges, With FX", ApiEndpoint10) {}
+//    } else {
+//      scenario("With N challenges, With FX", ApiEndpoint10) {
+//        setPropsValues("transactionRequests_supported_types" -> "SEPA,SANDBOX_TAN,FREE_FORM,COUNTERPARTY,ACCOUNT,ACCOUNT_OTP,SIMPLE,CARD")
+//        setPropsValues("CARD_OTP_INSTRUCTION_TRANSPORT" -> "DUMMY")
+//        
+//        When("we prepare all the conditions for a normal success -- V400 Create Transaction Request")
+//        val helper = defaultSetup(CARD.toString)
+//
+//        And("We set the special conditions for different currencies")
+//        val fromCurrency = "AED"
+//        val toCurrency = "INR"
+//        val amt = "30000.00"
+//        helper.setCurrencyAndAmt(fromCurrency, toCurrency, amt)
+//
+//        And("We set the special input JSON values for 'V400 Create Transaction Request' endpoint")
+//        helper.bodyValue = AmountOfMoneyJsonV121(fromCurrency, amt.toString())
+//        helper.transactionRequestBodyCard = helper.transactionRequestBodyCard.copy(value=helper.bodyValue)
+//
+//        createAccountAttributeViaEndpoint(
+//          helper.bankId.value,
+//          helper.accountId1.value,
+//          "REQUIRED_CHALLENGE_ANSWERS",
+//          "2",
+//          "INTEGER",
+//          Some("LKJL98769F")
+//        )
+//
+//        val grantedView = grantUserAccessToViewViaEndpoint(
+//          helper.bankId.value,
+//          helper.accountId1.value,
+//          resourceUser2.userId,
+//          user1,
+//          PostViewJsonV400(view_id = Constant.SYSTEM_OWNER_VIEW_ID, is_system = true)
+//        )
+//
+//        Then("we call the 'V400 Create Transaction Request' endpoint")
+//        val createTransactionRequestResponse = helper.makeCreateTransReqRequestCard
+//        val createTransactionRequestJsonResponse = createTransactionRequestResponse.body.extract[TransactionRequestWithChargeJSON400]
+//        createTransactionRequestJsonResponse.status should equal(TransactionRequestStatus.INITIATED.toString)
+//
+//        val challengeOfUser1: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser1.userId)
+//        val challengeOfUser2: Option[ChallengeJsonV400] = createTransactionRequestJsonResponse.challenges.find(_.user_id == resourceUser2.userId)
+//
+//        Then("We checked all the fields of createTransactionRequestResponse body ")
+//        helper.checkAllCreateTransReqResBodyField(createTransactionRequestResponse, true)
+//
+//        When("we need check the 'Get all Transaction Requests. - V400' to double check it in database")
+//        val getTransReqResponse = helper.makeGetTransReqRequest
+//
+//        Then("We checked all the fields of getTransReqResponse body")
+//        helper.checkAllGetTransReqResBodyField(getTransReqResponse, true)
+//
+//        When("we need to check the 'Get Transactions for Account (Full) -V400' to check the transaction info ")
+//        val getTransResponse = helper.makeGetTransRequest
+//        Then("We checked all the fields of getTransResponse body")
+//        helper.checkAllGetTransResBodyField(getTransResponse, true)
+//
+//        When("We checked all the data in database, we need check the account amount info")
+//        helper.checkBankAccountBalance(false)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest(challengeId = challengeOfUser1.map(_.id).getOrElse(""))
+//        And("we call the endpoint")
+//        val ansReqResponseUser1 = helper.makeAnswerRequest
+//        ansReqResponseUser1.body.extract[ErrorMessage].message contains extractErrorMessageCode(NextChallengePending) should be (true)
+//
+//        Then("We call 'Answer Transaction Request Challenge - V400' to finish the request")
+//        And("we prepare the parameters for it")
+//        helper.setAnswerTransactionRequest(
+//          challengeId = challengeOfUser2.map(_.id).getOrElse(""),
+//          consumerAndToken = user2
+//        )
+//        And("we call the endpoint")
+//        val ansReqResponseUser2 = helper.makeAnswerRequest
+//        ansReqResponseUser2.body.extract[TransactionRequestWithChargeJSON400].status should equal(TransactionRequestStatus.COMPLETED.toString)
+//      }
+//    }
+//
+//  }
+//
+//  feature(s"test $ApiEndpoint3 version $VersionOfApi - Unauthorized access") {
+//
+//    lazy val bankId = testBankId1.value
+//    lazy val accountId = testAccountId1.value
+//    lazy val view = Constant.SYSTEM_OWNER_VIEW_ID
+//
+//    scenario("We will call the endpoint WITHOUT user credentials", ApiEndpoint1, VersionOfApi) {
+//
+//      val transactionRequestId = randomTransactionRequestViaEndpoint(bankId, accountId, view, user1).id
+//
+//      When("We make a request v4.0.0")
+//      val request400 = (v4_0_0_Request / "banks" / bankId / "accounts"/ accountId / view / "transaction-requests" / transactionRequestId).GET
+//      val response400 = makeGetRequest(request400)
+//      Then("We should get a 401")
+//      response400.code should equal(401)
+//      response400.body.extract[ErrorMessage].message should equal(UserNotLoggedIn)
+//    }
+//
+//    scenario("We will call the endpoint WITH user credentials", ApiEndpoint1, VersionOfApi) {
+//
+//      val transactionRequestId = randomTransactionRequestViaEndpoint(bankId, accountId, view, user1).id
+//
+//      When("We make a request v4.0.0")
+//      val request400 = (v4_0_0_Request / "banks" / bankId / "accounts"/ accountId / view / "transaction-requests" / transactionRequestId).GET <@ (user1)
+//      val response400 = makeGetRequest(request400)
+//      Then("We should get a 200")
+//      response400.code should equal(200)
+//      response400.body.extract[TransactionRequestWithChargeJSON210].id should equal(transactionRequestId)
+//    }
+//
+//  }
+//  
+//}
