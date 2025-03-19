@@ -130,12 +130,11 @@
           <version>4.8.1</version>
           <configuration>
             <scalaVersion>${scala.compiler}</scalaVersion>
-            <charset>${project.build.sourceEncoding}</charset>
             <displayCmd>true</displayCmd>
             <jvmArgs>
               <jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg>
               <jvmArg>-Xms64m</jvmArg>
-              <jvmArg>-Xmx1024m</jvmArg>
+              <jvmArg>-Xmx4096m</jvmArg>
             </jvmArgs>
             <args>
               <arg>-unchecked</arg>
@@ -145,19 +144,14 @@
               <arg>-deprecation</arg>
               -->
               <arg>-Ypartial-unification</arg>
+              <arg>-encoding</arg>
+              <arg>${project.build.sourceEncoding}</arg>
             </args>
           </configuration>
           <executions>
             <execution>
               <goals>
                 <goal>compile</goal>
-                <goal>testCompile</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>scala-test-compile</id>
-              <phase>process-test-resources</phase>
-              <goals>
                 <goal>testCompile</goal>
               </goals>
             </execution>
