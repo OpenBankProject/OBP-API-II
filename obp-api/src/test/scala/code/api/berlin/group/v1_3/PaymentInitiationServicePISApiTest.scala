@@ -1,392 +1,392 @@
-package code.api.berlin.group.v1_3
-
-import code.api.BerlinGroup.ScaStatus
-import code.api.Constant
-import code.api.Constant.{SYSTEM_INITIATE_PAYMENTS_BERLIN_GROUP_VIEW_ID, SYSTEM_READ_TRANSACTIONS_BERLIN_GROUP_VIEW_ID}
-import code.api.berlin.group.v1_3.JSONFactory_BERLIN_GROUP_1_3.{CancellationJsonV13, InitiatePaymentResponseJson, StartPaymentAuthorisationJson}
-import code.api.berlin.group.v1_3.model.{PsuData, ScaStatusResponse, UpdatePsuAuthenticationResponse}
-import code.api.berlin.group.v1_3.JSONFactory_BERLIN_GROUP_1_3.{CancellationJsonV13, ErrorMessagesBG, InitiatePaymentResponseJson, StartPaymentAuthorisationJson}
-import code.api.builder.PaymentInitiationServicePISApi.APIMethods_PaymentInitiationServicePISApi
-import code.api.util.APIUtil.OAuth._
-import code.api.util.APIUtil.extractErrorMessageCode
-import code.api.util.ErrorMessages.{AuthorisationNotFound, InvalidJsonFormat, NotPositiveAmount, _}
-import code.model.dataAccess.{BankAccountRouting, MappedBankAccount}
-import code.setup.{APIResponse, DefaultUsers}
-import com.openbankproject.commons.model.enums.TransactionRequestTypes
-import com.openbankproject.commons.model.enums.TransactionRequestTypes._
-import com.openbankproject.commons.model.enums.PaymentServiceTypes
-import com.openbankproject.commons.model.enums.PaymentServiceTypes._
-import code.views.Views
-import com.github.dwickern.macros.NameOf.nameOf
-import com.openbankproject.commons.model.enums.AccountRoutingScheme
-import com.openbankproject.commons.model.{ErrorMessage, SepaCreditTransfers, SepaCreditTransfersBerlinGroupV13, ViewId}
-import net.liftweb.json.Serialization.write
-import net.liftweb.mapper.By
-import org.scalatest.Tag
-
-import scala.collection.immutable.List
-
-class PaymentInitiationServicePISApiTest extends BerlinGroupServerSetupV1_3 with DefaultUsers {
-
-  object PIS extends Tag("Payment Initiation Service (PIS)")
-  object initiatePayment extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.initiatePayments))
-  object getPaymentInformation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInformation))
-  object getPaymentInitiationStatus extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationStatus))
-  
-  object startPaymentAuthorisationTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationTransactionAuthorisation ))
-  object startPaymentAuthorisationUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationUpdatePsuAuthentication))
-  object startPaymentAuthorisationSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationSelectPsuAuthenticationMethod))
-  object getPaymentInitiationAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationAuthorisation))
-  object getPaymentInitiationScaStatus extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationScaStatus))
-  object updatePaymentPsuDataTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataTransactionAuthorisation))
-  object updatePaymentPsuDataUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataUpdatePsuAuthentication))
-  object updatePaymentPsuDataSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataSelectPsuAuthenticationMethod))
-  object updatePaymentPsuDataAuthorisationConfirmation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataAuthorisationConfirmation))
-
-  
-  object cancelPayment extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.cancelPayment))
-  object startPaymentInitiationCancellationAuthorisationTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationTransactionAuthorisation))
-  object startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication))
-  object startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod))
-  object getPaymentInitiationCancellationAuthorisationInformation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationCancellationAuthorisationInformation))
-  object getPaymentCancellationScaStatus extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentCancellationScaStatus))
-  object updatePaymentCancellationPsuDataTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataTransactionAuthorisation))
-  object updatePaymentCancellationPsuDataUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataUpdatePsuAuthentication))
-  object updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod))
-  object updatePaymentCancellationPsuDataAuthorisationConfirmation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataAuthorisationConfirmation))
-
-  feature(s"test the BG v1.3 -${initiatePayment.name}") {
-    scenario("Failed Case - Wrong Json format Body", BerlinGroupV1_3, PIS, initiatePayment) {
-      val wrongInitiatePaymentJson =
-        s"""{
-           |"instructedAmount1": {
-           |  "currency": "EUR",
-           |  "amount": "1234"
-           |},
-           |"creditorAccount": {
-           |  "iban": "DE75512108001245126199"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, wrongInitiatePaymentJson)
-      Then("We should get a 400 ")
-      response.code should equal(400)
-      val error = s"$InvalidJsonFormat The Json body should be the $SepaCreditTransfersBerlinGroupV13 "
-      And("error should be " + error)
-      response.body.extract[ErrorMessagesBG].tppMessages.head.text should startWith (error)
-    }
-    scenario("Failed Case - wrong amount", BerlinGroupV1_3, PIS, initiatePayment) {
-      val wrongAmountInitiatePaymentJson =
-        s"""{
-           | "debtorAccount": {
-           |   "iban": "123"
-           | },
-           |"instructedAmount": {
-           |  "currency": "EUR",
-           |  "amount": "-1234"
-           |},
-           |"creditorAccount": {
-           |  "iban": "DE75512108001245126199"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, wrongAmountInitiatePaymentJson)
-      Then("We should get a 400 ")
-      response.code should equal(400)
-      val error = s"${NotPositiveAmount} Current input is: '-1234'"
-      And("error should be " + error)
-      response.body.extract[ErrorMessagesBG].tppMessages.head.text contains extractErrorMessageCode(NotPositiveAmount) should be (true)
-    }
-    scenario("Successful case - small amount -- change the balance", BerlinGroupV1_3, PIS, initiatePayment) {
-      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
-      val acountRoutingIbanFrom = accountsRoutingIban.head
-      val acountRoutingIbanTo = accountsRoutingIban.last
-
-      val beforePaymentFromAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-      val beforePaymentToAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-
-      val initiatePaymentJson =
-        s"""{
-           | "debtorAccount": {
-           |   "iban": "${acountRoutingIbanFrom.accountRouting.address}"
-           | },
-           |"instructedAmount": {
-           |  "currency": "EUR",
-           |  "amount": "12"
-           |},
-           |"creditorAccount": {
-           |  "iban": "${acountRoutingIbanTo.accountRouting.address}"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-      
-      grantAccountAccess(acountRoutingIbanFrom)
-
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
-      Then("We should get a 201 ")
-      response.code should equal(201)
-      val payment = response.body.extract[InitiatePaymentResponseJson]
-      payment.transactionStatus should be ("ACCP")
-      payment.paymentId should not be null
-      payment._links.scaStatus should not be null
-
-
-      val afterPaymentFromAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-      val afterPaymentToAccountBalacne = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-
-      afterPaymentFromAccountBalance-beforePaymentFromAccountBalance should be (BigDecimal(-12))
-      afterPaymentToAccountBalacne-beforePaymentToAccountBalance should be (BigDecimal(12))
-    }
-    scenario("Successful case - big amount -- do not change the balance", BerlinGroupV1_3, PIS, initiatePayment) {
-      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
-      val acountRoutingIbanFrom = accountsRoutingIban.head
-      val acountRoutingIbanTo = accountsRoutingIban.last
-
-      val beforePaymentFromAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-      val beforePaymentToAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-
-      val initiatePaymentJson =
-        s"""{
-           | "debtorAccount": {
-           |   "iban": "${acountRoutingIbanFrom.accountRouting.address}"
-           | },
-           |"instructedAmount": {
-           |  "currency": "EUR",
-           |  "amount": "2001"
-           |},
-           |"creditorAccount": {
-           |  "iban": "${acountRoutingIbanTo.accountRouting.address}"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-
-      grantAccountAccess(acountRoutingIbanFrom)
-
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
-      Then("We should get a 201 ")
-      response.code should equal(201)
-      val payment = response.body.extract[InitiatePaymentResponseJson]
-      payment.transactionStatus should be ("RCVD")
-      payment.paymentId should not be null
-      payment._links.scaStatus should not be null
-
-      val afterPaymentFromAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-      val afterPaymentToAccountBalacne = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-
-      afterPaymentFromAccountBalance-beforePaymentFromAccountBalance should be (BigDecimal(0))
-      afterPaymentToAccountBalacne-beforePaymentToAccountBalance should be (BigDecimal(0))
-    }
-  }
-
-  private def grantAccountAccess(acountRoutingIbanFrom: BankAccountRouting) = {
-    org.scalameta.logger.elem(Views.views.vend.systemView(ViewId(SYSTEM_INITIATE_PAYMENTS_BERLIN_GROUP_VIEW_ID)))
-    Views.views.vend.systemView(ViewId(SYSTEM_INITIATE_PAYMENTS_BERLIN_GROUP_VIEW_ID)).flatMap(view =>
-      // Grant account access
-      Views.views.vend.grantAccessToSystemView(acountRoutingIbanFrom.bankId,
-        acountRoutingIbanFrom.accountId,
-        view,
-        resourceUser1
-      )
-    )
-  }
-
-  feature(s"test the BG v1.3 -${getPaymentInformation.name}") {
-    scenario("Successful case ", BerlinGroupV1_3, PIS, initiatePayment) {
-      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
-      val ibanFrom = accountsRoutingIban.head.accountRouting.address
-      val ibanTo = accountsRoutingIban.last.accountRouting.address
-
-      val initiatePaymentJson =
-        s"""{
-           | "debtorAccount": {
-           |   "iban": "${ibanFrom}"
-           | },
-           |"instructedAmount": {
-           |  "currency": "EUR",
-           |  "amount": "123"
-           |},
-           |"creditorAccount": {
-           |  "iban": "${ibanTo}"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-
-      grantAccountAccess(accountsRoutingIban.head)
-
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
-      Then("We should get a 201 ")
-      response.code should equal(201)
-      val payment = response.body.extract[InitiatePaymentResponseJson]
-      payment.transactionStatus should be ("ACCP")
-      payment.paymentId should not be null
-
-      Then(s"we test the ${getPaymentInformation.name}")
-      val paymentId = payment.paymentId
-      val requestGet = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId).GET <@ (user1)
-      val responseGet: APIResponse = makeGetRequest(requestGet)
-      responseGet.code should be (200)
-      responseGet.body.extract[SepaCreditTransfers].instructedAmount.currency should be ("EUR")
-      responseGet.body.extract[SepaCreditTransfers].instructedAmount.amount should be ("123")
-      responseGet.body.extract[SepaCreditTransfers].debtorAccount.iban should be (ibanFrom)
-      responseGet.body.extract[SepaCreditTransfers].creditorAccount.iban should be (ibanTo)
-
-
-    }
-  }
-  feature(s"test the BG v1.3 -${getPaymentInitiationStatus.name}") {
-    scenario("Successful case ", BerlinGroupV1_3, PIS, initiatePayment) {
-      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
-      val ibanFrom = accountsRoutingIban.head.accountRouting.address
-      val ibanTo = accountsRoutingIban.last.accountRouting.address
-
-      val initiatePaymentJson =
-        s"""{
-           | "debtorAccount": {
-           |   "iban": "${ibanFrom}"
-           | },
-           |"instructedAmount": {
-           |  "currency": "EUR",
-           |  "amount": "2001"
-           |},
-           |"creditorAccount": {
-           |  "iban": "${ibanTo}"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-
-      grantAccountAccess(accountsRoutingIban.head)
-
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
-      Then("We should get a 201 ")
-      response.code should equal(201)
-      val payment = response.body.extract[InitiatePaymentResponseJson]
-      payment.transactionStatus should be ("RCVD")
-      payment.paymentId should not be null
-      payment._links.scaStatus should not be null
-
-      Then(s"we test the ${getPaymentInitiationStatus.name}")
-      val paymentId = payment.paymentId
-      val requestGet = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "status").GET <@ (user1)
-      val responseGet: APIResponse = makeGetRequest(requestGet)
-      responseGet.code should be (200)
-      (responseGet.body \ "transactionStatus").extract[String] should be ("RCVD")
-      (responseGet.body \ "fundsAvailable").extract[Boolean] should be (true)
-    }
-  }
-  feature(s"test the BG v1.3 ${startPaymentAuthorisationTransactionAuthorisation.name} and ${getPaymentInitiationAuthorisation.name} and ${getPaymentInitiationScaStatus.name} and ${updatePaymentPsuDataTransactionAuthorisation.name}") {
-    scenario(s"${startPaymentAuthorisationTransactionAuthorisation.name} Failed Case - Wrong PaymentId", BerlinGroupV1_3, PIS, startPaymentAuthorisationTransactionAuthorisation) {
-     
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / "PAYMENT_ID" / "authorisations").POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, """{"scaAuthenticationData":"123"}""".stripMargin)
-      Then("We should get a 400 ")
-      response.code should equal(400)
-      response.body.extract[ErrorMessagesBG].tppMessages.head.text should startWith (InvalidTransactionRequestId)
-    }
-    scenario(s"Successful Case ", BerlinGroupV1_3, PIS, startPaymentAuthorisationTransactionAuthorisation) {
-      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString)).filterNot(_.bankId.value == "DEFAULT_BANK_ID_NOT_SET")
-      val acountRoutingIbanFrom = accountsRoutingIban.head
-      val acountRoutingIbanTo = accountsRoutingIban.last
-
-      val beforePaymentFromAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-      val beforePaymentToAccountBalance = MappedBankAccount.find(
-        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
-        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
-        .map(_.balance).openOrThrowException("Can not be empty here")
-
-      
-      val initiatePaymentJson =
-        s"""{
-           | "debtorAccount": {
-           |   "iban": "${acountRoutingIbanFrom.accountRouting.address}"
-           | },
-           |"instructedAmount": {
-           |  "currency": "EUR",
-           |  "amount": "2001"
-           |},
-           |"creditorAccount": {
-           |  "iban": "${acountRoutingIbanTo.accountRouting.address}"
-           |},
-           |"creditorName": "70charname"
-            }""".stripMargin
-
-      grantAccountAccess(accountsRoutingIban.head)
-
-      val requestInitiatePaymentJson = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
-      val responseInitiatePaymentJson: APIResponse = makePostRequest(requestInitiatePaymentJson, initiatePaymentJson)
-      Then("We should get a 201 ")
-      responseInitiatePaymentJson.code should equal(201)
-      val paymentResponseInitiatePaymentJson = responseInitiatePaymentJson.body.extract[InitiatePaymentResponseJson]
-      paymentResponseInitiatePaymentJson.transactionStatus should be ("RCVD")
-      paymentResponseInitiatePaymentJson.paymentId should not be null
-
-      val paymentId = paymentResponseInitiatePaymentJson.paymentId
-
-      Then(s"we test the ${startPaymentAuthorisationTransactionAuthorisation.name}")
-      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "authorisations").POST <@ (user1)
-      val response: APIResponse = makePostRequest(requestPost, """{"scaAuthenticationData":"123"}""".stripMargin)
-      Then("We should get a 201 ")
-      response.code should equal(201)
-      val startPaymentAuthorisationResponse = response.body.extract[StartPaymentAuthorisationJson]
-      startPaymentAuthorisationResponse.authorisationId should not be null
-      startPaymentAuthorisationResponse.psuMessage should be ("Please check your SMS at a mobile device.")
-      startPaymentAuthorisationResponse.scaStatus should be (ScaStatus.received.toString)
-      startPaymentAuthorisationResponse._links.scaStatus should not be null
-      
-      Then(s"We can test the ${getPaymentInitiationAuthorisation.name}")
-      val requestGetPaymentInitiationAuthorisation = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "authorisations").GET <@ (user1)
-      val responseGetPaymentInitiationAuthorisation: APIResponse = makeGetRequest(requestGetPaymentInitiationAuthorisation)
-      responseGetPaymentInitiationAuthorisation.code should be (200)
-      responseGetPaymentInitiationAuthorisation.body.extract[List[StartPaymentAuthorisationJson]].length > 0 should be (true)
-      val paymentInitiationAuthorisation = responseGetPaymentInitiationAuthorisation.body.extract[List[StartPaymentAuthorisationJson]].head
-      val authorisationId = paymentInitiationAuthorisation.authorisationId
-      paymentInitiationAuthorisation.scaStatus should be (ScaStatus.received.toString)
-
-      Then(s"We can test the ${getPaymentInitiationScaStatus.name}")
-      val requestGetPaymentInitiationScaStatus = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "authorisations" /authorisationId).GET <@ (user1)
-      val responseGetPaymentInitiationScaStatus: APIResponse = makeGetRequest(requestGetPaymentInitiationScaStatus)
-      responseGetPaymentInitiationScaStatus.code should be (200)
-      val paymentInitiationScaStatus = (responseGetPaymentInitiationScaStatus.body \ "scaStatus").extract[String]
-      paymentInitiationScaStatus should be (ScaStatus.received.toString)
-
-      Then(s"We can test the ${updatePaymentPsuDataTransactionAuthorisation.name}")
-      val updatePaymentPsuDataJsonBody = APIMethods_PaymentInitiationServicePISApi
-        .resourceDocs
-        .filter( _.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataTransactionAuthorisation)
+//package code.api.berlin.group.v1_3
+//
+//import code.api.BerlinGroup.ScaStatus
+//import code.api.Constant
+//import code.api.Constant.{SYSTEM_INITIATE_PAYMENTS_BERLIN_GROUP_VIEW_ID, SYSTEM_READ_TRANSACTIONS_BERLIN_GROUP_VIEW_ID}
+//import code.api.berlin.group.v1_3.JSONFactory_BERLIN_GROUP_1_3.{CancellationJsonV13, InitiatePaymentResponseJson, StartPaymentAuthorisationJson}
+//import code.api.berlin.group.v1_3.model.{PsuData, ScaStatusResponse, UpdatePsuAuthenticationResponse}
+//import code.api.berlin.group.v1_3.JSONFactory_BERLIN_GROUP_1_3.{CancellationJsonV13, ErrorMessagesBG, InitiatePaymentResponseJson, StartPaymentAuthorisationJson}
+//import code.api.builder.PaymentInitiationServicePISApi.APIMethods_PaymentInitiationServicePISApi
+//import code.api.util.APIUtil.OAuth._
+//import code.api.util.APIUtil.extractErrorMessageCode
+//import code.api.util.ErrorMessages.{AuthorisationNotFound, InvalidJsonFormat, NotPositiveAmount, _}
+//import code.model.dataAccess.{BankAccountRouting, MappedBankAccount}
+//import code.setup.{APIResponse, DefaultUsers}
+//import com.openbankproject.commons.model.enums.TransactionRequestTypes
+//import com.openbankproject.commons.model.enums.TransactionRequestTypes._
+//import com.openbankproject.commons.model.enums.PaymentServiceTypes
+//import com.openbankproject.commons.model.enums.PaymentServiceTypes._
+//import code.views.Views
+//import com.github.dwickern.macros.NameOf.nameOf
+//import com.openbankproject.commons.model.enums.AccountRoutingScheme
+//import com.openbankproject.commons.model.{ErrorMessage, SepaCreditTransfers, SepaCreditTransfersBerlinGroupV13, ViewId}
+//import net.liftweb.json.Serialization.write
+//import net.liftweb.mapper.By
+//import org.scalatest.Tag
+//
+//import scala.collection.immutable.List
+//
+//class PaymentInitiationServicePISApiTest extends BerlinGroupServerSetupV1_3 with DefaultUsers {
+//
+//  object PIS extends Tag("Payment Initiation Service (PIS)")
+//  object initiatePayment extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.initiatePayments))
+//  object getPaymentInformation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInformation))
+//  object getPaymentInitiationStatus extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationStatus))
+//  
+//  object startPaymentAuthorisationTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationTransactionAuthorisation ))
+//  object startPaymentAuthorisationUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationUpdatePsuAuthentication))
+//  object startPaymentAuthorisationSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationSelectPsuAuthenticationMethod))
+//  object getPaymentInitiationAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationAuthorisation))
+//  object getPaymentInitiationScaStatus extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationScaStatus))
+//  object updatePaymentPsuDataTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataTransactionAuthorisation))
+//  object updatePaymentPsuDataUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataUpdatePsuAuthentication))
+//  object updatePaymentPsuDataSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataSelectPsuAuthenticationMethod))
+//  object updatePaymentPsuDataAuthorisationConfirmation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataAuthorisationConfirmation))
+//
+//  
+//  object cancelPayment extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.cancelPayment))
+//  object startPaymentInitiationCancellationAuthorisationTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationTransactionAuthorisation))
+//  object startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication))
+//  object startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod))
+//  object getPaymentInitiationCancellationAuthorisationInformation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationCancellationAuthorisationInformation))
+//  object getPaymentCancellationScaStatus extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.getPaymentCancellationScaStatus))
+//  object updatePaymentCancellationPsuDataTransactionAuthorisation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataTransactionAuthorisation))
+//  object updatePaymentCancellationPsuDataUpdatePsuAuthentication extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataUpdatePsuAuthentication))
+//  object updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod))
+//  object updatePaymentCancellationPsuDataAuthorisationConfirmation extends Tag(nameOf(APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataAuthorisationConfirmation))
+//
+//  feature(s"test the BG v1.3 -${initiatePayment.name}") {
+//    scenario("Failed Case - Wrong Json format Body", BerlinGroupV1_3, PIS, initiatePayment) {
+//      val wrongInitiatePaymentJson =
+//        s"""{
+//           |"instructedAmount1": {
+//           |  "currency": "EUR",
+//           |  "amount": "1234"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "DE75512108001245126199"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, wrongInitiatePaymentJson)
+//      Then("We should get a 400 ")
+//      response.code should equal(400)
+//      val error = s"$InvalidJsonFormat The Json body should be the $SepaCreditTransfersBerlinGroupV13 "
+//      And("error should be " + error)
+//      response.body.extract[ErrorMessagesBG].tppMessages.head.text should startWith (error)
+//    }
+//    scenario("Failed Case - wrong amount", BerlinGroupV1_3, PIS, initiatePayment) {
+//      val wrongAmountInitiatePaymentJson =
+//        s"""{
+//           | "debtorAccount": {
+//           |   "iban": "123"
+//           | },
+//           |"instructedAmount": {
+//           |  "currency": "EUR",
+//           |  "amount": "-1234"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "DE75512108001245126199"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, wrongAmountInitiatePaymentJson)
+//      Then("We should get a 400 ")
+//      response.code should equal(400)
+//      val error = s"${NotPositiveAmount} Current input is: '-1234'"
+//      And("error should be " + error)
+//      response.body.extract[ErrorMessagesBG].tppMessages.head.text contains extractErrorMessageCode(NotPositiveAmount) should be (true)
+//    }
+//    scenario("Successful case - small amount -- change the balance", BerlinGroupV1_3, PIS, initiatePayment) {
+//      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
+//      val acountRoutingIbanFrom = accountsRoutingIban.head
+//      val acountRoutingIbanTo = accountsRoutingIban.last
+//
+//      val beforePaymentFromAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//      val beforePaymentToAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//
+//      val initiatePaymentJson =
+//        s"""{
+//           | "debtorAccount": {
+//           |   "iban": "${acountRoutingIbanFrom.accountRouting.address}"
+//           | },
+//           |"instructedAmount": {
+//           |  "currency": "EUR",
+//           |  "amount": "12"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "${acountRoutingIbanTo.accountRouting.address}"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//      
+//      grantAccountAccess(acountRoutingIbanFrom)
+//
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
+//      Then("We should get a 201 ")
+//      response.code should equal(201)
+//      val payment = response.body.extract[InitiatePaymentResponseJson]
+//      payment.transactionStatus should be ("ACCP")
+//      payment.paymentId should not be null
+//      payment._links.scaStatus should not be null
+//
+//
+//      val afterPaymentFromAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//      val afterPaymentToAccountBalacne = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//
+//      afterPaymentFromAccountBalance-beforePaymentFromAccountBalance should be (BigDecimal(-12))
+//      afterPaymentToAccountBalacne-beforePaymentToAccountBalance should be (BigDecimal(12))
+//    }
+//    scenario("Successful case - big amount -- do not change the balance", BerlinGroupV1_3, PIS, initiatePayment) {
+//      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
+//      val acountRoutingIbanFrom = accountsRoutingIban.head
+//      val acountRoutingIbanTo = accountsRoutingIban.last
+//
+//      val beforePaymentFromAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//      val beforePaymentToAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//
+//      val initiatePaymentJson =
+//        s"""{
+//           | "debtorAccount": {
+//           |   "iban": "${acountRoutingIbanFrom.accountRouting.address}"
+//           | },
+//           |"instructedAmount": {
+//           |  "currency": "EUR",
+//           |  "amount": "2001"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "${acountRoutingIbanTo.accountRouting.address}"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//
+//      grantAccountAccess(acountRoutingIbanFrom)
+//
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
+//      Then("We should get a 201 ")
+//      response.code should equal(201)
+//      val payment = response.body.extract[InitiatePaymentResponseJson]
+//      payment.transactionStatus should be ("RCVD")
+//      payment.paymentId should not be null
+//      payment._links.scaStatus should not be null
+//
+//      val afterPaymentFromAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//      val afterPaymentToAccountBalacne = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//
+//      afterPaymentFromAccountBalance-beforePaymentFromAccountBalance should be (BigDecimal(0))
+//      afterPaymentToAccountBalacne-beforePaymentToAccountBalance should be (BigDecimal(0))
+//    }
+//  }
+//
+//  private def grantAccountAccess(acountRoutingIbanFrom: BankAccountRouting) = {
+//    org.scalameta.logger.elem(Views.views.vend.systemView(ViewId(SYSTEM_INITIATE_PAYMENTS_BERLIN_GROUP_VIEW_ID)))
+//    Views.views.vend.systemView(ViewId(SYSTEM_INITIATE_PAYMENTS_BERLIN_GROUP_VIEW_ID)).flatMap(view =>
+//      // Grant account access
+//      Views.views.vend.grantAccessToSystemView(acountRoutingIbanFrom.bankId,
+//        acountRoutingIbanFrom.accountId,
+//        view,
+//        resourceUser1
+//      )
+//    )
+//  }
+//
+//  feature(s"test the BG v1.3 -${getPaymentInformation.name}") {
+//    scenario("Successful case ", BerlinGroupV1_3, PIS, initiatePayment) {
+//      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
+//      val ibanFrom = accountsRoutingIban.head.accountRouting.address
+//      val ibanTo = accountsRoutingIban.last.accountRouting.address
+//
+//      val initiatePaymentJson =
+//        s"""{
+//           | "debtorAccount": {
+//           |   "iban": "${ibanFrom}"
+//           | },
+//           |"instructedAmount": {
+//           |  "currency": "EUR",
+//           |  "amount": "123"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "${ibanTo}"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//
+//      grantAccountAccess(accountsRoutingIban.head)
+//
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
+//      Then("We should get a 201 ")
+//      response.code should equal(201)
+//      val payment = response.body.extract[InitiatePaymentResponseJson]
+//      payment.transactionStatus should be ("ACCP")
+//      payment.paymentId should not be null
+//
+//      Then(s"we test the ${getPaymentInformation.name}")
+//      val paymentId = payment.paymentId
+//      val requestGet = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId).GET <@ (user1)
+//      val responseGet: APIResponse = makeGetRequest(requestGet)
+//      responseGet.code should be (200)
+//      responseGet.body.extract[SepaCreditTransfers].instructedAmount.currency should be ("EUR")
+//      responseGet.body.extract[SepaCreditTransfers].instructedAmount.amount should be ("123")
+//      responseGet.body.extract[SepaCreditTransfers].debtorAccount.iban should be (ibanFrom)
+//      responseGet.body.extract[SepaCreditTransfers].creditorAccount.iban should be (ibanTo)
+//
+//
+//    }
+//  }
+//  feature(s"test the BG v1.3 -${getPaymentInitiationStatus.name}") {
+//    scenario("Successful case ", BerlinGroupV1_3, PIS, initiatePayment) {
+//      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString))
+//      val ibanFrom = accountsRoutingIban.head.accountRouting.address
+//      val ibanTo = accountsRoutingIban.last.accountRouting.address
+//
+//      val initiatePaymentJson =
+//        s"""{
+//           | "debtorAccount": {
+//           |   "iban": "${ibanFrom}"
+//           | },
+//           |"instructedAmount": {
+//           |  "currency": "EUR",
+//           |  "amount": "2001"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "${ibanTo}"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//
+//      grantAccountAccess(accountsRoutingIban.head)
+//
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, initiatePaymentJson)
+//      Then("We should get a 201 ")
+//      response.code should equal(201)
+//      val payment = response.body.extract[InitiatePaymentResponseJson]
+//      payment.transactionStatus should be ("RCVD")
+//      payment.paymentId should not be null
+//      payment._links.scaStatus should not be null
+//
+//      Then(s"we test the ${getPaymentInitiationStatus.name}")
+//      val paymentId = payment.paymentId
+//      val requestGet = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "status").GET <@ (user1)
+//      val responseGet: APIResponse = makeGetRequest(requestGet)
+//      responseGet.code should be (200)
+//      (responseGet.body \ "transactionStatus").extract[String] should be ("RCVD")
+//      (responseGet.body \ "fundsAvailable").extract[Boolean] should be (true)
+//    }
+//  }
+//  feature(s"test the BG v1.3 ${startPaymentAuthorisationTransactionAuthorisation.name} and ${getPaymentInitiationAuthorisation.name} and ${getPaymentInitiationScaStatus.name} and ${updatePaymentPsuDataTransactionAuthorisation.name}") {
+//    scenario(s"${startPaymentAuthorisationTransactionAuthorisation.name} Failed Case - Wrong PaymentId", BerlinGroupV1_3, PIS, startPaymentAuthorisationTransactionAuthorisation) {
+//     
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / "PAYMENT_ID" / "authorisations").POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, """{"scaAuthenticationData":"123"}""".stripMargin)
+//      Then("We should get a 400 ")
+//      response.code should equal(400)
+//      response.body.extract[ErrorMessagesBG].tppMessages.head.text should startWith (InvalidTransactionRequestId)
+//    }
+//    scenario(s"Successful Case ", BerlinGroupV1_3, PIS, startPaymentAuthorisationTransactionAuthorisation) {
+//      val accountsRoutingIban = BankAccountRouting.findAll(By(BankAccountRouting.AccountRoutingScheme, AccountRoutingScheme.IBAN.toString)).filterNot(_.bankId.value == "DEFAULT_BANK_ID_NOT_SET")
+//      val acountRoutingIbanFrom = accountsRoutingIban.head
+//      val acountRoutingIbanTo = accountsRoutingIban.last
+//
+//      val beforePaymentFromAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanFrom.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanFrom.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//      val beforePaymentToAccountBalance = MappedBankAccount.find(
+//        By(MappedBankAccount.bank, acountRoutingIbanTo.bankId.value),
+//        By(MappedBankAccount.theAccountId, acountRoutingIbanTo.accountId.value))
+//        .map(_.balance).openOrThrowException("Can not be empty here")
+//
+//      
+//      val initiatePaymentJson =
+//        s"""{
+//           | "debtorAccount": {
+//           |   "iban": "${acountRoutingIbanFrom.accountRouting.address}"
+//           | },
+//           |"instructedAmount": {
+//           |  "currency": "EUR",
+//           |  "amount": "2001"
+//           |},
+//           |"creditorAccount": {
+//           |  "iban": "${acountRoutingIbanTo.accountRouting.address}"
+//           |},
+//           |"creditorName": "70charname"
+//            }""".stripMargin
+//
+//      grantAccountAccess(accountsRoutingIban.head)
+//
+//      val requestInitiatePaymentJson = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString).POST <@ (user1)
+//      val responseInitiatePaymentJson: APIResponse = makePostRequest(requestInitiatePaymentJson, initiatePaymentJson)
+//      Then("We should get a 201 ")
+//      responseInitiatePaymentJson.code should equal(201)
+//      val paymentResponseInitiatePaymentJson = responseInitiatePaymentJson.body.extract[InitiatePaymentResponseJson]
+//      paymentResponseInitiatePaymentJson.transactionStatus should be ("RCVD")
+//      paymentResponseInitiatePaymentJson.paymentId should not be null
+//
+//      val paymentId = paymentResponseInitiatePaymentJson.paymentId
+//
+//      Then(s"we test the ${startPaymentAuthorisationTransactionAuthorisation.name}")
+//      val requestPost = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "authorisations").POST <@ (user1)
+//      val response: APIResponse = makePostRequest(requestPost, """{"scaAuthenticationData":"123"}""".stripMargin)
+//      Then("We should get a 201 ")
+//      response.code should equal(201)
+//      val startPaymentAuthorisationResponse = response.body.extract[StartPaymentAuthorisationJson]
+//      startPaymentAuthorisationResponse.authorisationId should not be null
+//      startPaymentAuthorisationResponse.psuMessage should be ("Please check your SMS at a mobile device.")
+//      startPaymentAuthorisationResponse.scaStatus should be (ScaStatus.received.toString)
+//      startPaymentAuthorisationResponse._links.scaStatus should not be null
+//      
+//      Then(s"We can test the ${getPaymentInitiationAuthorisation.name}")
+//      val requestGetPaymentInitiationAuthorisation = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "authorisations").GET <@ (user1)
+//      val responseGetPaymentInitiationAuthorisation: APIResponse = makeGetRequest(requestGetPaymentInitiationAuthorisation)
+//      responseGetPaymentInitiationAuthorisation.code should be (200)
+//      responseGetPaymentInitiationAuthorisation.body.extract[List[StartPaymentAuthorisationJson]].length > 0 should be (true)
+//      val paymentInitiationAuthorisation = responseGetPaymentInitiationAuthorisation.body.extract[List[StartPaymentAuthorisationJson]].head
+//      val authorisationId = paymentInitiationAuthorisation.authorisationId
+//      paymentInitiationAuthorisation.scaStatus should be (ScaStatus.received.toString)
+//
+//      Then(s"We can test the ${getPaymentInitiationScaStatus.name}")
+//      val requestGetPaymentInitiationScaStatus = (V1_3_BG / PaymentServiceTypes.payments.toString / TransactionRequestTypes.SEPA_CREDIT_TRANSFERS.toString / paymentId / "authorisations" /authorisationId).GET <@ (user1)
+//      val responseGetPaymentInitiationScaStatus: APIResponse = makeGetRequest(requestGetPaymentInitiationScaStatus)
+//      responseGetPaymentInitiationScaStatus.code should be (200)
+//      val paymentInitiationScaStatus = (responseGetPaymentInitiationScaStatus.body \ "scaStatus").extract[String]
+//      paymentInitiationScaStatus should be (ScaStatus.received.toString)
+//
+//      Then(s"We can test the ${updatePaymentPsuDataTransactionAuthorisation.name}")
+//      val updatePaymentPsuDataJsonBody = APIMethods_PaymentInitiationServicePISApi
+//        .resourceDocs
+//        .filter( _.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataTransactionAuthorisation)
         .head.exampleRequestBody.asInstanceOf[JvalueCaseClass] //All the Json String convert to JvalueCaseClass implicitly 
         .jvalueToCaseclass
       

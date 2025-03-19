@@ -1,862 +1,862 @@
-///**
-//Open Bank Project - API
-//Copyright (C) 2011-2019, TESOBE GmbH
-//
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU Affero General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
-//
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU Affero General Public License for more details.
-//
-//You should have received a copy of the GNU Affero General Public License
-//along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-//Email: contact@tesobe.com
-//TESOBE GmbH
-//Osloerstrasse 16/17
-//Berlin 13359, Germany
-//
-//  This product includes software developed at
-//  TESOBE (http://www.tesobe.com/)
-//  by
-//  Simon Redfern : simon AT tesobe DOT com
-//  Stefan Bethge : stefan AT tesobe DOT com
-//  Everett Sochowski : everett AT tesobe DOT com
-//  Ayoub Benali: ayoub AT tesobe DOT com
-//
-// */
-//package code.api.v1_2_0
-//
-//import java.util.Date
-//
-//import _root_.net.liftweb.json.JsonAST.JObject
-//import _root_.net.liftweb.json.Serialization.write
-//import _root_.net.liftweb.util._
-//import code.api.util.APIUtil
-//import code.api.util.APIUtil.OAuth._
-//import code.api.v1_2._
-//import code.model.{Consumer => OBPConsumer, Token => OBPToken, _}
-//import code.setup.{APIResponse, DefaultUsers, User1AllPrivileges}
-//import code.views.Views
-//import net.liftweb.json.JsonDSL._
-//import net.liftweb.util.Helpers._
-//import org.scalatest._
-//
-//import scala.util.Random._
-//
-//
-//class API1_2Test extends User1AllPrivileges with DefaultUsers {
-//
-//  def v1_2Request = baseRequest / "obp" / "v1.2"
-//
-//  val viewfields = List(
-//    "can_see_transaction_this_bank_account","can_see_transaction_other_bank_account",
-//    "can_see_transaction_metadata","can_see_transaction_label","can_see_transaction_amount",
-//    "can_see_transaction_type","can_see_transaction_currency","can_see_transaction_start_date",
-//    "can_see_transaction_finish_date","can_see_transaction_balance","can_see_comments",
-//    "can_see_narrative","can_see_tags","can_see_images","can_see_bank_account_owners",
-//    "can_see_bank_account_type","can_see_bank_account_balance","can_see_bank_account_currency",
-//    "can_see_bank_account_label","can_see_bank_account_national_identifier",
-//    "can_see_bank_account_swift_bic","can_see_bank_account_iban","can_see_bank_account_number",
-//    "can_see_bank_account_bank_name","can_see_other_account_national_identifier",
-//    "can_see_other_account_swift_bic","can_see_other_account_iban",
-//    "can_see_other_account_bank_name","can_see_other_account_number",
-//    "can_see_other_account_metadata","can_see_other_account_kind","can_see_more_info",
-//    "can_see_url","can_see_image_url","can_see_open_corporates_url","can_see_corporate_location",
-//    "can_see_physical_location","can_see_public_alias","can_see_private_alias","can_add_more_info",
-//    "can_add_url","can_add_image_url","can_add_open_corporates_url","can_add_corporate_location",
-//    "can_add_physical_location","can_add_public_alias","can_add_private_alias",
-//    "can_delete_corporate_location","can_delete_physical_location","can_edit_narrative",
-//    "can_add_comment","can_delete_comment","can_add_tag","can_delete_tag","can_add_image",
-//    "can_delete_image","can_add_where_tag","can_see_where_tag","can_delete_where_tag"
-//    )
-//
-//  /************************* test tags ************************/
-//
-//  /**
-//   * Example: To run tests with tag "getPermissions":
-//   * 	mvn test -D tagsToInclude
-//   *
-//   *  This is made possible by the scalatest maven plugin
-//   */
-//
-//  object CurrentTest extends Tag("currentScenario")
-//  object API1_2 extends Tag("api1.2")
-//  object APIInfo extends Tag("apiInfo")
-//  object GetHostedBanks extends Tag("hostedBanks")
-//  object GetHostedBank extends Tag("getHostedBank")
-//  object GetBankAccounts extends Tag("getBankAccounts")
-//  object GetPublicBankAccounts extends Tag("getPublicBankAccounts")
-//  object GetPrivateBankAccounts extends Tag("getPrivateBankAccounts")
-//  object GetBankAccount extends Tag("getBankAccount")
-//  object GetViews extends Tag("getViews")
-//  object PostView extends Tag("postView")
-//  object PutView extends Tag("putView")
-//  object DeleteView extends Tag("deleteView")
-//  object GetPermissions extends Tag("getPermissions")
-//  object GetPermission extends Tag("getPermission")
-//  object PostPermission extends Tag("postPermission")
-//  object PostPermissions extends Tag("postPermissions")
-//  object DeletePermission extends Tag("deletePermission")
-//  object DeletePermissions extends Tag("deletePermissions")
-//  object GetOtherBankAccounts extends Tag("getOtherBankAccounts")
-//  object GetOtherBankAccount extends Tag("getOtherBankAccount")
-//  object GetOtherBankAccountMetadata extends Tag("getOtherBankAccountMetadata")
-//  object GetPublicAlias extends Tag("getPublicAlias")
-//  object PostPublicAlias extends Tag("postPublicAlias")
-//  object PutPublicAlias extends Tag("putPublicAlias")
-//  object DeletePublicAlias extends Tag("deletePublicAlias")
-//  object GetPrivateAlias extends Tag("getPrivateAlias")
-//  object PostPrivateAlias extends Tag("postPrivateAlias")
-//  object PutPrivateAlias extends Tag("putPrivateAlias")
-//  object DeletePrivateAlias extends Tag("deletePrivateAlias")
-//  object PostMoreInfo extends Tag("postMoreInfo")
-//  object PutMoreInfo extends Tag("putMoreInfo")
-//  object DeleteMoreInfo extends Tag("deleteMoreInfo")
-//  object PostURL extends Tag("postURL")
-//  object PutURL extends Tag("putURL")
-//  object DeleteURL extends Tag("deleteURL")
-//  object PostImageURL extends Tag("postImageURL")
-//  object PutImageURL extends Tag("putImageURL")
-//  object DeleteImageURL extends Tag("DeleteImageURL")
-//  object PostOpenCorporatesURL extends Tag("postOpenCorporatesURL")
-//  object PutOpenCorporatesURL extends Tag("putOpenCorporatesURL")
-//  object DeleteOpenCorporatesURL extends Tag("deleteOpenCorporatesURL")
-//  object PostCorporateLocation extends Tag("postCorporateLocation")
-//  object PutCorporateLocation extends Tag("putCorporateLocation")
-//  object DeleteCorporateLocation extends Tag("deleteCorporateLocation")
-//  object PostPhysicalLocation extends Tag("postPhysicalLocation")
-//  object PutPhysicalLocation extends Tag("putPhysicalLocation")
-//  object DeletePhysicalLocation extends Tag("deletePhysicalLocation")
-//  object GetTransactions extends Tag("getTransactions")
-//  object GetTransactionsWithParams extends Tag("getTransactionsWithParams")
-//  object GetTransaction extends Tag("getTransaction")
-//  object GetNarrative extends Tag("getNarrative")
-//  object PostNarrative extends Tag("postNarrative")
-//  object PutNarrative extends Tag("putNarrative")
-//  object DeleteNarrative extends Tag("deleteNarrative")
-//  object GetComments extends Tag("getComments")
-//  object PostComment extends Tag("postComment")
-//  object DeleteComment extends Tag("deleteComment")
-//  object GetTags extends Tag("getTags")
-//  object PostTag extends Tag("postTag")
-//  object DeleteTag extends Tag("deleteTag")
-//  object GetImages extends Tag("getImages")
-//  object PostImage extends Tag("postImage")
-//  object DeleteImage extends Tag("deleteImage")
-//  object GetWhere extends Tag("getWhere")
-//  object PostWhere extends Tag("postWhere")
-//  object PutWhere extends Tag("putWhere")
-//  object DeleteWhere extends Tag("deleteWhere")
-//  object GetTransactionAccount extends Tag("getTransactionAccount")
-//
-//  /********************* API test methods ********************/
-//
-//  def randomViewPermalink(bankId: String, account: AccountJSON) : String = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / account.id / "views" <@(consumer, token1)
-//    val reply = makeGetRequest(request)
-//    val possibleViewsPermalinks = reply.body.extract[ViewsJSON].views.filterNot(_.is_public==true)
-//    val randomPosition = nextInt(possibleViewsPermalinks.size)
-//    possibleViewsPermalinks(randomPosition).id
-//  }
-//
-//  def randomViewPermalinkButNotOwner(bankId: String, account: AccountJSON) : String = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / account.id / "views" <@(consumer, token1)
-//    val reply = makeGetRequest(request)
-//    val possibleViewsPermalinksWithoutOwner = reply.body.extract[ViewsJSON].views.filterNot(_.is_public==true).filterNot(_.id == Constant.SYSTEM_OWNER_VIEW_ID)
-//    val randomPosition = nextInt(possibleViewsPermalinksWithoutOwner.size)
-//    possibleViewsPermalinksWithoutOwner(randomPosition).id
-//  }
-//
-//  def randomBank : String = {
-//    val banksJson = getBanksInfo.body.extract[BanksJSON]
-//    val randomPosition = nextInt(banksJson.banks.size)
-//    val bank = banksJson.banks(randomPosition)
-//    bank.id
-//  }
-//
-//  def randomPublicAccount(bankId : String) : AccountJSON = {
-//    val accountsJson = getPublicAccounts(bankId).body.extract[AccountsJSON].accounts
-//    val randomPosition = nextInt(accountsJson.size)
-//    accountsJson(randomPosition)
-//  }
-//
-//  def randomPrivateAccount(bankId : String) : AccountJSON = {
-//    val accountsJson = getPrivateAccounts(bankId, user1).body.extract[AccountsJSON].accounts
-//    val randomPosition = nextInt(accountsJson.size)
-//    accountsJson(randomPosition)
-//  }
-//
-//  def randomAccountPermission(bankId : String, accountId : String) : PermissionJSON = {
-//    val persmissionsInfo = getAccountPermissions(bankId, accountId, user1).body.extract[PermissionsJSON]
-//    val randomPermission = nextInt(persmissionsInfo.permissions.size)
-//    persmissionsInfo.permissions(randomPermission)
-//  }
-//
-//  def randomOtherBankAccount(bankId : String, accountId : String, viewId : String): OtherAccountJSON = {
-//    val otherAccounts = getTheOtherBankAccounts(bankId, accountId, viewId, user1).body.extract[OtherAccountsJSON].other_accounts
-//    otherAccounts(nextInt(otherAccounts.size))
-//  }
-//
-//  def randomLocation : LocationPlainJSON = {
-//    def sign = {
-//      val b = nextBoolean
-//      if(b) 1
-//      else -1
-//    }
-//    val longitude : Double = nextInt(180)*sign*nextDouble
-//    val latitude : Double = nextInt(90)*sign*nextDouble
-//    JSONFactory.createLocationPlainJSON(latitude, longitude)
-//  }
-//
-//  def randomTransaction(bankId : String, accountId : String, viewId: String) : TransactionJSON = {
-//    val transactionsJson = getTransactions(bankId, accountId, viewId, user1).body.extract[TransactionsJSON].transactions
-//    val randomPosition = nextInt(transactionsJson.size)
-//    transactionsJson(randomPosition)
-//  }
-//
-//  def randomViewsIdsToGrant(bankId : String, accountId : String) : List[String]= {
-//    //get the view ids of the available views on the bank accounts
-//    val viewsIds = getAccountViews(bankId, accountId, user1).body.extract[ViewsJSON].views.map(_.id)
-//    //choose randomly some view ids to grant
-//    val (viewsIdsToGrant, _) = viewsIds.splitAt(nextInt(viewsIds.size) + 1)
-//    viewsIdsToGrant
-//  }
-//
-//  def randomView(isPublic: Boolean, alias: String) : CreateViewJson = {
-//    CreateViewJson(
-//      name = randomString(3),
-//      description = randomString(3),
-//      is_public = isPublic,
-//      which_alias_to_use=alias,
-//      hide_metadata_if_alias_used=false,
-//      allowed_actions = viewfields
-//    )
-//  }
-//  def getAPIInfo : APIResponse = {
-//    val request = v1_2Request
-//    makeGetRequest(request)
-//  }
-//
-//  def getBanksInfo : APIResponse  = {
-//    val request = v1_2Request / "banks"
-//    makeGetRequest(request)
-//  }
-//
-//  def getBankInfo(bankId : String) : APIResponse  = {
-//    val request = v1_2Request / "banks" / bankId
-//    makeGetRequest(request)
-//  }
-//
-//  def getPublicAccounts(bankId : String) : APIResponse= {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / "public"
-//    makeGetRequest(request)
-//  }
-//
-//  def getPrivateAccounts(bankId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / "private" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getBankAccounts(bankId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getPublicBankAccountDetails(bankId : String, accountId : String, viewId : String) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "account"
-//    makeGetRequest(request)
-//  }
-//
-//  def getPrivateBankAccountDetails(bankId : String, accountId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "account" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getAccountViews(bankId : String, accountId : String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postView(bankId: String, accountId: String, view: CreateViewJson, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "views").POST <@(consumerAndToken)
-//    makePostRequest(request, write(view))
-//  }
-//
-//  def putView(bankId: String, accountId: String, viewId : String, view: UpdateViewJSON, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "views" / viewId).PUT <@(consumerAndToken)
-//    makePutRequest(request, write(view))
-//  }
-//
-//  def deleteView(bankId: String, accountId: String, viewId: String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "views" / viewId).DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getAccountPermissions(bankId : String, accountId : String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getUserAccountPermission(bankId : String, accountId : String, userId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def grantUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).POST <@(consumerAndToken)
-//    makePostRequest(request)
-//  }
-//
-//  def grantUserAccessToViews(bankId : String, accountId : String, userId : String, viewIds : List[String], consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").POST <@(consumerAndToken)
-//    val viewsJson = ViewIdsJson(viewIds)
-//    makePostRequest(request, write(viewsJson))
-//  }
-//
-//  def revokeUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def revokeUserAccessToAllViews(bankId : String, accountId : String, userId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getTheOtherBankAccounts(bankId : String, accountId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getTheOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getMetadataOfOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "metadata" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getThePublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postAPublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias").POST <@(consumerAndToken)
-//    val aliasJson = AliasJSON(alias)
-//    makePostRequest(request, write(aliasJson))
-//  }
-//
-//  def updateThePublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias").PUT <@(consumerAndToken)
-//    val aliasJson = AliasJSON(alias)
-//    makePutRequest(request, write(aliasJson))
-//  }
-//
-//  def deleteThePublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getThePrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postAPrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias").POST <@(consumerAndToken)
-//    val aliasJson = AliasJSON(alias)
-//    makePostRequest(request, write(aliasJson))
-//  }
-//
-//  def updateThePrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias").PUT <@(consumerAndToken)
-//    val aliasJson = AliasJSON(alias)
-//    makePutRequest(request, write(aliasJson))
-//  }
-//
-//  def deleteThePrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
-//    getMetadataOfOneOtherBankAccount(bankId,accountId,viewId,otherBankAccountId,consumerAndToken).body.extract[OtherAccountMetadataJSON].more_info
-//  }
-//
-//  def postMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, moreInfo : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "more_info").POST <@(consumerAndToken)
-//    val moreInfoJson = MoreInfoJSON(moreInfo)
-//    makePostRequest(request, write(moreInfoJson))
-//  }
-//
-//  def updateMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, moreInfo : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "more_info").PUT <@(consumerAndToken)
-//    val moreInfoJson = MoreInfoJSON(moreInfo)
-//    makePutRequest(request, write(moreInfoJson))
-//  }
-//
-//  def deleteMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "more_info").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
-//    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId,consumerAndToken).body.extract[OtherAccountMetadataJSON].URL
-//  }
-//
-//  def postUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, url : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "url").POST <@(consumerAndToken)
-//    val urlJson = UrlJSON(url)
-//    makePostRequest(request, write(urlJson))
-//  }
-//
-//  def updateUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, url : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "url").PUT <@(consumerAndToken)
-//    val urlJson = UrlJSON(url)
-//    makePutRequest(request, write(urlJson))
-//  }
-//
-//  def deleteUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "url").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
-//    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId,consumerAndToken).body.extract[OtherAccountMetadataJSON].image_URL
-//  }
-//
-//  def postImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, imageUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "image_url").POST <@(consumerAndToken)
-//    val imageUrlJson = ImageUrlJSON(imageUrl)
-//    makePostRequest(request, write(imageUrlJson))
-//  }
-//
-//  def updateImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, imageUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "image_url").PUT <@(consumerAndToken)
-//    val imageUrlJson = ImageUrlJSON(imageUrl)
-//    makePutRequest(request, write(imageUrlJson))
-//  }
-//
-//  def deleteImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "image_url").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
-//    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId, consumerAndToken).body.extract[OtherAccountMetadataJSON].open_corporates_URL
-//  }
-//
-//  def postOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").POST <@(consumerAndToken)
-//    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-//    makePostRequest(request, write(openCorporateUrlJson))
-//  }
-//
-//  def updateOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").PUT <@(consumerAndToken)
-//    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
-//    makePutRequest(request, write(openCorporateUrlJson))
-//  }
-//
-//  def deleteOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : LocationJSON = {
-//    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId, consumerAndToken).body.extract[OtherAccountMetadataJSON].corporate_location
-//  }
-//
-//  def postCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").POST <@(consumerAndToken)
-//    val corpLocationJson = CorporateLocationJSON(corporateLocation)
-//    makePostRequest(request, write(corpLocationJson))
-//  }
-//
-//  def updateCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").PUT <@(consumerAndToken)
-//    val corpLocationJson = CorporateLocationJSON(corporateLocation)
-//    makePutRequest(request, write(corpLocationJson))
-//  }
-//
-//  def deleteCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : LocationJSON = {
-//    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId, consumerAndToken).body.extract[OtherAccountMetadataJSON].physical_location
-//  }
-//
-//  def postPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").POST <@(consumerAndToken)
-//    val physLocationJson = PhysicalLocationJSON(physicalLocation)
-//    makePostRequest(request, write(physLocationJson))
-//  }
-//
-//  def updatePhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)])  : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").PUT <@(consumerAndToken)
-//    val physLocationJson = PhysicalLocationJSON(physicalLocation)
-//    makePutRequest(request, write(physLocationJson))
-//  }
-//
-//  def deletePhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getTransactions(bankId : String, accountId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)], params: List[(String, String)] = Nil) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" <@(consumerAndToken)
-//    makeGetRequest(request, params)
-//  }
-//
-//  def getTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "transaction" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def getNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").POST <@(consumerAndToken)
-//    val narrativeJson = TransactionNarrativeJSON(narrative)
-//    makePostRequest(request, write(narrativeJson))
-//  }
-//
-//  def updateNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").PUT <@(consumerAndToken)
-//    val narrativeJson = TransactionNarrativeJSON(narrative)
-//    makePutRequest(request, write(narrativeJson))
-//  }
-//
-//  def deleteNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getCommentsForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postCommentForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, comment: PostTransactionCommentJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments").POST <@(consumerAndToken)
-//    makePostRequest(request, write(comment))
-//  }
-//
-//  def deleteCommentForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, commentId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments" / commentId).DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getTagsForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postTagForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, tag: PostTransactionTagJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags").POST <@(consumerAndToken)
-//    makePostRequest(request, write(tag))
-//  }
-//
-//  def deleteTagForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, tagId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" / tagId).DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getImagesForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images").POST <@(consumerAndToken)
-//    makePostRequest(request, write(image))
-//  }
-//
-//  def deleteImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId).DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//  def postWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").POST <@(consumerAndToken)
-//    val whereJson = PostTransactionWhereJSON(where)
-//    makePostRequest(request, write(whereJson))
-//  }
-//
-//  def updateWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").PUT <@(consumerAndToken)
-//    val whereJson = PostTransactionWhereJSON(where)
-//    makePutRequest(request, write(whereJson))
-//  }
-//
-//  def deleteWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").DELETE <@(consumerAndToken)
-//    makeDeleteRequest(request)
-//  }
-//
-//  def getTheOtherBankAccountOfOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
-//    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "other_account" <@(consumerAndToken)
-//    makeGetRequest(request)
-//  }
-//
-//
-///************************ the tests ************************/
-//  feature("base line URL works"){
-//    scenario("we get the api information", API1_2, APIInfo) {
-//      Given("We will not use an access token")
-//      When("the request is sent")
-//      val reply = getAPIInfo
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val apiInfo = reply.body.extract[APIInfoJSON]
-//      apiInfo.version should equal ("v1.2")
-///*      apiInfo.git_commit.nonEmpty should equal (true)*/
-//    }
-//  }
-//
-//  feature("Information about the hosted banks"){
-//    scenario("we get the hosted banks information", API1_2, GetHostedBanks) {
-//      Given("We will not use an access token")
-//      When("the request is sent")
-//      val reply = getBanksInfo
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val banksInfo = reply.body.extract[BanksJSON]
-//      banksInfo.banks.foreach(b => {
-//        b.id.nonEmpty should equal (true)
-//      })
-//    }
-//  }
-//
-//  feature("Information about one hosted bank"){
-//    scenario("we get the hosted bank information", API1_2, GetHostedBank) {
-//      Given("We will not use an access token")
-//      When("the request is sent")
-//      val reply = getBankInfo(randomBank)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val bankInfo = reply.body.extract[BankJSON]
-//      bankInfo.id.nonEmpty should equal (true)
-//    }
-//
-//    scenario("we don't get the hosted bank information", API1_2, GetHostedBank) {
-//      Given("We will not use an access token and request a random bankId")
-//      When("the request is sent")
-//      val reply = getBankInfo(randomString(5))
-//      Then("we should get a 400 code")
-//      reply.code should equal (400)
-//      And("we should get an error message")
-//      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
-//    }
-//  }
-//
-//  def assertViewExistsWithCondition(accJson: AccountsJSON, cond: ViewJSON => Boolean): Unit = {
-//    val exists = accJson.accounts.exists(acc => acc.views_available.exists(cond))
-//    exists should equal(true)
-//  }
-//
-//  def assertAllAccountsHaveAViewWithCondition(accJson: AccountsJSON, cond: ViewJSON => Boolean): Unit = {
-//    val forAll = accJson.accounts.forall(acc => acc.views_available.exists(cond))
-//    forAll should equal(true)
-//  }
-//
-//  def assertAccountsFromOneBank(accJson : AccountsJSON) : Unit = {
-//    accJson.accounts.size should be > 0
-//    val theBankId = accJson.accounts.head.bank_id
-//    theBankId should not be ("")
-//
-//    accJson.accounts.foreach(acc => acc.bank_id should equal (theBankId))
-//  }
-//
-//  def assertNoDuplicateAccounts(accJson : AccountsJSON) : Unit = {
-//    //bankId : String, accountId: String
-//    type AccountIdentifier = (String, String)
-//    //unique accounts have unique bankId + accountId
-//    val accountIdentifiers : Set[AccountIdentifier] = {
-//      accJson.accounts.map(acc => (acc.bank_id, acc.id)).toSet
-//    }
-//    //if they are all unique, the set will contain the same number of elements as the list
-//    accJson.accounts.size should equal(accountIdentifiers.size)
-//  }
-//
-//  feature("Information about all the bank accounts for a single bank"){
-//    scenario("we get only the public bank accounts", API1_2, GetBankAccounts) {
-//      Given("We will not use an access token")
-//      When("the request is sent")
-//      val reply = getBankAccounts(randomBank, None)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val publicAccountsInfo = reply.body.extract[AccountsJSON]
-//      And("some fields should not be empty")
-//      publicAccountsInfo.accounts.foreach(a => {
-//        a.id.nonEmpty should equal (true)
-//        a.views_available.nonEmpty should equal (true)
-//        a.views_available.foreach(
-//          //check that all the views are public
-//          v => v.is_public should equal (true)
-//        )
-//      })
-//
-//      And("The accounts are only from one bank")
-//      assertAccountsFromOneBank(publicAccountsInfo)
-//
-//      And("There are no duplicate accounts")
-//      assertNoDuplicateAccounts(publicAccountsInfo)
-//    }
-//    scenario("we get the bank accounts the user have access to", API1_2, GetBankAccounts) {
-//      Given("We will use an access token")
-//      When("the request is sent")
-//      val reply = getBankAccounts(randomBank, user1)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val accountsInfo = reply.body.extract[AccountsJSON]
-//      And("some fields should not be empty")
-//      accountsInfo.accounts.foreach(a => {
-//        a.id.nonEmpty should equal (true)
-//        a.views_available.nonEmpty should equal (true)
-//      })
-//
-//      //Note: this API call is technically wrong, as it was originally intended to have returned
-//      // public + private accounts when logged in, but actually returned only the accounts with
-//      // more than public access. This test therefore does not test that condition as the v1.2 API
-//      // call is being kept that way to avoid breaking any existing applications using it. This API
-//      // call is fixed in v1.2.1
-//      And("Some accounts should have private views")
-//      assertViewExistsWithCondition(accountsInfo, !_.is_public)
-//
-//      And("The accounts are only from one bank")
-//      assertAccountsFromOneBank(accountsInfo)
-//
-//      And("There are no duplicate accounts")
-//      assertNoDuplicateAccounts(accountsInfo)
-//    }
-//  }
-//
-//  feature("Information about the public bank accounts for a single bank"){
-//    scenario("we get the public bank accounts", API1_2, GetPublicBankAccounts) {
-//      Given("We will not use an access token")
-//      When("the request is sent")
-//      val reply = getPublicAccounts(randomBank)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val publicAccountsInfo = reply.body.extract[AccountsJSON]
-//      And("some fields should not be empty")
-//      publicAccountsInfo.accounts.foreach(a => {
-//        a.id.nonEmpty should equal (true)
-//        a.views_available.nonEmpty should equal (true)
-//        a.views_available.foreach(
-//          //check that all the views are public
-//          v => v.is_public should equal (true)
-//        )
-//      })
-//
-//      And("The accounts are only from one bank")
-//      assertAccountsFromOneBank(publicAccountsInfo)
-//
-//      And("There are no duplicate accounts")
-//      assertNoDuplicateAccounts(publicAccountsInfo)
-//    }
-//  }
-//
-//  feature("Information about the private bank accounts for a single bank"){
-//    scenario("we get the private bank accounts", API1_2, GetPrivateBankAccounts) {
-//      Given("We will use an access token")
-//      When("the request is sent")
-//      val reply = getPrivateAccounts(randomBank, user1)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      And("some fields should not be empty")
-//      val privateAccountsInfo = reply.body.extract[AccountsJSON]
-//      privateAccountsInfo.accounts.foreach(a => {
-//        a.id.nonEmpty should equal (true)
-//        a.views_available.nonEmpty should equal (true)
-//      })
-//
-//      And("All accounts should have at least one private view")
-//      assertAllAccountsHaveAViewWithCondition(privateAccountsInfo, !_.is_public)
-//
-//      And("The accounts are only from one bank")
-//      assertAccountsFromOneBank(privateAccountsInfo)
-//
-//      And("There are no duplicate accounts")
-//      assertNoDuplicateAccounts(privateAccountsInfo)
-//    }
-//    scenario("we don't get the private bank accounts", API1_2, GetPrivateBankAccounts) {
-//      Given("We will not use an access token")
-//      When("the request is sent")
-//      val reply = getPrivateAccounts(randomBank, None)
-//      Then("we should get a 400 code")
-//      reply.code should equal (400)
-//      And("we should get an error message")
-//      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
-//    }
-//  }
-//
-//  feature("Information about a bank account"){
-//    scenario("we get data without using an access token", API1_2, GetBankAccount) {
-//      Given("We will not use an access token")
-//      val bankId = randomBank
-//      val bankAccount : AccountJSON = randomPublicAccount(bankId)
-//      val randomPosition = nextInt(bankAccount.views_available.size)
-//      val view = bankAccount.views_available.toList(randomPosition)
-//      When("the request is sent")
-//      val reply = getPublicBankAccountDetails(bankId, bankAccount.id, view.id)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      And("some fields should not be empty")
-//      val publicAccountDetails = reply.body.extract[ModeratedAccountJSON]
-//      publicAccountDetails.id.nonEmpty should equal (true)
-//      publicAccountDetails.bank_id.nonEmpty should equal (true)
-//      publicAccountDetails.views_available.nonEmpty should equal (true)
-//    }
-//
-//    scenario("we get data by using an access token", API1_2, GetBankAccount) {
-//      Given("We will use an access token")
-//      val bankId = randomBank
-//      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
-//      val randomPosition = nextInt(bankAccount.views_available.size)
-//      val view = bankAccount.views_available.toList(randomPosition)
-//      When("the request is sent")
-//      val reply = getPrivateBankAccountDetails(bankId, bankAccount.id, view.id, user1)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      val privateAccountDetails = reply.body.extract[ModeratedAccountJSON]
-//      And("some fields should not be empty")
-//      privateAccountDetails.id.nonEmpty should equal (true)
-//      privateAccountDetails.bank_id.nonEmpty should equal (true)
-//      privateAccountDetails.views_available.nonEmpty should equal (true)
-//    }
-//  }
-//
-//  feature("List of the views of specific bank account"){
-//    scenario("We will get the list of the available views on a bank account", API1_2, GetViews) {
-//      Given("We will use an access token")
-//      val bankId = randomBank
-//      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
-//      When("the request is sent")
-//      val reply = getAccountViews(bankId, bankAccount.id, user1)
-//      Then("we should get a 200 ok code")
-//      reply.code should equal (200)
-//      reply.body.extract[ViewsJSON]
-//    }
+/////**
+////Open Bank Project - API
+////Copyright (C) 2011-2019, TESOBE GmbH
+////
+////This program is free software: you can redistribute it and/or modify
+////it under the terms of the GNU Affero General Public License as published by
+////the Free Software Foundation, either version 3 of the License, or
+////(at your option) any later version.
+////
+////This program is distributed in the hope that it will be useful,
+////but WITHOUT ANY WARRANTY; without even the implied warranty of
+////MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+////GNU Affero General Public License for more details.
+////
+////You should have received a copy of the GNU Affero General Public License
+////along with this program.  If not, see <http://www.gnu.org/licenses/>.
+////
+////Email: contact@tesobe.com
+////TESOBE GmbH
+////Osloerstrasse 16/17
+////Berlin 13359, Germany
+////
+////  This product includes software developed at
+////  TESOBE (http://www.tesobe.com/)
+////  by
+////  Simon Redfern : simon AT tesobe DOT com
+////  Stefan Bethge : stefan AT tesobe DOT com
+////  Everett Sochowski : everett AT tesobe DOT com
+////  Ayoub Benali: ayoub AT tesobe DOT com
+////
+//// */
+////package code.api.v1_2_0
+////
+////import java.util.Date
+////
+////import _root_.net.liftweb.json.JsonAST.JObject
+////import _root_.net.liftweb.json.Serialization.write
+////import _root_.net.liftweb.util._
+////import code.api.util.APIUtil
+////import code.api.util.APIUtil.OAuth._
+////import code.api.v1_2._
+////import code.model.{Consumer => OBPConsumer, Token => OBPToken, _}
+////import code.setup.{APIResponse, DefaultUsers, User1AllPrivileges}
+////import code.views.Views
+////import net.liftweb.json.JsonDSL._
+////import net.liftweb.util.Helpers._
+////import org.scalatest._
+////
+////import scala.util.Random._
+////
+////
+////class API1_2Test extends User1AllPrivileges with DefaultUsers {
+////
+////  def v1_2Request = baseRequest / "obp" / "v1.2"
+////
+////  val viewfields = List(
+////    "can_see_transaction_this_bank_account","can_see_transaction_other_bank_account",
+////    "can_see_transaction_metadata","can_see_transaction_label","can_see_transaction_amount",
+////    "can_see_transaction_type","can_see_transaction_currency","can_see_transaction_start_date",
+////    "can_see_transaction_finish_date","can_see_transaction_balance","can_see_comments",
+////    "can_see_narrative","can_see_tags","can_see_images","can_see_bank_account_owners",
+////    "can_see_bank_account_type","can_see_bank_account_balance","can_see_bank_account_currency",
+////    "can_see_bank_account_label","can_see_bank_account_national_identifier",
+////    "can_see_bank_account_swift_bic","can_see_bank_account_iban","can_see_bank_account_number",
+////    "can_see_bank_account_bank_name","can_see_other_account_national_identifier",
+////    "can_see_other_account_swift_bic","can_see_other_account_iban",
+////    "can_see_other_account_bank_name","can_see_other_account_number",
+////    "can_see_other_account_metadata","can_see_other_account_kind","can_see_more_info",
+////    "can_see_url","can_see_image_url","can_see_open_corporates_url","can_see_corporate_location",
+////    "can_see_physical_location","can_see_public_alias","can_see_private_alias","can_add_more_info",
+////    "can_add_url","can_add_image_url","can_add_open_corporates_url","can_add_corporate_location",
+////    "can_add_physical_location","can_add_public_alias","can_add_private_alias",
+////    "can_delete_corporate_location","can_delete_physical_location","can_edit_narrative",
+////    "can_add_comment","can_delete_comment","can_add_tag","can_delete_tag","can_add_image",
+////    "can_delete_image","can_add_where_tag","can_see_where_tag","can_delete_where_tag"
+////    )
+////
+////  /************************* test tags ************************/
+////
+////  /**
+////   * Example: To run tests with tag "getPermissions":
+////   * 	mvn test -D tagsToInclude
+////   *
+////   *  This is made possible by the scalatest maven plugin
+////   */
+////
+////  object CurrentTest extends Tag("currentScenario")
+////  object API1_2 extends Tag("api1.2")
+////  object APIInfo extends Tag("apiInfo")
+////  object GetHostedBanks extends Tag("hostedBanks")
+////  object GetHostedBank extends Tag("getHostedBank")
+////  object GetBankAccounts extends Tag("getBankAccounts")
+////  object GetPublicBankAccounts extends Tag("getPublicBankAccounts")
+////  object GetPrivateBankAccounts extends Tag("getPrivateBankAccounts")
+////  object GetBankAccount extends Tag("getBankAccount")
+////  object GetViews extends Tag("getViews")
+////  object PostView extends Tag("postView")
+////  object PutView extends Tag("putView")
+////  object DeleteView extends Tag("deleteView")
+////  object GetPermissions extends Tag("getPermissions")
+////  object GetPermission extends Tag("getPermission")
+////  object PostPermission extends Tag("postPermission")
+////  object PostPermissions extends Tag("postPermissions")
+////  object DeletePermission extends Tag("deletePermission")
+////  object DeletePermissions extends Tag("deletePermissions")
+////  object GetOtherBankAccounts extends Tag("getOtherBankAccounts")
+////  object GetOtherBankAccount extends Tag("getOtherBankAccount")
+////  object GetOtherBankAccountMetadata extends Tag("getOtherBankAccountMetadata")
+////  object GetPublicAlias extends Tag("getPublicAlias")
+////  object PostPublicAlias extends Tag("postPublicAlias")
+////  object PutPublicAlias extends Tag("putPublicAlias")
+////  object DeletePublicAlias extends Tag("deletePublicAlias")
+////  object GetPrivateAlias extends Tag("getPrivateAlias")
+////  object PostPrivateAlias extends Tag("postPrivateAlias")
+////  object PutPrivateAlias extends Tag("putPrivateAlias")
+////  object DeletePrivateAlias extends Tag("deletePrivateAlias")
+////  object PostMoreInfo extends Tag("postMoreInfo")
+////  object PutMoreInfo extends Tag("putMoreInfo")
+////  object DeleteMoreInfo extends Tag("deleteMoreInfo")
+////  object PostURL extends Tag("postURL")
+////  object PutURL extends Tag("putURL")
+////  object DeleteURL extends Tag("deleteURL")
+////  object PostImageURL extends Tag("postImageURL")
+////  object PutImageURL extends Tag("putImageURL")
+////  object DeleteImageURL extends Tag("DeleteImageURL")
+////  object PostOpenCorporatesURL extends Tag("postOpenCorporatesURL")
+////  object PutOpenCorporatesURL extends Tag("putOpenCorporatesURL")
+////  object DeleteOpenCorporatesURL extends Tag("deleteOpenCorporatesURL")
+////  object PostCorporateLocation extends Tag("postCorporateLocation")
+////  object PutCorporateLocation extends Tag("putCorporateLocation")
+////  object DeleteCorporateLocation extends Tag("deleteCorporateLocation")
+////  object PostPhysicalLocation extends Tag("postPhysicalLocation")
+////  object PutPhysicalLocation extends Tag("putPhysicalLocation")
+////  object DeletePhysicalLocation extends Tag("deletePhysicalLocation")
+////  object GetTransactions extends Tag("getTransactions")
+////  object GetTransactionsWithParams extends Tag("getTransactionsWithParams")
+////  object GetTransaction extends Tag("getTransaction")
+////  object GetNarrative extends Tag("getNarrative")
+////  object PostNarrative extends Tag("postNarrative")
+////  object PutNarrative extends Tag("putNarrative")
+////  object DeleteNarrative extends Tag("deleteNarrative")
+////  object GetComments extends Tag("getComments")
+////  object PostComment extends Tag("postComment")
+////  object DeleteComment extends Tag("deleteComment")
+////  object GetTags extends Tag("getTags")
+////  object PostTag extends Tag("postTag")
+////  object DeleteTag extends Tag("deleteTag")
+////  object GetImages extends Tag("getImages")
+////  object PostImage extends Tag("postImage")
+////  object DeleteImage extends Tag("deleteImage")
+////  object GetWhere extends Tag("getWhere")
+////  object PostWhere extends Tag("postWhere")
+////  object PutWhere extends Tag("putWhere")
+////  object DeleteWhere extends Tag("deleteWhere")
+////  object GetTransactionAccount extends Tag("getTransactionAccount")
+////
+////  /********************* API test methods ********************/
+////
+////  def randomViewPermalink(bankId: String, account: AccountJSON) : String = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / account.id / "views" <@(consumer, token1)
+////    val reply = makeGetRequest(request)
+////    val possibleViewsPermalinks = reply.body.extract[ViewsJSON].views.filterNot(_.is_public==true)
+////    val randomPosition = nextInt(possibleViewsPermalinks.size)
+////    possibleViewsPermalinks(randomPosition).id
+////  }
+////
+////  def randomViewPermalinkButNotOwner(bankId: String, account: AccountJSON) : String = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / account.id / "views" <@(consumer, token1)
+////    val reply = makeGetRequest(request)
+////    val possibleViewsPermalinksWithoutOwner = reply.body.extract[ViewsJSON].views.filterNot(_.is_public==true).filterNot(_.id == Constant.SYSTEM_OWNER_VIEW_ID)
+////    val randomPosition = nextInt(possibleViewsPermalinksWithoutOwner.size)
+////    possibleViewsPermalinksWithoutOwner(randomPosition).id
+////  }
+////
+////  def randomBank : String = {
+////    val banksJson = getBanksInfo.body.extract[BanksJSON]
+////    val randomPosition = nextInt(banksJson.banks.size)
+////    val bank = banksJson.banks(randomPosition)
+////    bank.id
+////  }
+////
+////  def randomPublicAccount(bankId : String) : AccountJSON = {
+////    val accountsJson = getPublicAccounts(bankId).body.extract[AccountsJSON].accounts
+////    val randomPosition = nextInt(accountsJson.size)
+////    accountsJson(randomPosition)
+////  }
+////
+////  def randomPrivateAccount(bankId : String) : AccountJSON = {
+////    val accountsJson = getPrivateAccounts(bankId, user1).body.extract[AccountsJSON].accounts
+////    val randomPosition = nextInt(accountsJson.size)
+////    accountsJson(randomPosition)
+////  }
+////
+////  def randomAccountPermission(bankId : String, accountId : String) : PermissionJSON = {
+////    val persmissionsInfo = getAccountPermissions(bankId, accountId, user1).body.extract[PermissionsJSON]
+////    val randomPermission = nextInt(persmissionsInfo.permissions.size)
+////    persmissionsInfo.permissions(randomPermission)
+////  }
+////
+////  def randomOtherBankAccount(bankId : String, accountId : String, viewId : String): OtherAccountJSON = {
+////    val otherAccounts = getTheOtherBankAccounts(bankId, accountId, viewId, user1).body.extract[OtherAccountsJSON].other_accounts
+////    otherAccounts(nextInt(otherAccounts.size))
+////  }
+////
+////  def randomLocation : LocationPlainJSON = {
+////    def sign = {
+////      val b = nextBoolean
+////      if(b) 1
+////      else -1
+////    }
+////    val longitude : Double = nextInt(180)*sign*nextDouble
+////    val latitude : Double = nextInt(90)*sign*nextDouble
+////    JSONFactory.createLocationPlainJSON(latitude, longitude)
+////  }
+////
+////  def randomTransaction(bankId : String, accountId : String, viewId: String) : TransactionJSON = {
+////    val transactionsJson = getTransactions(bankId, accountId, viewId, user1).body.extract[TransactionsJSON].transactions
+////    val randomPosition = nextInt(transactionsJson.size)
+////    transactionsJson(randomPosition)
+////  }
+////
+////  def randomViewsIdsToGrant(bankId : String, accountId : String) : List[String]= {
+////    //get the view ids of the available views on the bank accounts
+////    val viewsIds = getAccountViews(bankId, accountId, user1).body.extract[ViewsJSON].views.map(_.id)
+////    //choose randomly some view ids to grant
+////    val (viewsIdsToGrant, _) = viewsIds.splitAt(nextInt(viewsIds.size) + 1)
+////    viewsIdsToGrant
+////  }
+////
+////  def randomView(isPublic: Boolean, alias: String) : CreateViewJson = {
+////    CreateViewJson(
+////      name = randomString(3),
+////      description = randomString(3),
+////      is_public = isPublic,
+////      which_alias_to_use=alias,
+////      hide_metadata_if_alias_used=false,
+////      allowed_actions = viewfields
+////    )
+////  }
+////  def getAPIInfo : APIResponse = {
+////    val request = v1_2Request
+////    makeGetRequest(request)
+////  }
+////
+////  def getBanksInfo : APIResponse  = {
+////    val request = v1_2Request / "banks"
+////    makeGetRequest(request)
+////  }
+////
+////  def getBankInfo(bankId : String) : APIResponse  = {
+////    val request = v1_2Request / "banks" / bankId
+////    makeGetRequest(request)
+////  }
+////
+////  def getPublicAccounts(bankId : String) : APIResponse= {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / "public"
+////    makeGetRequest(request)
+////  }
+////
+////  def getPrivateAccounts(bankId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / "private" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getBankAccounts(bankId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getPublicBankAccountDetails(bankId : String, accountId : String, viewId : String) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "account"
+////    makeGetRequest(request)
+////  }
+////
+////  def getPrivateBankAccountDetails(bankId : String, accountId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "account" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getAccountViews(bankId : String, accountId : String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "views" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postView(bankId: String, accountId: String, view: CreateViewJson, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "views").POST <@(consumerAndToken)
+////    makePostRequest(request, write(view))
+////  }
+////
+////  def putView(bankId: String, accountId: String, viewId : String, view: UpdateViewJSON, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "views" / viewId).PUT <@(consumerAndToken)
+////    makePutRequest(request, write(view))
+////  }
+////
+////  def deleteView(bankId: String, accountId: String, viewId: String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "views" / viewId).DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getAccountPermissions(bankId : String, accountId : String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getUserAccountPermission(bankId : String, accountId : String, userId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def grantUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).POST <@(consumerAndToken)
+////    makePostRequest(request)
+////  }
+////
+////  def grantUserAccessToViews(bankId : String, accountId : String, userId : String, viewIds : List[String], consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").POST <@(consumerAndToken)
+////    val viewsJson = ViewIdsJson(viewIds)
+////    makePostRequest(request, write(viewsJson))
+////  }
+////
+////  def revokeUserAccessToView(bankId : String, accountId : String, userId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views" / viewId).DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def revokeUserAccessToAllViews(bankId : String, accountId : String, userId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse= {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / "permissions"/ userId / "views").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getTheOtherBankAccounts(bankId : String, accountId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getTheOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getMetadataOfOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "metadata" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getThePublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postAPublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias").POST <@(consumerAndToken)
+////    val aliasJson = AliasJSON(alias)
+////    makePostRequest(request, write(aliasJson))
+////  }
+////
+////  def updateThePublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias").PUT <@(consumerAndToken)
+////    val aliasJson = AliasJSON(alias)
+////    makePutRequest(request, write(aliasJson))
+////  }
+////
+////  def deleteThePublicAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "public_alias").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getThePrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postAPrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias").POST <@(consumerAndToken)
+////    val aliasJson = AliasJSON(alias)
+////    makePostRequest(request, write(aliasJson))
+////  }
+////
+////  def updateThePrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, alias : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias").PUT <@(consumerAndToken)
+////    val aliasJson = AliasJSON(alias)
+////    makePutRequest(request, write(aliasJson))
+////  }
+////
+////  def deleteThePrivateAliasForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "private_alias").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
+////    getMetadataOfOneOtherBankAccount(bankId,accountId,viewId,otherBankAccountId,consumerAndToken).body.extract[OtherAccountMetadataJSON].more_info
+////  }
+////
+////  def postMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, moreInfo : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "more_info").POST <@(consumerAndToken)
+////    val moreInfoJson = MoreInfoJSON(moreInfo)
+////    makePostRequest(request, write(moreInfoJson))
+////  }
+////
+////  def updateMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, moreInfo : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "more_info").PUT <@(consumerAndToken)
+////    val moreInfoJson = MoreInfoJSON(moreInfo)
+////    makePutRequest(request, write(moreInfoJson))
+////  }
+////
+////  def deleteMoreInfoForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "more_info").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
+////    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId,consumerAndToken).body.extract[OtherAccountMetadataJSON].URL
+////  }
+////
+////  def postUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, url : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "url").POST <@(consumerAndToken)
+////    val urlJson = UrlJSON(url)
+////    makePostRequest(request, write(urlJson))
+////  }
+////
+////  def updateUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, url : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "url").PUT <@(consumerAndToken)
+////    val urlJson = UrlJSON(url)
+////    makePutRequest(request, write(urlJson))
+////  }
+////
+////  def deleteUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "url").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
+////    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId,consumerAndToken).body.extract[OtherAccountMetadataJSON].image_URL
+////  }
+////
+////  def postImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, imageUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "image_url").POST <@(consumerAndToken)
+////    val imageUrlJson = ImageUrlJSON(imageUrl)
+////    makePostRequest(request, write(imageUrlJson))
+////  }
+////
+////  def updateImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, imageUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "image_url").PUT <@(consumerAndToken)
+////    val imageUrlJson = ImageUrlJSON(imageUrl)
+////    makePutRequest(request, write(imageUrlJson))
+////  }
+////
+////  def deleteImageUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "image_url").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : String = {
+////    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId, consumerAndToken).body.extract[OtherAccountMetadataJSON].open_corporates_URL
+////  }
+////
+////  def postOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").POST <@(consumerAndToken)
+////    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+////    makePostRequest(request, write(openCorporateUrlJson))
+////  }
+////
+////  def updateOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, openCorporateUrl : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").PUT <@(consumerAndToken)
+////    val openCorporateUrlJson = OpenCorporateUrlJSON(openCorporateUrl)
+////    makePutRequest(request, write(openCorporateUrlJson))
+////  }
+////
+////  def deleteOpenCorporatesUrlForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "open_corporates_url").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : LocationJSON = {
+////    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId, consumerAndToken).body.extract[OtherAccountMetadataJSON].corporate_location
+////  }
+////
+////  def postCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").POST <@(consumerAndToken)
+////    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+////    makePostRequest(request, write(corpLocationJson))
+////  }
+////
+////  def updateCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, corporateLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").PUT <@(consumerAndToken)
+////    val corpLocationJson = CorporateLocationJSON(corporateLocation)
+////    makePutRequest(request, write(corpLocationJson))
+////  }
+////
+////  def deleteCorporateLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "corporate_location").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : LocationJSON = {
+////    getMetadataOfOneOtherBankAccount(bankId,accountId, viewId,otherBankAccountId, consumerAndToken).body.extract[OtherAccountMetadataJSON].physical_location
+////  }
+////
+////  def postPhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").POST <@(consumerAndToken)
+////    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+////    makePostRequest(request, write(physLocationJson))
+////  }
+////
+////  def updatePhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, physicalLocation : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)])  : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").PUT <@(consumerAndToken)
+////    val physLocationJson = PhysicalLocationJSON(physicalLocation)
+////    makePutRequest(request, write(physLocationJson))
+////  }
+////
+////  def deletePhysicalLocationForOneOtherBankAccount(bankId : String, accountId : String, viewId : String, otherBankAccountId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "other_accounts" / otherBankAccountId / "physical_location").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getTransactions(bankId : String, accountId : String, viewId : String, consumerAndToken: Option[(Consumer, Token)], params: List[(String, String)] = Nil) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" <@(consumerAndToken)
+////    makeGetRequest(request, params)
+////  }
+////
+////  def getTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]): APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "transaction" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def getNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").POST <@(consumerAndToken)
+////    val narrativeJson = TransactionNarrativeJSON(narrative)
+////    makePostRequest(request, write(narrativeJson))
+////  }
+////
+////  def updateNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, narrative: String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").PUT <@(consumerAndToken)
+////    val narrativeJson = TransactionNarrativeJSON(narrative)
+////    makePutRequest(request, write(narrativeJson))
+////  }
+////
+////  def deleteNarrativeForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "narrative").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getCommentsForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postCommentForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, comment: PostTransactionCommentJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments").POST <@(consumerAndToken)
+////    makePostRequest(request, write(comment))
+////  }
+////
+////  def deleteCommentForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, commentId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "comments" / commentId).DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getTagsForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postTagForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, tag: PostTransactionTagJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags").POST <@(consumerAndToken)
+////    makePostRequest(request, write(tag))
+////  }
+////
+////  def deleteTagForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, tagId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "tags" / tagId).DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getImagesForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, image: PostTransactionImageJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images").POST <@(consumerAndToken)
+////    makePostRequest(request, write(image))
+////  }
+////
+////  def deleteImageForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, imageId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "images" / imageId).DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////  def postWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").POST <@(consumerAndToken)
+////    val whereJson = PostTransactionWhereJSON(where)
+////    makePostRequest(request, write(whereJson))
+////  }
+////
+////  def updateWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, where : LocationPlainJSON, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").PUT <@(consumerAndToken)
+////    val whereJson = PostTransactionWhereJSON(where)
+////    makePutRequest(request, write(whereJson))
+////  }
+////
+////  def deleteWhereForOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = (v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "metadata" / "where").DELETE <@(consumerAndToken)
+////    makeDeleteRequest(request)
+////  }
+////
+////  def getTheOtherBankAccountOfOneTransaction(bankId : String, accountId : String, viewId : String, transactionId : String, consumerAndToken: Option[(Consumer, Token)]) : APIResponse = {
+////    val request = v1_2Request / "banks" / bankId / "accounts" / accountId / viewId / "transactions" / transactionId / "other_account" <@(consumerAndToken)
+////    makeGetRequest(request)
+////  }
+////
+////
+/////************************ the tests ************************/
+////  feature("base line URL works"){
+////    scenario("we get the api information", API1_2, APIInfo) {
+////      Given("We will not use an access token")
+////      When("the request is sent")
+////      val reply = getAPIInfo
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val apiInfo = reply.body.extract[APIInfoJSON]
+////      apiInfo.version should equal ("v1.2")
+/////*      apiInfo.git_commit.nonEmpty should equal (true)*/
+////    }
+////  }
+////
+////  feature("Information about the hosted banks"){
+////    scenario("we get the hosted banks information", API1_2, GetHostedBanks) {
+////      Given("We will not use an access token")
+////      When("the request is sent")
+////      val reply = getBanksInfo
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val banksInfo = reply.body.extract[BanksJSON]
+////      banksInfo.banks.foreach(b => {
+////        b.id.nonEmpty should equal (true)
+////      })
+////    }
+////  }
+////
+////  feature("Information about one hosted bank"){
+////    scenario("we get the hosted bank information", API1_2, GetHostedBank) {
+////      Given("We will not use an access token")
+////      When("the request is sent")
+////      val reply = getBankInfo(randomBank)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val bankInfo = reply.body.extract[BankJSON]
+////      bankInfo.id.nonEmpty should equal (true)
+////    }
+////
+////    scenario("we don't get the hosted bank information", API1_2, GetHostedBank) {
+////      Given("We will not use an access token and request a random bankId")
+////      When("the request is sent")
+////      val reply = getBankInfo(randomString(5))
+////      Then("we should get a 400 code")
+////      reply.code should equal (400)
+////      And("we should get an error message")
+////      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+////    }
+////  }
+////
+////  def assertViewExistsWithCondition(accJson: AccountsJSON, cond: ViewJSON => Boolean): Unit = {
+////    val exists = accJson.accounts.exists(acc => acc.views_available.exists(cond))
+////    exists should equal(true)
+////  }
+////
+////  def assertAllAccountsHaveAViewWithCondition(accJson: AccountsJSON, cond: ViewJSON => Boolean): Unit = {
+////    val forAll = accJson.accounts.forall(acc => acc.views_available.exists(cond))
+////    forAll should equal(true)
+////  }
+////
+////  def assertAccountsFromOneBank(accJson : AccountsJSON) : Unit = {
+////    accJson.accounts.size should be > 0
+////    val theBankId = accJson.accounts.head.bank_id
+////    theBankId should not be ("")
+////
+////    accJson.accounts.foreach(acc => acc.bank_id should equal (theBankId))
+////  }
+////
+////  def assertNoDuplicateAccounts(accJson : AccountsJSON) : Unit = {
+////    //bankId : String, accountId: String
+////    type AccountIdentifier = (String, String)
+////    //unique accounts have unique bankId + accountId
+////    val accountIdentifiers : Set[AccountIdentifier] = {
+////      accJson.accounts.map(acc => (acc.bank_id, acc.id)).toSet
+////    }
+////    //if they are all unique, the set will contain the same number of elements as the list
+////    accJson.accounts.size should equal(accountIdentifiers.size)
+////  }
+////
+////  feature("Information about all the bank accounts for a single bank"){
+////    scenario("we get only the public bank accounts", API1_2, GetBankAccounts) {
+////      Given("We will not use an access token")
+////      When("the request is sent")
+////      val reply = getBankAccounts(randomBank, None)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val publicAccountsInfo = reply.body.extract[AccountsJSON]
+////      And("some fields should not be empty")
+////      publicAccountsInfo.accounts.foreach(a => {
+////        a.id.nonEmpty should equal (true)
+////        a.views_available.nonEmpty should equal (true)
+////        a.views_available.foreach(
+////          //check that all the views are public
+////          v => v.is_public should equal (true)
+////        )
+////      })
+////
+////      And("The accounts are only from one bank")
+////      assertAccountsFromOneBank(publicAccountsInfo)
+////
+////      And("There are no duplicate accounts")
+////      assertNoDuplicateAccounts(publicAccountsInfo)
+////    }
+////    scenario("we get the bank accounts the user have access to", API1_2, GetBankAccounts) {
+////      Given("We will use an access token")
+////      When("the request is sent")
+////      val reply = getBankAccounts(randomBank, user1)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val accountsInfo = reply.body.extract[AccountsJSON]
+////      And("some fields should not be empty")
+////      accountsInfo.accounts.foreach(a => {
+////        a.id.nonEmpty should equal (true)
+////        a.views_available.nonEmpty should equal (true)
+////      })
+////
+////      //Note: this API call is technically wrong, as it was originally intended to have returned
+////      // public + private accounts when logged in, but actually returned only the accounts with
+////      // more than public access. This test therefore does not test that condition as the v1.2 API
+////      // call is being kept that way to avoid breaking any existing applications using it. This API
+////      // call is fixed in v1.2.1
+////      And("Some accounts should have private views")
+////      assertViewExistsWithCondition(accountsInfo, !_.is_public)
+////
+////      And("The accounts are only from one bank")
+////      assertAccountsFromOneBank(accountsInfo)
+////
+////      And("There are no duplicate accounts")
+////      assertNoDuplicateAccounts(accountsInfo)
+////    }
+////  }
+////
+////  feature("Information about the public bank accounts for a single bank"){
+////    scenario("we get the public bank accounts", API1_2, GetPublicBankAccounts) {
+////      Given("We will not use an access token")
+////      When("the request is sent")
+////      val reply = getPublicAccounts(randomBank)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val publicAccountsInfo = reply.body.extract[AccountsJSON]
+////      And("some fields should not be empty")
+////      publicAccountsInfo.accounts.foreach(a => {
+////        a.id.nonEmpty should equal (true)
+////        a.views_available.nonEmpty should equal (true)
+////        a.views_available.foreach(
+////          //check that all the views are public
+////          v => v.is_public should equal (true)
+////        )
+////      })
+////
+////      And("The accounts are only from one bank")
+////      assertAccountsFromOneBank(publicAccountsInfo)
+////
+////      And("There are no duplicate accounts")
+////      assertNoDuplicateAccounts(publicAccountsInfo)
+////    }
+////  }
+////
+////  feature("Information about the private bank accounts for a single bank"){
+////    scenario("we get the private bank accounts", API1_2, GetPrivateBankAccounts) {
+////      Given("We will use an access token")
+////      When("the request is sent")
+////      val reply = getPrivateAccounts(randomBank, user1)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      And("some fields should not be empty")
+////      val privateAccountsInfo = reply.body.extract[AccountsJSON]
+////      privateAccountsInfo.accounts.foreach(a => {
+////        a.id.nonEmpty should equal (true)
+////        a.views_available.nonEmpty should equal (true)
+////      })
+////
+////      And("All accounts should have at least one private view")
+////      assertAllAccountsHaveAViewWithCondition(privateAccountsInfo, !_.is_public)
+////
+////      And("The accounts are only from one bank")
+////      assertAccountsFromOneBank(privateAccountsInfo)
+////
+////      And("There are no duplicate accounts")
+////      assertNoDuplicateAccounts(privateAccountsInfo)
+////    }
+////    scenario("we don't get the private bank accounts", API1_2, GetPrivateBankAccounts) {
+////      Given("We will not use an access token")
+////      When("the request is sent")
+////      val reply = getPrivateAccounts(randomBank, None)
+////      Then("we should get a 400 code")
+////      reply.code should equal (400)
+////      And("we should get an error message")
+////      reply.body.extract[ErrorMessage].error.nonEmpty should equal (true)
+////    }
+////  }
+////
+////  feature("Information about a bank account"){
+////    scenario("we get data without using an access token", API1_2, GetBankAccount) {
+////      Given("We will not use an access token")
+////      val bankId = randomBank
+////      val bankAccount : AccountJSON = randomPublicAccount(bankId)
+////      val randomPosition = nextInt(bankAccount.views_available.size)
+////      val view = bankAccount.views_available.toList(randomPosition)
+////      When("the request is sent")
+////      val reply = getPublicBankAccountDetails(bankId, bankAccount.id, view.id)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      And("some fields should not be empty")
+////      val publicAccountDetails = reply.body.extract[ModeratedAccountJSON]
+////      publicAccountDetails.id.nonEmpty should equal (true)
+////      publicAccountDetails.bank_id.nonEmpty should equal (true)
+////      publicAccountDetails.views_available.nonEmpty should equal (true)
+////    }
+////
+////    scenario("we get data by using an access token", API1_2, GetBankAccount) {
+////      Given("We will use an access token")
+////      val bankId = randomBank
+////      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+////      val randomPosition = nextInt(bankAccount.views_available.size)
+////      val view = bankAccount.views_available.toList(randomPosition)
+////      When("the request is sent")
+////      val reply = getPrivateBankAccountDetails(bankId, bankAccount.id, view.id, user1)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      val privateAccountDetails = reply.body.extract[ModeratedAccountJSON]
+////      And("some fields should not be empty")
+////      privateAccountDetails.id.nonEmpty should equal (true)
+////      privateAccountDetails.bank_id.nonEmpty should equal (true)
+////      privateAccountDetails.views_available.nonEmpty should equal (true)
+////    }
+////  }
+////
+////  feature("List of the views of specific bank account"){
+////    scenario("We will get the list of the available views on a bank account", API1_2, GetViews) {
+////      Given("We will use an access token")
+////      val bankId = randomBank
+////      val bankAccount : AccountJSON = randomPrivateAccount(bankId)
+////      When("the request is sent")
+////      val reply = getAccountViews(bankId, bankAccount.id, user1)
+////      Then("we should get a 200 ok code")
+////      reply.code should equal (200)
+////      reply.body.extract[ViewsJSON]
+////    }
 //
 //    scenario("We will not get the list of the available views on a bank account due to missing token", API1_2, GetViews) {
 //      Given("We will not use an access token")

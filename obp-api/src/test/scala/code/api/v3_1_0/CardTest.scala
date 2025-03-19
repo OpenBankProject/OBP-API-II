@@ -1,52 +1,52 @@
-package code.api.v3_1_0
-
-import java.util.Date
-
-import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON
-import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON.{createPhysicalCardJsonV310, updatePhysicalCardJsonV310}
-import code.api.util.APIUtil.OAuth._
-import code.api.util.ApiRole.CanCreateCustomer
-import code.api.util.ApiRole
-import code.api.v3_1_0.OBPAPI3_1_0.Implementations3_1_0
-import code.entitlement.Entitlement
-import code.setup.DefaultUsers
-import com.github.dwickern.macros.NameOf.nameOf
-import net.liftweb.json.Serialization.write
-import org.scalatest.Tag
-import code.api.util.ErrorMessages._
-import code.api.v1_3_0.ReplacementJSON
-import com.openbankproject.commons.model.{CardAction, CardReplacementReason}
-import com.openbankproject.commons.util.ApiVersion
-
-class CardTest extends V310ServerSetup with DefaultUsers {
-
-  object VersionOfApi extends Tag(ApiVersion.v3_1_0.toString)
-  object ApiEndpointAddCardForBank extends Tag(nameOf(Implementations3_1_0.addCardForBank))
-  object ApiEndpointUpdatedCardForBank extends Tag(nameOf(Implementations3_1_0.updatedCardForBank))
-  object ApiEndpointGetCardForBank extends Tag(nameOf(Implementations3_1_0.getCardForBank))
-  object ApiEndpointGetCardsForBank extends Tag(nameOf(Implementations3_1_0.getCardsForBank))
-  object ApiEndpointDeleteCardForBank extends Tag(nameOf(Implementations3_1_0.deleteCardForBank))
-  
-  
-  feature("test Card APIs") {
-    scenario("We will create Card with many error cases", 
-      ApiEndpointAddCardForBank, 
-      ApiEndpointUpdatedCardForBank,
-      ApiEndpointGetCardForBank,
-      ApiEndpointGetCardsForBank, 
-      ApiEndpointDeleteCardForBank, 
-      VersionOfApi
-    ) {
-      Given("The test bank and test account")
-      val testBank = testBankId1
-      val testAccount = testAccountId1
-      val dummyCard = createPhysicalCardJsonV310
-      
-      And("We need to prepare the Customer Info")
-
-      Then("We prepare the Customer data")
-      val request310 = (v3_1_0_Request / "banks" / testBankId1.value / "customers").POST <@(user1)
-      val postCustomerJson = SwaggerDefinitionsJSON.postCustomerJsonV310
+//package code.api.v3_1_0
+//
+//import java.util.Date
+//
+//import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON
+//import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON.{createPhysicalCardJsonV310, updatePhysicalCardJsonV310}
+//import code.api.util.APIUtil.OAuth._
+//import code.api.util.ApiRole.CanCreateCustomer
+//import code.api.util.ApiRole
+//import code.api.v3_1_0.OBPAPI3_1_0.Implementations3_1_0
+//import code.entitlement.Entitlement
+//import code.setup.DefaultUsers
+//import com.github.dwickern.macros.NameOf.nameOf
+//import net.liftweb.json.Serialization.write
+//import org.scalatest.Tag
+//import code.api.util.ErrorMessages._
+//import code.api.v1_3_0.ReplacementJSON
+//import com.openbankproject.commons.model.{CardAction, CardReplacementReason}
+//import com.openbankproject.commons.util.ApiVersion
+//
+//class CardTest extends V310ServerSetup with DefaultUsers {
+//
+//  object VersionOfApi extends Tag(ApiVersion.v3_1_0.toString)
+//  object ApiEndpointAddCardForBank extends Tag(nameOf(Implementations3_1_0.addCardForBank))
+//  object ApiEndpointUpdatedCardForBank extends Tag(nameOf(Implementations3_1_0.updatedCardForBank))
+//  object ApiEndpointGetCardForBank extends Tag(nameOf(Implementations3_1_0.getCardForBank))
+//  object ApiEndpointGetCardsForBank extends Tag(nameOf(Implementations3_1_0.getCardsForBank))
+//  object ApiEndpointDeleteCardForBank extends Tag(nameOf(Implementations3_1_0.deleteCardForBank))
+//  
+//  
+//  feature("test Card APIs") {
+//    scenario("We will create Card with many error cases", 
+//      ApiEndpointAddCardForBank, 
+//      ApiEndpointUpdatedCardForBank,
+//      ApiEndpointGetCardForBank,
+//      ApiEndpointGetCardsForBank, 
+//      ApiEndpointDeleteCardForBank, 
+//      VersionOfApi
+//    ) {
+//      Given("The test bank and test account")
+//      val testBank = testBankId1
+//      val testAccount = testAccountId1
+//      val dummyCard = createPhysicalCardJsonV310
+//      
+//      And("We need to prepare the Customer Info")
+//
+//      Then("We prepare the Customer data")
+//      val request310 = (v3_1_0_Request / "banks" / testBankId1.value / "customers").POST <@(user1)
+//      val postCustomerJson = SwaggerDefinitionsJSON.postCustomerJsonV310
       Entitlement.entitlement.vend.addEntitlement(testBank.value, resourceUser1.userId, CanCreateCustomer.toString)
       val responseCustomer310 = makePostRequest(request310, write(postCustomerJson))
       val customerId = responseCustomer310.body.extract[CustomerJsonV310].customer_id

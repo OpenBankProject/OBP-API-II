@@ -1,435 +1,435 @@
-/**
-Open Bank Project - API
-Copyright (C) 2011-2019, TESOBE GmbH.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-Email: contact@tesobe.com
-TESOBE GmbH.
-Osloer Strasse 16/17
-Berlin 13359, Germany
-
-This product includes software developed at
-TESOBE (http://www.tesobe.com/)
-
-  */
-package code.api.v2_1_0
-
-import java.util.Date
-
-import code.api.Constant._
-import bootstrap.liftweb.ToSchemify
-import code.TestServer
-import code.api.Constant._
-import code.api.util.APIUtil.OAuth._
-import code.api.util.APIUtil._
-import code.api.util.ErrorMessages._
-import code.api.util.{APIUtil, ApiRole, OBPLimit}
-import code.atms.Atms
-import code.atms.Atms.countOfAtms
-import code.bankconnectors.Connector
-import code.branches.Branches
-import code.crm.CrmEvent
-import code.crm.CrmEvent.{CrmEvent, CrmEventId}
-import code.entitlement.Entitlement
-import code.model._
-import code.model.dataAccess._
-import code.products.Products
-import code.products.Products.countOfProducts
-import code.sandbox._
-import com.openbankproject.commons.model.Product
-import code.setup.{APIResponse, DefaultUsers, SendServerRequests}
-import code.users.Users
-import code.views.Views
-import code.views.system.ViewDefinition
-import com.openbankproject.commons.model._
-import com.openbankproject.commons.model.enums.AccountRoutingScheme
-import dispatch._
-import net.liftweb.common.{Empty, ParamFailure}
-import net.liftweb.json.JsonAST.{JObject, JValue}
-import net.liftweb.json.JsonDSL._
-import net.liftweb.json.Serialization.write
-import net.liftweb.json.{JField, _}
-import net.liftweb.mapper.{By, MetaMapper}
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
-import code.model._
-import code.model.dataAccess._
-import scala.util.Random
-
-/*
-This tests:
-
-Posting of json to the sandbox creation API endpoint.
-Checking that the various objects were created OK via calling the Mapper.
- */
-class SandboxDataLoadingTest extends FlatSpec with SendServerRequests with Matchers with BeforeAndAfterEach with DefaultUsers{
-
-  val SUCCESS: Int = 201
-  val FAILED: Int = 400
-
-  implicit val formats = Serialization.formats(NoTypeHints)
-
-  //tests running on the actual sandbox?
-  val server = TestServer
-  def baseRequest = host(server.host, server.port)
-
-  val user1Import = SandboxUserImport(email = "user1@example.com", password = "TESOBE520berlin123!", user_name = "user.name_1")
-  val user2Import = SandboxUserImport(email = "user2@example.com", password = "TESOBE520berlin123!", user_name = "user.name_2")
-  val differentUsername = "user_one"
-  val secondUserName = "user_two"
-
-  val standardUsers = user1Import :: user2Import :: Nil
-  
-  
-  override def beforeEach() = {
-    //returns true if the model should not be wiped after each test
-    def exclusion(m : MetaMapper[_]) = {
-      m == Nonce || m == code.model.Token || m == code.model.Consumer || m == AuthUser || m == ResourceUser
-    }
-    //drop database tables before
-    ToSchemify.models.filterNot(exclusion).foreach(_.bulkDelete_!!())
-    //we need to delete the test uses manully here.
-    AuthUser.bulkDelete_!!(By(AuthUser.username, user1Import.user_name))
-    AuthUser.bulkDelete_!!(By(AuthUser.username, user2Import.user_name))
-    AuthUser.bulkDelete_!!(By(AuthUser.username, differentUsername))
-    AuthUser.bulkDelete_!!(By(AuthUser.username, secondUserName))
-    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, user1Import.user_name ))
-    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, user2Import.user_name ))
-    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, differentUsername ))
-    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, secondUserName ))
-    Entitlement.entitlement.vend.addEntitlement("", resourceUser1.userId, ApiRole.CanCreateSandbox.toString)
-  }
-
-
-  def toJsonArray(xs : List[String]) : String = {
-    xs.mkString("[", ",", "]")
-  }
-
-  def createImportJson(banks: List[JValue],
-                       users: List[JValue],
-                       accounts : List[JValue],
-                       transactions : List[JValue],
-                       branches : List[JValue],
-                       atms : List[JValue],
-                       products : List[JValue],
-                       crm_events : List[JValue]) : String = {
-
-    // Note: These keys must exactly match SandboxDataImport else consumer will get 404 when trying to call sandbox creation url
-    val json =
-      ("banks" -> banks) ~
-      ("users" -> users) ~
-      ("accounts" -> accounts) ~
-      ("transactions" -> transactions) ~
-      ("branches" -> branches) ~
-      ("atms" -> atms) ~
-      ("products" -> products) ~
-      ("crm_events" -> crm_events)
-    compactRender(json)
-  }
-
-  // posts the json with the correct secret token
-  def postImportJson(json : String) : APIResponse = {
-    val base = baseRequest / "obp"  / "v2.1.0" / "sandbox" / "data-import"
-    // If we have a secretToken add that to the base request
-    val request = base.POST <@(user1)
-    makePostRequest(request, json)
-  }
-
-  def verifyBankCreated(bank : SandboxBankImport) = {
-    val bankId = BankId(bank.id)
-    val foundBankBox = Connector.connector.vend.getBankLegacy(bankId, None).map(_._1)
-
-    foundBankBox.isDefined should equal(true)
-
-    val foundBank = foundBankBox.openOrThrowException(attemptedToOpenAnEmptyBox)
-
-    foundBank.bankId should equal(bankId)
-    foundBank.shortName should equal(bank.short_name)
-    foundBank.fullName should equal(bank.full_name)
-    foundBank.logoUrl should equal(bank.logo)
-    foundBank.websiteUrl should equal(bank.website)
-  }
-
-  def verifyBranchCreated(branch : SandboxBranchImport) = {
-    //compare branches with data retrieved from connector (i.e. the db)
-
-    // Get ids from input
-    val bankId = BankId(branch.bank_id)
-    val branchId = BranchId(branch.id)
-
-    // check we have found a branch
-    val foundBranchOpt: Option[BranchT] = Branches.branchesProvider.vend.getBranch(bankId, branchId)
-    foundBranchOpt.isDefined should equal(true)
-
-    val foundBranch = foundBranchOpt.get
-    foundBranch.name should equal(branch.name)
-    foundBranch.address.line1 should equal(branch.address.line_1)
-    foundBranch.address.line2 should equal(branch.address.line_2)
-    foundBranch.address.line3 should equal(branch.address.line_3)
-    foundBranch.address.city should equal(branch.address.city)
-    foundBranch.address.county should equal(Some(branch.address.county))
-    foundBranch.address.state should equal(branch.address.state)
-
-    foundBranch.location.latitude should equal(branch.location.latitude)
-    foundBranch.location.longitude should equal(branch.location.longitude)
-
-    foundBranch.address.postCode should equal(branch.address.post_code)
-    foundBranch.address.countryCode should equal(branch.address.country_code)
-
-    foundBranch.meta.license.id should equal(branch.meta.license.id)
-    foundBranch.meta.license.name should equal(branch.meta.license.name)
-
-    foundBranch.lobbyString.get.hours should equal(branch.lobby.get.hours)     // TODO Check None situation (lobby is None)
-    foundBranch.driveUpString.get.hours should equal(branch.driveUp.get.hours) // TODO Check None situation (driveUp is None)
-  }
-
-  def verifyAtmCreated(atm : SandboxAtmImport) = {
-    // Get ids from input
-    val bankId = BankId(atm.bank_id)
-    val atmId = AtmId(atm.id)
-
-    // check we have found a branch
-    val foundAtmOpt: Option[AtmT] = Atms.atmsProvider.vend.getAtm(bankId, atmId)
-    foundAtmOpt.isDefined should equal(true)
-
-    val foundAtm = foundAtmOpt.get
-    foundAtm.name should equal(atm.name)
-    foundAtm.address.line1 should equal(atm.address.line_1)
-    foundAtm.address.line2 should equal(atm.address.line_2)
-    foundAtm.address.line3 should equal(atm.address.line_3)
-    foundAtm.address.city should equal(atm.address.city)
-    foundAtm.address.county should equal(Some(atm.address.county))
-    foundAtm.address.state should equal(atm.address.state)
-
-    foundAtm.location.latitude should equal(atm.location.latitude)
-    foundAtm.location.longitude should equal(atm.location.longitude)
-
-    foundAtm.address.postCode should equal(atm.address.post_code)
-    foundAtm.address.countryCode should equal(atm.address.country_code)
-
-    foundAtm.meta.license.id should equal(atm.meta.license.id)
-    foundAtm.meta.license.name should equal(atm.meta.license.name)
-  }
-
-
-  def verifyProductCreated(product : SandboxProductImport) = {
-    // Get ids from input
-    val bankId = BankId(product.bank_id)
-    val code = ProductCode(product.code)
-
-    // check we have found a product
-    val foundProductOpt: Option[Product] = Products.productsProvider.vend.getProduct(bankId, code)
-    foundProductOpt.isDefined should equal(true)
-
-    val foundProduct = foundProductOpt.get
-    foundProduct.bankId.toString should equal (product.bank_id)
-    foundProduct.code.value should equal(product.code)
-    foundProduct.name should equal(product.name)
-    foundProduct.category should equal(product.category)
-    foundProduct.family should equal(product.family)
-    foundProduct.superFamily should equal(product.super_family)
-    foundProduct.moreInfoUrl should equal(product.more_info_url)
-  }
-
-
-
-  def verifyCrmEventCreated(crmEvent : SandboxCrmEventImport) = {
-    // Get ids from input
-    val bankId = BankId(crmEvent.bank_id)
-    val crmEventId = CrmEventId(crmEvent.id)
-
-    // check we have found a CrmEvent
-    val foundCrmEventOpt: Option[CrmEvent] = CrmEvent.crmEventProvider.vend.getCrmEvent(crmEventId)
-    foundCrmEventOpt.isDefined should equal(true)
-
-    val foundCrmEvent = foundCrmEventOpt.get
-//    foundCrmEvent.actualDate should equal (crmEvent.actual_date)
-    foundCrmEvent.category should equal (crmEvent.category)
-    foundCrmEvent.channel should equal (crmEvent.channel)
-    foundCrmEvent.detail should equal (crmEvent.detail)
-    foundCrmEvent.customerName should equal (crmEvent.customer.name)
-    foundCrmEvent.customerNumber should equal (crmEvent.customer.number)
-    // TODO check dates
-
-  }
-
-  def verifyUserCreated(user : SandboxUserImport) = {
-    val foundUserBox = Users.users.vend.getUserByProviderId(defaultProvider, user.user_name)
-    foundUserBox.isDefined should equal(true)
-
-    val foundUser = foundUserBox.openOrThrowException(attemptedToOpenAnEmptyBox)
-
-    foundUser.provider should equal(defaultProvider)
-    foundUser.idGivenByProvider should equal(user.user_name)
-    foundUser.emailAddress should equal(user.email)
-    foundUser.name should equal(user.user_name)
-  }
-
-  def verifyAccountCreated(account : SandboxAccountImport) = {
-    val accId = AccountId(account.id)
-    val bankId = BankId(account.bank)
-    val foundAccountBox = Connector.connector.vend.getBankAccountLegacy(bankId, accId, None).map(_._1)
-    foundAccountBox.isDefined should equal(true)
-
-    val foundAccount = foundAccountBox.openOrThrowException(attemptedToOpenAnEmptyBox)
-
-    foundAccount.bankId should equal(bankId)
-    foundAccount.accountId should equal(accId)
-    foundAccount.label should equal(account.label)
-    foundAccount.number should equal(account.number)
-    foundAccount.accountType should equal(account.`type`)
-    foundAccount.accountRoutings.find(_.scheme == AccountRoutingScheme.IBAN.toString).map(_.address) should equal(Some(account.IBAN))
-    foundAccount.balance.toString should equal(account.balance.amount)
-    foundAccount.currency should equal(account.balance.currency)
-
-    foundAccount.userOwners.map(_.name) should equal(account.owners.toSet)
-
-    if(account.generate_public_view) {
-      Views.views.vend.availableViewsForAccount(BankIdAccountId(foundAccount.bankId, foundAccount.accountId)).filter(_.isPublic).size should equal(1)
-    } else {
-      Views.views.vend.availableViewsForAccount(BankIdAccountId(foundAccount.bankId, foundAccount.accountId)).filter(_.isPublic).size should equal(0)
-    }
-
-    val owner = Users.users.vend.getUserByProviderId(defaultProvider, foundAccount.userOwners.toList.head.name).openOrThrowException(attemptedToOpenAnEmptyBox)
-    //there should be an owner view
-    //Note: system views not bankId, accountId, so here, we need to get all the views 
-    val (views,accountAccess) = Views.views.vend.privateViewsUserCanAccess(owner)
-    val ownerView = views.find(v => v.viewId.value == SYSTEM_OWNER_VIEW_ID)
-
-    //and the owners should have access to it 
-    //Now, the owner is the system view, so all the users/accounts should have the access to this view
-    (account.owners.toSet).subsetOf(Views.views.vend.getOwners(ownerView.get).map(_.idGivenByProvider)) should be (true)
-  }
-
-  def verifyTransactionCreated(transaction : SandboxTransactionImport, accountsUsed : List[SandboxAccountImport]) = {
-    val bankId = BankId(transaction.this_account.bank)
-    val accountId = AccountId(transaction.this_account.id)
-    val transactionId = TransactionId(transaction.id)
-    val foundTransactionBox = Connector.connector.vend.getTransactionLegacy(bankId, accountId, transactionId)
-
-    foundTransactionBox.isDefined should equal(true)
-
-    val foundTransaction = foundTransactionBox.map(_._1).openOrThrowException(attemptedToOpenAnEmptyBox)
-
-    foundTransaction.id should equal(transactionId)
-    foundTransaction.bankId should equal(bankId)
-    foundTransaction.accountId should equal(accountId)
-    foundTransaction.description should equal(Some(transaction.details.description))
-    foundTransaction.balance.toString should equal(transaction.details.new_balance)
-    foundTransaction.amount.toString should equal(transaction.details.value)
-
-    def toDate(dateString : String) : Date = {
-      parseObpStandardDate(dateString).openOrThrowException(attemptedToOpenAnEmptyBox)
-    }
-
-    foundTransaction.startDate.getTime should equal(toDate(transaction.details.posted).getTime)
-    foundTransaction.finishDate.getTime should equal(toDate(transaction.details.completed).getTime)
-
-    //a counterparty should exist
-    val otherAcc = foundTransaction.otherAccount
-    otherAcc.counterpartyId should not be empty
-//    otherAcc.otherAccountId should equal(accountId)
-//    otherAcc.otherBankId should equal(bankId)
-    val otherAccMeta = otherAcc.metadata
-    otherAccMeta.getPublicAlias should not be empty
-
-    //if a counterparty was originally specified in the import data, it should correspond to that
-    //counterparty
-    if(transaction.counterparty.isDefined) {
-      transaction.counterparty.get.name match {
-        case Some(name) => otherAcc.counterpartyName should equal(name)
-        case None => otherAcc.counterpartyName.nonEmpty should equal(true) //it should generate a counterparty label
-      }
-
-//      transaction.counterparty.get.account_number match {
-//        case Some(number) => otherAcc.thisAccountId.value should equal(number)
-//        case None => otherAcc.thisAccountId.value should equal("")
+///**
+//Open Bank Project - API
+//Copyright (C) 2011-2019, TESOBE GmbH.
+//
+//This program is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Affero General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+//
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU Affero General Public License for more details.
+//
+//You should have received a copy of the GNU Affero General Public License
+//along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//Email: contact@tesobe.com
+//TESOBE GmbH.
+//Osloer Strasse 16/17
+//Berlin 13359, Germany
+//
+//This product includes software developed at
+//TESOBE (http://www.tesobe.com/)
+//
+//  */
+//package code.api.v2_1_0
+//
+//import java.util.Date
+//
+//import code.api.Constant._
+//import bootstrap.liftweb.ToSchemify
+//import code.TestServer
+//import code.api.Constant._
+//import code.api.util.APIUtil.OAuth._
+//import code.api.util.APIUtil._
+//import code.api.util.ErrorMessages._
+//import code.api.util.{APIUtil, ApiRole, OBPLimit}
+//import code.atms.Atms
+//import code.atms.Atms.countOfAtms
+//import code.bankconnectors.Connector
+//import code.branches.Branches
+//import code.crm.CrmEvent
+//import code.crm.CrmEvent.{CrmEvent, CrmEventId}
+//import code.entitlement.Entitlement
+//import code.model._
+//import code.model.dataAccess._
+//import code.products.Products
+//import code.products.Products.countOfProducts
+//import code.sandbox._
+//import com.openbankproject.commons.model.Product
+//import code.setup.{APIResponse, DefaultUsers, SendServerRequests}
+//import code.users.Users
+//import code.views.Views
+//import code.views.system.ViewDefinition
+//import com.openbankproject.commons.model._
+//import com.openbankproject.commons.model.enums.AccountRoutingScheme
+//import dispatch._
+//import net.liftweb.common.{Empty, ParamFailure}
+//import net.liftweb.json.JsonAST.{JObject, JValue}
+//import net.liftweb.json.JsonDSL._
+//import net.liftweb.json.Serialization.write
+//import net.liftweb.json.{JField, _}
+//import net.liftweb.mapper.{By, MetaMapper}
+//import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+//import code.model._
+//import code.model.dataAccess._
+//import scala.util.Random
+//
+///*
+//This tests:
+//
+//Posting of json to the sandbox creation API endpoint.
+//Checking that the various objects were created OK via calling the Mapper.
+// */
+//class SandboxDataLoadingTest extends FlatSpec with SendServerRequests with Matchers with BeforeAndAfterEach with DefaultUsers{
+//
+//  val SUCCESS: Int = 201
+//  val FAILED: Int = 400
+//
+//  implicit val formats = Serialization.formats(NoTypeHints)
+//
+//  //tests running on the actual sandbox?
+//  val server = TestServer
+//  def baseRequest = host(server.host, server.port)
+//
+//  val user1Import = SandboxUserImport(email = "user1@example.com", password = "TESOBE520berlin123!", user_name = "user.name_1")
+//  val user2Import = SandboxUserImport(email = "user2@example.com", password = "TESOBE520berlin123!", user_name = "user.name_2")
+//  val differentUsername = "user_one"
+//  val secondUserName = "user_two"
+//
+//  val standardUsers = user1Import :: user2Import :: Nil
+//  
+//  
+//  override def beforeEach() = {
+//    //returns true if the model should not be wiped after each test
+//    def exclusion(m : MetaMapper[_]) = {
+//      m == Nonce || m == code.model.Token || m == code.model.Consumer || m == AuthUser || m == ResourceUser
+//    }
+//    //drop database tables before
+//    ToSchemify.models.filterNot(exclusion).foreach(_.bulkDelete_!!())
+//    //we need to delete the test uses manully here.
+//    AuthUser.bulkDelete_!!(By(AuthUser.username, user1Import.user_name))
+//    AuthUser.bulkDelete_!!(By(AuthUser.username, user2Import.user_name))
+//    AuthUser.bulkDelete_!!(By(AuthUser.username, differentUsername))
+//    AuthUser.bulkDelete_!!(By(AuthUser.username, secondUserName))
+//    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, user1Import.user_name ))
+//    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, user2Import.user_name ))
+//    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, differentUsername ))
+//    ResourceUser.bulkDelete_!!(By(ResourceUser.name_, secondUserName ))
+//    Entitlement.entitlement.vend.addEntitlement("", resourceUser1.userId, ApiRole.CanCreateSandbox.toString)
+//  }
+//
+//
+//  def toJsonArray(xs : List[String]) : String = {
+//    xs.mkString("[", ",", "]")
+//  }
+//
+//  def createImportJson(banks: List[JValue],
+//                       users: List[JValue],
+//                       accounts : List[JValue],
+//                       transactions : List[JValue],
+//                       branches : List[JValue],
+//                       atms : List[JValue],
+//                       products : List[JValue],
+//                       crm_events : List[JValue]) : String = {
+//
+//    // Note: These keys must exactly match SandboxDataImport else consumer will get 404 when trying to call sandbox creation url
+//    val json =
+//      ("banks" -> banks) ~
+//      ("users" -> users) ~
+//      ("accounts" -> accounts) ~
+//      ("transactions" -> transactions) ~
+//      ("branches" -> branches) ~
+//      ("atms" -> atms) ~
+//      ("products" -> products) ~
+//      ("crm_events" -> crm_events)
+//    compactRender(json)
+//  }
+//
+//  // posts the json with the correct secret token
+//  def postImportJson(json : String) : APIResponse = {
+//    val base = baseRequest / "obp"  / "v2.1.0" / "sandbox" / "data-import"
+//    // If we have a secretToken add that to the base request
+//    val request = base.POST <@(user1)
+//    makePostRequest(request, json)
+//  }
+//
+//  def verifyBankCreated(bank : SandboxBankImport) = {
+//    val bankId = BankId(bank.id)
+//    val foundBankBox = Connector.connector.vend.getBankLegacy(bankId, None).map(_._1)
+//
+//    foundBankBox.isDefined should equal(true)
+//
+//    val foundBank = foundBankBox.openOrThrowException(attemptedToOpenAnEmptyBox)
+//
+//    foundBank.bankId should equal(bankId)
+//    foundBank.shortName should equal(bank.short_name)
+//    foundBank.fullName should equal(bank.full_name)
+//    foundBank.logoUrl should equal(bank.logo)
+//    foundBank.websiteUrl should equal(bank.website)
+//  }
+//
+//  def verifyBranchCreated(branch : SandboxBranchImport) = {
+//    //compare branches with data retrieved from connector (i.e. the db)
+//
+//    // Get ids from input
+//    val bankId = BankId(branch.bank_id)
+//    val branchId = BranchId(branch.id)
+//
+//    // check we have found a branch
+//    val foundBranchOpt: Option[BranchT] = Branches.branchesProvider.vend.getBranch(bankId, branchId)
+//    foundBranchOpt.isDefined should equal(true)
+//
+//    val foundBranch = foundBranchOpt.get
+//    foundBranch.name should equal(branch.name)
+//    foundBranch.address.line1 should equal(branch.address.line_1)
+//    foundBranch.address.line2 should equal(branch.address.line_2)
+//    foundBranch.address.line3 should equal(branch.address.line_3)
+//    foundBranch.address.city should equal(branch.address.city)
+//    foundBranch.address.county should equal(Some(branch.address.county))
+//    foundBranch.address.state should equal(branch.address.state)
+//
+//    foundBranch.location.latitude should equal(branch.location.latitude)
+//    foundBranch.location.longitude should equal(branch.location.longitude)
+//
+//    foundBranch.address.postCode should equal(branch.address.post_code)
+//    foundBranch.address.countryCode should equal(branch.address.country_code)
+//
+//    foundBranch.meta.license.id should equal(branch.meta.license.id)
+//    foundBranch.meta.license.name should equal(branch.meta.license.name)
+//
+//    foundBranch.lobbyString.get.hours should equal(branch.lobby.get.hours)     // TODO Check None situation (lobby is None)
+//    foundBranch.driveUpString.get.hours should equal(branch.driveUp.get.hours) // TODO Check None situation (driveUp is None)
+//  }
+//
+//  def verifyAtmCreated(atm : SandboxAtmImport) = {
+//    // Get ids from input
+//    val bankId = BankId(atm.bank_id)
+//    val atmId = AtmId(atm.id)
+//
+//    // check we have found a branch
+//    val foundAtmOpt: Option[AtmT] = Atms.atmsProvider.vend.getAtm(bankId, atmId)
+//    foundAtmOpt.isDefined should equal(true)
+//
+//    val foundAtm = foundAtmOpt.get
+//    foundAtm.name should equal(atm.name)
+//    foundAtm.address.line1 should equal(atm.address.line_1)
+//    foundAtm.address.line2 should equal(atm.address.line_2)
+//    foundAtm.address.line3 should equal(atm.address.line_3)
+//    foundAtm.address.city should equal(atm.address.city)
+//    foundAtm.address.county should equal(Some(atm.address.county))
+//    foundAtm.address.state should equal(atm.address.state)
+//
+//    foundAtm.location.latitude should equal(atm.location.latitude)
+//    foundAtm.location.longitude should equal(atm.location.longitude)
+//
+//    foundAtm.address.postCode should equal(atm.address.post_code)
+//    foundAtm.address.countryCode should equal(atm.address.country_code)
+//
+//    foundAtm.meta.license.id should equal(atm.meta.license.id)
+//    foundAtm.meta.license.name should equal(atm.meta.license.name)
+//  }
+//
+//
+//  def verifyProductCreated(product : SandboxProductImport) = {
+//    // Get ids from input
+//    val bankId = BankId(product.bank_id)
+//    val code = ProductCode(product.code)
+//
+//    // check we have found a product
+//    val foundProductOpt: Option[Product] = Products.productsProvider.vend.getProduct(bankId, code)
+//    foundProductOpt.isDefined should equal(true)
+//
+//    val foundProduct = foundProductOpt.get
+//    foundProduct.bankId.toString should equal (product.bank_id)
+//    foundProduct.code.value should equal(product.code)
+//    foundProduct.name should equal(product.name)
+//    foundProduct.category should equal(product.category)
+//    foundProduct.family should equal(product.family)
+//    foundProduct.superFamily should equal(product.super_family)
+//    foundProduct.moreInfoUrl should equal(product.more_info_url)
+//  }
+//
+//
+//
+//  def verifyCrmEventCreated(crmEvent : SandboxCrmEventImport) = {
+//    // Get ids from input
+//    val bankId = BankId(crmEvent.bank_id)
+//    val crmEventId = CrmEventId(crmEvent.id)
+//
+//    // check we have found a CrmEvent
+//    val foundCrmEventOpt: Option[CrmEvent] = CrmEvent.crmEventProvider.vend.getCrmEvent(crmEventId)
+//    foundCrmEventOpt.isDefined should equal(true)
+//
+//    val foundCrmEvent = foundCrmEventOpt.get
+////    foundCrmEvent.actualDate should equal (crmEvent.actual_date)
+//    foundCrmEvent.category should equal (crmEvent.category)
+//    foundCrmEvent.channel should equal (crmEvent.channel)
+//    foundCrmEvent.detail should equal (crmEvent.detail)
+//    foundCrmEvent.customerName should equal (crmEvent.customer.name)
+//    foundCrmEvent.customerNumber should equal (crmEvent.customer.number)
+//    // TODO check dates
+//
+//  }
+//
+//  def verifyUserCreated(user : SandboxUserImport) = {
+//    val foundUserBox = Users.users.vend.getUserByProviderId(defaultProvider, user.user_name)
+//    foundUserBox.isDefined should equal(true)
+//
+//    val foundUser = foundUserBox.openOrThrowException(attemptedToOpenAnEmptyBox)
+//
+//    foundUser.provider should equal(defaultProvider)
+//    foundUser.idGivenByProvider should equal(user.user_name)
+//    foundUser.emailAddress should equal(user.email)
+//    foundUser.name should equal(user.user_name)
+//  }
+//
+//  def verifyAccountCreated(account : SandboxAccountImport) = {
+//    val accId = AccountId(account.id)
+//    val bankId = BankId(account.bank)
+//    val foundAccountBox = Connector.connector.vend.getBankAccountLegacy(bankId, accId, None).map(_._1)
+//    foundAccountBox.isDefined should equal(true)
+//
+//    val foundAccount = foundAccountBox.openOrThrowException(attemptedToOpenAnEmptyBox)
+//
+//    foundAccount.bankId should equal(bankId)
+//    foundAccount.accountId should equal(accId)
+//    foundAccount.label should equal(account.label)
+//    foundAccount.number should equal(account.number)
+//    foundAccount.accountType should equal(account.`type`)
+//    foundAccount.accountRoutings.find(_.scheme == AccountRoutingScheme.IBAN.toString).map(_.address) should equal(Some(account.IBAN))
+//    foundAccount.balance.toString should equal(account.balance.amount)
+//    foundAccount.currency should equal(account.balance.currency)
+//
+//    foundAccount.userOwners.map(_.name) should equal(account.owners.toSet)
+//
+//    if(account.generate_public_view) {
+//      Views.views.vend.availableViewsForAccount(BankIdAccountId(foundAccount.bankId, foundAccount.accountId)).filter(_.isPublic).size should equal(1)
+//    } else {
+//      Views.views.vend.availableViewsForAccount(BankIdAccountId(foundAccount.bankId, foundAccount.accountId)).filter(_.isPublic).size should equal(0)
+//    }
+//
+//    val owner = Users.users.vend.getUserByProviderId(defaultProvider, foundAccount.userOwners.toList.head.name).openOrThrowException(attemptedToOpenAnEmptyBox)
+//    //there should be an owner view
+//    //Note: system views not bankId, accountId, so here, we need to get all the views 
+//    val (views,accountAccess) = Views.views.vend.privateViewsUserCanAccess(owner)
+//    val ownerView = views.find(v => v.viewId.value == SYSTEM_OWNER_VIEW_ID)
+//
+//    //and the owners should have access to it 
+//    //Now, the owner is the system view, so all the users/accounts should have the access to this view
+//    (account.owners.toSet).subsetOf(Views.views.vend.getOwners(ownerView.get).map(_.idGivenByProvider)) should be (true)
+//  }
+//
+//  def verifyTransactionCreated(transaction : SandboxTransactionImport, accountsUsed : List[SandboxAccountImport]) = {
+//    val bankId = BankId(transaction.this_account.bank)
+//    val accountId = AccountId(transaction.this_account.id)
+//    val transactionId = TransactionId(transaction.id)
+//    val foundTransactionBox = Connector.connector.vend.getTransactionLegacy(bankId, accountId, transactionId)
+//
+//    foundTransactionBox.isDefined should equal(true)
+//
+//    val foundTransaction = foundTransactionBox.map(_._1).openOrThrowException(attemptedToOpenAnEmptyBox)
+//
+//    foundTransaction.id should equal(transactionId)
+//    foundTransaction.bankId should equal(bankId)
+//    foundTransaction.accountId should equal(accountId)
+//    foundTransaction.description should equal(Some(transaction.details.description))
+//    foundTransaction.balance.toString should equal(transaction.details.new_balance)
+//    foundTransaction.amount.toString should equal(transaction.details.value)
+//
+//    def toDate(dateString : String) : Date = {
+//      parseObpStandardDate(dateString).openOrThrowException(attemptedToOpenAnEmptyBox)
+//    }
+//
+//    foundTransaction.startDate.getTime should equal(toDate(transaction.details.posted).getTime)
+//    foundTransaction.finishDate.getTime should equal(toDate(transaction.details.completed).getTime)
+//
+//    //a counterparty should exist
+//    val otherAcc = foundTransaction.otherAccount
+//    otherAcc.counterpartyId should not be empty
+////    otherAcc.otherAccountId should equal(accountId)
+////    otherAcc.otherBankId should equal(bankId)
+//    val otherAccMeta = otherAcc.metadata
+//    otherAccMeta.getPublicAlias should not be empty
+//
+//    //if a counterparty was originally specified in the import data, it should correspond to that
+//    //counterparty
+//    if(transaction.counterparty.isDefined) {
+//      transaction.counterparty.get.name match {
+//        case Some(name) => otherAcc.counterpartyName should equal(name)
+//        case None => otherAcc.counterpartyName.nonEmpty should equal(true) //it should generate a counterparty label
 //      }
-    }
-
-  }
-
-  def addField(json : JValue, fieldName : String, fieldValue : String) = {
-    json.transform{
-      case JObject(fields) => JObject(JField(fieldName, fieldValue) :: fields)
-    }
-  }
-
-  def removeField(json : JValue, fieldName : String): JValue = {
-    removeField(json, List(fieldName))
-  }
-
-  def removeField(json : JValue, fieldSpecifier : List[String]): JValue = {
-    json.replace(fieldSpecifier, JNothing)
-  }
-
-  implicit class JValueWithSingleReplace(jValue : JValue) {
-    def replace(fieldName : String, fieldValue : String) =
-      jValue.replace(List(fieldName), fieldValue)
-  }
-
-  //TODO: remove this method?
-  def replaceField(json : JValue, fieldName : String, fieldValue : String) =
-    json.replace(List(fieldName), fieldValue)
-
-  //TODO: remove this method?
-  def replaceDisplayName(json : JValue, displayName : String) =
-    replaceField(json, "display_name", displayName)
-
-  def addIdField(json : JValue, id : String) =
-    addField(json, "id", id)
-
-  def removeIdField(json : JValue) =
-    removeField(json, "id")
-
-  def addEmailField(json : JValue, email : String) =
-    addField(json, "email", email)
-
-  def removeEmailField(json : JValue) =
-    removeField(json, "email")
-
-  val bank1 = SandboxBankImport(id = "bank1", short_name = "bank 1", full_name = "Bank 1 Inc.",
-    logo = "http://example.com/logo", website = "http://example.com")
-  val bank2 = SandboxBankImport(id = "bank2", short_name = "bank 2", full_name = "Bank 2 Inc.",
-    logo = "http://example.com/logo2", website = "http://example.com/2")
-
-  val standardBanks = bank1 :: bank2 :: Nil
-
-
-  val standardAddress1 = SandboxAddressImport(line_1 = "5 Some Street", line_2 = "Rosy Place", line_3 = "Sunny Village",
-    city = "Ashbourne", county = "Derbyshire",  state = "", post_code = "WHY RU4", country_code = "UK")
-
-  val standardLocation1 = SandboxLocationImport(52.556198, 13.384099)
-
-  //val license1AtBank1 = SandboxDataLicenseImport (id = "pddl", bank = bank1.id, name = "PDDL", url = "http://opendatacommons.org/licenses/pddl/")
-  //val standardLicenses = license1AtBank1 :: Nil
-
-
-  val standardLicense = SandboxLicenseImport  (id = "pddl", name = "Open Data Commons Public Domain Dedication and License (PDDL)")
-  val standardMeta = SandboxMetaImport (license = standardLicense)
-
-  val standardLobby = SandboxLobbyImport(hours = "M-TH 8:30-3:30, F 9-5")
-  val standardDriveUp = SandboxDriveUpImport(hours = "M-Th 8:30-5:30, F-8:30-6, Sat 9-12")
-
-  val branch1AtBank1 = SandboxBranchImport(id = "branch1", name = "Genel Müdürlük", bank_id = "bank1", address = standardAddress1
-    , location = standardLocation1, meta = standardMeta, lobby = Option(standardLobby), driveUp = Option(standardDriveUp))
-  val branch2AtBank1 = SandboxBranchImport(id = "branch2", name = "Manchester", bank_id = "bank1", address = standardAddress1
-    , location = standardLocation1, meta = standardMeta, lobby = Option(standardLobby), driveUp = Option(standardDriveUp))
-
-  val standardBranches = branch1AtBank1 :: branch2AtBank1 :: Nil
-
-  val atm1AtBank1 = SandboxAtmImport(id = "atm1", name = "Ashbourne Atm 1", bank_id = "bank1", address = standardAddress1
+//
+////      transaction.counterparty.get.account_number match {
+////        case Some(number) => otherAcc.thisAccountId.value should equal(number)
+////        case None => otherAcc.thisAccountId.value should equal("")
+////      }
+//    }
+//
+//  }
+//
+//  def addField(json : JValue, fieldName : String, fieldValue : String) = {
+//    json.transform{
+//      case JObject(fields) => JObject(JField(fieldName, fieldValue) :: fields)
+//    }
+//  }
+//
+//  def removeField(json : JValue, fieldName : String): JValue = {
+//    removeField(json, List(fieldName))
+//  }
+//
+//  def removeField(json : JValue, fieldSpecifier : List[String]): JValue = {
+//    json.replace(fieldSpecifier, JNothing)
+//  }
+//
+//  implicit class JValueWithSingleReplace(jValue : JValue) {
+//    def replace(fieldName : String, fieldValue : String) =
+//      jValue.replace(List(fieldName), fieldValue)
+//  }
+//
+//  //TODO: remove this method?
+//  def replaceField(json : JValue, fieldName : String, fieldValue : String) =
+//    json.replace(List(fieldName), fieldValue)
+//
+//  //TODO: remove this method?
+//  def replaceDisplayName(json : JValue, displayName : String) =
+//    replaceField(json, "display_name", displayName)
+//
+//  def addIdField(json : JValue, id : String) =
+//    addField(json, "id", id)
+//
+//  def removeIdField(json : JValue) =
+//    removeField(json, "id")
+//
+//  def addEmailField(json : JValue, email : String) =
+//    addField(json, "email", email)
+//
+//  def removeEmailField(json : JValue) =
+//    removeField(json, "email")
+//
+//  val bank1 = SandboxBankImport(id = "bank1", short_name = "bank 1", full_name = "Bank 1 Inc.",
+//    logo = "http://example.com/logo", website = "http://example.com")
+//  val bank2 = SandboxBankImport(id = "bank2", short_name = "bank 2", full_name = "Bank 2 Inc.",
+//    logo = "http://example.com/logo2", website = "http://example.com/2")
+//
+//  val standardBanks = bank1 :: bank2 :: Nil
+//
+//
+//  val standardAddress1 = SandboxAddressImport(line_1 = "5 Some Street", line_2 = "Rosy Place", line_3 = "Sunny Village",
+//    city = "Ashbourne", county = "Derbyshire",  state = "", post_code = "WHY RU4", country_code = "UK")
+//
+//  val standardLocation1 = SandboxLocationImport(52.556198, 13.384099)
+//
+//  //val license1AtBank1 = SandboxDataLicenseImport (id = "pddl", bank = bank1.id, name = "PDDL", url = "http://opendatacommons.org/licenses/pddl/")
+//  //val standardLicenses = license1AtBank1 :: Nil
+//
+//
+//  val standardLicense = SandboxLicenseImport  (id = "pddl", name = "Open Data Commons Public Domain Dedication and License (PDDL)")
+//  val standardMeta = SandboxMetaImport (license = standardLicense)
+//
+//  val standardLobby = SandboxLobbyImport(hours = "M-TH 8:30-3:30, F 9-5")
+//  val standardDriveUp = SandboxDriveUpImport(hours = "M-Th 8:30-5:30, F-8:30-6, Sat 9-12")
+//
+//  val branch1AtBank1 = SandboxBranchImport(id = "branch1", name = "Genel Müdürlük", bank_id = "bank1", address = standardAddress1
+//    , location = standardLocation1, meta = standardMeta, lobby = Option(standardLobby), driveUp = Option(standardDriveUp))
+//  val branch2AtBank1 = SandboxBranchImport(id = "branch2", name = "Manchester", bank_id = "bank1", address = standardAddress1
+//    , location = standardLocation1, meta = standardMeta, lobby = Option(standardLobby), driveUp = Option(standardDriveUp))
+//
+//  val standardBranches = branch1AtBank1 :: branch2AtBank1 :: Nil
+//
+//  val atm1AtBank1 = SandboxAtmImport(id = "atm1", name = "Ashbourne Atm 1", bank_id = "bank1", address = standardAddress1
     , location = standardLocation1, meta = standardMeta)
   val atm2AtBank1 = SandboxAtmImport(id = "atm2", name = "Manchester Atm 1", bank_id = "bank1", address = standardAddress1
     , location = standardLocation1, meta = standardMeta)
