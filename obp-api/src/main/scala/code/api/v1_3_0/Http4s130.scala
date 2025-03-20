@@ -46,6 +46,7 @@ import cats.effect.IO
 import org.http4s.{HttpRoutes, Request, Response}
 import org.http4s.dsl.io._
 import org.typelevel.vault.Key
+import code.api.Constant._
 
 object Http4s130 {
 
@@ -71,7 +72,7 @@ object Http4s130 {
   
   
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case req @ GET -> Root / apiVersion / "root" =>
+    case req @ GET -> Root /ApiPathZero / apiVersion / "root" =>
       import com.openbankproject.commons.ExecutionContext.Implicits.global
       val callContext = req.attributes.lookup(callContextKey).get.asInstanceOf[CallContext]
       Ok(IO.fromFuture(IO(
@@ -84,7 +85,7 @@ object Http4s130 {
         }
       )))
 
-    case req @ GET -> Root / apiVersion / "cards" => {
+    case req @ GET -> Root /ApiPathZero / apiVersion / "cards" => {
       Ok(IO.fromFuture(IO({
         val callContext = req.attributes.lookup(callContextKey).get.asInstanceOf[CallContext]
         import com.openbankproject.commons.ExecutionContext.Implicits.global
@@ -97,7 +98,7 @@ object Http4s130 {
       })))
     }
 
-    case req @ GET -> Root / apiVersion / "banks" / bankId / "cards"  => {
+    case req @ GET -> Root /ApiPathZero/ apiVersion / "banks" / bankId / "cards"  => {
       Ok(IO.fromFuture(IO({ 
         import com.openbankproject.commons.ExecutionContext.Implicits.global
         for {
