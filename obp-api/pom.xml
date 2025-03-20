@@ -11,7 +11,6 @@
     <version>1.10.1</version>
   </parent>
   <artifactId>obp-api</artifactId>
-  <packaging>jar</packaging>
   <name>Open Bank Project API</name>
   <pluginRepositories>
     <pluginRepository>
@@ -500,6 +499,17 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
