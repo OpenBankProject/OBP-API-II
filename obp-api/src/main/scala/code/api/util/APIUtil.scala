@@ -3757,8 +3757,8 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
             Full(decryptedValueAsString)
           case (Full(property), Full(isEncrypted), Empty) if isEncrypted == "false" =>
             Full(property)
-          case (Full(property), Empty, Full(isObfuscated)) if isObfuscated == "true" =>
-            Full(org.eclipse.jetty.util.security.Password.deobfuscate(property))
+//          case (Full(property), Empty, Full(isObfuscated)) if isObfuscated == "true" =>
+//            Full(org.eclipse.jetty.util.security.Password.deobfuscate(property)) //TODO. do not support Jetty now
           case (Full(property), Empty, Full(isObfuscated)) if isObfuscated == "false" =>
             Full(property)
           case (Full(property), Empty, Empty) =>
