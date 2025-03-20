@@ -6,7 +6,8 @@ import code.api.util.APIUtil
 import code.productAttributeattribute.MappedProductAttributeProvider
 import com.openbankproject.commons.model.enums.ProductAttributeType
 import com.openbankproject.commons.model.{BankId, ProductAttribute, ProductCode}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 import scala.concurrent.Future
@@ -29,9 +30,7 @@ object ProductAttributeX extends SimpleInjector {
 
 }
 
-trait ProductAttributeProvider {
-
-  private val logger = Logger(classOf[ProductAttributeProvider])
+trait ProductAttributeProvider extends MdcLoggable {
 
   def getProductAttributesFromProvider(bank: BankId, productCode: ProductCode): Future[Box[List[ProductAttribute]]]
 

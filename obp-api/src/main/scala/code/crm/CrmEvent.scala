@@ -6,8 +6,6 @@ package code.crm
 
 import code.crm.CrmEvent.{CrmEvent, CrmEventId}
 import code.model.dataAccess.ResourceUser
-import code.model.dataAccess.ResourceUser
-import net.liftweb.common.Logger
 import net.liftweb.util
 import net.liftweb.util.SimpleInjector
 import java.util.Date
@@ -49,10 +47,6 @@ object CrmEvent extends util.SimpleInjector {
 }
 
 trait CrmEventProvider {
-
-  private val logger = Logger(classOf[CrmEventProvider])
-
-
   /*
   Common logic for returning all crmEvents at a bank
    */

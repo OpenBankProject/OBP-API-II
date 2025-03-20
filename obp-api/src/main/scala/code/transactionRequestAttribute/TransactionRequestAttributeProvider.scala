@@ -2,14 +2,13 @@ package code.transactionRequestAttribute
 
 import com.openbankproject.commons.model.enums.TransactionRequestAttributeType
 import com.openbankproject.commons.model.{BankId, TransactionRequestAttributeJsonV400, TransactionRequestAttributeTrait, TransactionRequestId, ViewId}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 
 import scala.collection.immutable.List
 import scala.concurrent.Future
 
-trait TransactionRequestAttributeProvider {
-
-  private val logger = Logger(classOf[TransactionRequestAttributeProvider])
+trait TransactionRequestAttributeProvider extends MdcLoggable {
 
   def getTransactionRequestAttributesFromProvider(transactionRequestId: TransactionRequestId): Future[Box[List[TransactionRequestAttributeTrait]]]
 

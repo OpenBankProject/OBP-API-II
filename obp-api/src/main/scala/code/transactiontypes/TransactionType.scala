@@ -6,7 +6,8 @@ import code.api.v2_0_0.TransactionTypeJsonV200
 import code.model._
 import code.transaction_types.MappedTransactionTypeProvider
 import com.openbankproject.commons.model.{AmountOfMoney, BankId, TransactionTypeId}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 
@@ -51,12 +52,9 @@ object TransactionType extends SimpleInjector {
   
 }
 
-trait TransactionTypeProvider {
+trait TransactionTypeProvider extends MdcLoggable {
 
   import code.TransactionTypes.TransactionType.TransactionType
-
-  private val logger = Logger(classOf[TransactionTypeProvider])
-
 
   // Transaction types for bank (we may add getTransactionTypesForBankAccount and getTransactionTypesForBankAccountView)
   final def getTransactionTypesForBank(bankId : BankId) : Option[List[TransactionType]] = {

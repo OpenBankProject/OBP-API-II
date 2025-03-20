@@ -4,7 +4,8 @@ package code.productfee
 
 import code.api.util.APIUtil
 import com.openbankproject.commons.model.{BankId, ProductCode, ProductFeeTrait}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 import scala.concurrent.Future
@@ -28,10 +29,8 @@ object ProductFeeX extends SimpleInjector {
 
 }
 
-trait ProductFeeProvider {
-
-  private val logger = Logger(classOf[ProductFeeProvider])
-
+trait ProductFeeProvider extends MdcLoggable {
+  
   def getProductFeesFromProvider(bankId: BankId, productCode: ProductCode): Future[Box[List[ProductFeeTrait]]]
 
   def getProductFeeById(productFeeId: String): Future[Box[ProductFeeTrait]]

@@ -82,7 +82,7 @@ class elasticsearch extends MdcLoggable {
       logger.info (s"searchProxyAsyncV300 says response follows:")
 
     response foreach {
-      msg => logger.info(msg.body)
+      msg => logger.info("searchProxyAsyncV300", msg.body)
     }
     response
   }
@@ -114,7 +114,7 @@ class elasticsearch extends MdcLoggable {
   
   private def privacyCheckStatistics(body: JValue): JValue = {
     println("Enter privacyCheckStatistics")
-    logger.debug(body)
+    logger.debug("privacyCheckStatistics", body)
     val result = extractStatistics(body)
     val count: Int = (result \\ "count" \\ classOf[JInt]).headOption.getOrElse(throw new RuntimeException with NoStackTrace).toInt
     if (count > 9) result

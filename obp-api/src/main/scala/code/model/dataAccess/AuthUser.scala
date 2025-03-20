@@ -1174,7 +1174,7 @@ def restoreSomeSessions(): Unit = {
                 logger.error("------------------------------------------------------")
                 logger.error(s"username from GUI: $usernameFromGui")
                 logger.error("An unexpected login error occurred:")
-                logger.error(unhandledCase)
+                logger.error("unhandledCase", unhandledCase)
                 logger.error("------------------------------------------------------")
                 LoginAttempt.incrementBadLoginAttempts(user.foreign.map(_.provider).getOrElse(Constant.HostName), usernameFromGui)
                 S.error(S.?(ErrorMessages.UnexpectedErrorDuringLogin)) // Note we hit this if user has not clicked email validation link

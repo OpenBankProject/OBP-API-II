@@ -340,7 +340,7 @@ object OpenIdConnect extends OBPRestHelper with MdcLoggable {
     )
     token match  {
       case Full(_) => // All good
-      case error => logger.error(error)
+      case error => logger.error("error",error)
     }
     token
   }
@@ -389,7 +389,7 @@ object OpenIdConnect extends OBPRestHelper with MdcLoggable {
     } catch {
       case e:Throwable => 
         e.printStackTrace()
-        logger.error(e)
+        logger.error("error",e)
         Failure(e.getMessage)
     }
   }

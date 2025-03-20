@@ -618,7 +618,7 @@ object MapperViews extends Views with MdcLoggable {
       getOrCreateSystemView(viewId)
     } else {
       val errorMessage = ViewIdNotSupported + code.api.Constant.VIEWS_GENERATED_FROM_CBS_WHITE_LIST.mkString(", ") + s"Your input viewId is :$viewId"
-      logger.error(errorMessage)
+      logger.error("error",errorMessage)
       Failure(errorMessage)
     }
     logger.debug(s"-->getOrCreateSystemViewFromCbs --- finish.${viewId } : ${theView} ")

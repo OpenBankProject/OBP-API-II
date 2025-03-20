@@ -1,7 +1,8 @@
 package code.signingbaskets
 
 import com.openbankproject.commons.model.{SigningBasketContent, SigningBasketTrait}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 object SigningBasketX extends SimpleInjector {
@@ -9,9 +10,7 @@ object SigningBasketX extends SimpleInjector {
   private def buildOne: SigningBasketProvider = MappedSigningBasketProvider
 }
 
-trait SigningBasketProvider {
-
-  private val logger = Logger(classOf[SigningBasketProvider])
+trait SigningBasketProvider extends MdcLoggable {
 
   def getSigningBaskets(): List[SigningBasketTrait]
 

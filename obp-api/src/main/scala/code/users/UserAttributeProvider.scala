@@ -4,7 +4,8 @@ package code.users
 import code.api.util.APIUtil
 import com.openbankproject.commons.model.AccountAttribute
 import com.openbankproject.commons.model.enums.{AccountAttributeType, UserAttributeType}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 import scala.collection.immutable.List
@@ -28,10 +29,8 @@ object UserAttributeProvider extends SimpleInjector {
 
 }
 
-trait UserAttributeProvider {
-
-  private val logger = Logger(classOf[UserAttributeProvider])
-
+trait UserAttributeProvider extends MdcLoggable {
+  
   def getUserAttributesByUser(userId: String): Future[Box[List[UserAttribute]]]
   def getPersonalUserAttributes(userId: String): Future[Box[List[UserAttribute]]]
   def getNonPersonalUserAttributes(userId: String): Future[Box[List[UserAttribute]]]

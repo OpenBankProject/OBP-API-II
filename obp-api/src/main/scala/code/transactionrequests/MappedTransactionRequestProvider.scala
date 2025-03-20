@@ -12,7 +12,8 @@ import com.openbankproject.commons.model._
 import com.openbankproject.commons.model.enums.{AccountRoutingScheme, TransactionRequestStatus}
 import com.openbankproject.commons.model.enums.TransactionRequestTypes
 import com.openbankproject.commons.model.enums.TransactionRequestTypes.{COUNTERPARTY, SEPA}
-import net.liftweb.common.{Box, Failure, Full, Logger}
+import net.liftweb.common.{Box, Failure, Full}
+import code.util.Helper.MdcLoggable
 import net.liftweb.json
 import net.liftweb.json.JsonAST.{JField, JObject, JString}
 import net.liftweb.mapper._
@@ -20,9 +21,7 @@ import net.liftweb.util.Helpers._
 
 import java.text.SimpleDateFormat
 
-object MappedTransactionRequestProvider extends TransactionRequestProvider {
-
-  private val logger = Logger(classOf[TransactionRequestProvider])
+object MappedTransactionRequestProvider extends TransactionRequestProvider with MdcLoggable{
 
   override def getMappedTransactionRequest(transactionRequestId: TransactionRequestId): Box[MappedTransactionRequest] =
     MappedTransactionRequest.find(By(MappedTransactionRequest.mTransactionRequestId, transactionRequestId.value))
@@ -36,7 +35,7 @@ object MappedTransactionRequestProvider extends TransactionRequestProvider {
 
   override def updateAllPendingTransactionRequests: Box[Option[Unit]] = {
     val transactionRequests = MappedTransactionRequest.find(By(MappedTransactionRequest.mStatus, TransactionRequestStatus.PENDING.toString))
-    logger.debug("Updating status of all pending transactions: ")
+//    logger.debug("Updating status of all pending transactions: ")
     val statuses = LocalMappedConnectorInternal.getTransactionRequestStatuses
     transactionRequests.map{ tr =>
       for {
@@ -44,7 +43,7 @@ object MappedTransactionRequestProvider extends TransactionRequestProvider {
         if (statuses.exists(i => i.transactionRequestId -> i.bulkTransactionsStatus == transactionRequest.id -> List("APVD")))
       } yield {
         tr.updateStatus(TransactionRequestStatus.COMPLETED.toString)
-        logger.debug(s"updated ${transactionRequest.id} status: ${TransactionRequestStatus.COMPLETED}")
+//        logger.debug(s"updated ${transactionRequest.id} status: ${TransactionRequestStatus.COMPLETED}")
       }
     }
   }
@@ -226,8 +225,7 @@ object MappedTransactionRequestProvider extends TransactionRequestProvider {
 
 class MappedTransactionRequest extends LongKeyedMapper[MappedTransactionRequest] with IdPK with CreatedUpdated with CustomJsonFormats {
 
-  private val logger = Logger(classOf[MappedTransactionRequest])
-
+  
   override def getSingleton = MappedTransactionRequest
 
   //transaction request fields:

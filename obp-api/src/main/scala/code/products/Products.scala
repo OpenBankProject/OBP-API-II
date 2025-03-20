@@ -5,9 +5,9 @@ package code.products
 // Need to import these one by one because in same package!
 
 import com.openbankproject.commons.model.{BankId, ProductCode}
-import net.liftweb.common.Logger
 import net.liftweb.util.SimpleInjector
 import com.openbankproject.commons.model.Product
+import code.util.Helper.MdcLoggable
 
 object Products extends SimpleInjector {
 
@@ -27,12 +27,9 @@ object Products extends SimpleInjector {
 
 }
 
-trait ProductsProvider {
+trait ProductsProvider extends MdcLoggable {
 
-  private val logger = Logger(classOf[ProductsProvider])
-
-
-  /*
+    /*
   Common logic for returning products.
   Use adminView = true to get all Products, else only ones with license returned.
    */

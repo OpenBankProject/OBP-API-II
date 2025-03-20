@@ -4,12 +4,12 @@ package code.atmattribute
 
 import com.openbankproject.commons.model.{AtmId, BankId}
 import com.openbankproject.commons.model.enums.AtmAttributeType
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box
 import net.liftweb.util.SimpleInjector
 
 import scala.concurrent.Future
 
-object AtmAttributeX extends SimpleInjector {
+object AtmAttributeX extends SimpleInjector{
 
   val atmAttributeProvider = new Inject(buildOne _) {}
 
@@ -28,9 +28,7 @@ object AtmAttributeX extends SimpleInjector {
 }
 
 trait AtmAttributeProviderTrait {
-
-  private val logger = Logger(classOf[AtmAttributeProviderTrait])
-
+  
   def getAtmAttributesFromProvider(bankId: BankId, atmId: AtmId): Future[Box[List[AtmAttribute]]]
 
   def getAtmAttributeById(AtmAttributeId: String): Future[Box[AtmAttribute]]

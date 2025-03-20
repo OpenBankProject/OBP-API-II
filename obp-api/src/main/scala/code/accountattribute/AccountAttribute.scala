@@ -3,9 +3,10 @@ package code.accountattribute
 /* For AccountAttribute */
 
 import code.api.util.APIUtil
+import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.model.enums.AccountAttributeType
 import com.openbankproject.commons.model.{AccountAttribute, AccountId, BankId, BankIdAccountId, ProductAttribute, ProductCode, ViewId}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box
 import net.liftweb.util.SimpleInjector
 
 import scala.collection.immutable.List
@@ -29,9 +30,8 @@ object AccountAttributeX extends SimpleInjector {
 
 }
 
-trait AccountAttributeProvider {
-
-  private val logger = Logger(classOf[AccountAttributeProvider])
+trait AccountAttributeProvider extends MdcLoggable{
+  
 
   def getAccountAttributesFromProvider(accountId: AccountId, productCode: ProductCode): Future[Box[List[AccountAttribute]]]
   def getAccountAttributesByAccount(bankId: BankId,

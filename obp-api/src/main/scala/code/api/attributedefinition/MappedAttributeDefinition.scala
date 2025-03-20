@@ -67,7 +67,7 @@ object MappedAttributeDefinitionProvider extends AttributeDefinitionProviderTrai
       case Full(attribute) => Full(attribute.delete_!)
       case Empty           => Empty ?~! ErrorMessages.AttributeNotFound
       case unhandledError  => 
-        logger.error(unhandledError)
+        logger.error("deleteAttributeDefinition", unhandledError)
         Full(false)
     }
   }

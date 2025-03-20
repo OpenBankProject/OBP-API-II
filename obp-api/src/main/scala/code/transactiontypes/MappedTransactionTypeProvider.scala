@@ -63,9 +63,7 @@ object MappedTransactionTypeProvider extends TransactionTypeProvider {
 }
 class MappedTransactionType extends LongKeyedMapper[MappedTransactionType] with IdPK with CreatedUpdated {
 
-  private val logger = Logger(classOf[MappedTransactionType])
-
-  override def getSingleton = MappedTransactionType
+    override def getSingleton = MappedTransactionType
 
   object mTransactionTypeId extends UUIDString(this)
   object mBankId extends UUIDString(this)

@@ -78,7 +78,7 @@ object X509 extends MdcLoggable {
         psd2Roles += (psd2RoleSequence.getObjectAt(1).toASN1Primitive.toString)
       }
     }
-    logger.debug(psd2Roles.toList)
+    logger.debug("getPsd2Roles", psd2Roles.toList)
     psd2Roles.toList
   }
 

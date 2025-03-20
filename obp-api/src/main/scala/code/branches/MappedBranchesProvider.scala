@@ -3,12 +3,11 @@ package code.branches
 import code.api.util.{OBPLimit, OBPOffset, OBPQueryParam}
 import code.util.{TwentyFourHourClockString, UUIDString}
 import com.openbankproject.commons.model._
-import net.liftweb.common.Logger
 import net.liftweb.mapper.{By, _}
+import code.util.Helper.MdcLoggable
 
-object MappedBranchesProvider extends BranchesProvider {
 
-  private val logger = Logger(classOf[BranchesProvider])
+object MappedBranchesProvider extends BranchesProvider with MdcLoggable{
 
   override protected def getBranchFromProvider(bankId: BankId, branchId: BranchId): Option[BranchT] =
     MappedBranch.find(

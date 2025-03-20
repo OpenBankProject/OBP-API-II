@@ -5,7 +5,8 @@ import com.zaxxer.hikari.pool.ProxyConnection
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 import java.sql.Connection
-import net.liftweb.common.{Box, Full, Logger}
+import net.liftweb.common.{Box, Full}
+import code.util.Helper.MdcLoggable
 import net.liftweb.db.ConnectionManager
 import net.liftweb.util.ConnectionIdentifier
 import net.liftweb.util.Helpers.tryo
@@ -21,9 +22,8 @@ import net.liftweb.util.Helpers.tryo
 class CustomDBVendor(driverName: String,
                      dbUrl: String,
                      dbUser: Box[String],
-                     dbPassword: Box[String]) extends CustomProtoDBVendor {
+                     dbPassword: Box[String]) extends CustomProtoDBVendor with MdcLoggable {
 
-  private val logger = Logger(classOf[CustomDBVendor])
 
   object HikariDatasource {
     val config = new HikariConfig()
@@ -80,8 +80,7 @@ class CustomDBVendor(driverName: String,
 }
 
 trait CustomProtoDBVendor extends ConnectionManager {
-  private val logger = Logger(classOf[CustomProtoDBVendor])
-
+  
   def createOne: Box[Connection]
 
   def newConnection(name: ConnectionIdentifier): Box[Connection] = {

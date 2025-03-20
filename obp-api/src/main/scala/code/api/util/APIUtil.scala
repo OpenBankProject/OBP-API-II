@@ -393,7 +393,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
           case Full(value) => value
           case other => 
             logger.debug(s"checkIfModifiedSinceHeader.asyncCreate($cacheKey, $hash)")
-            logger.debug(other)
+            logger.debug("other",other)
             false
         }
       }

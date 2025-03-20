@@ -4,7 +4,6 @@ package code.examplething
 // Need to import these one by one because in same package!
 import code.api.util.APIUtil
 import com.openbankproject.commons.model.BankId
-import net.liftweb.common.Logger
 import net.liftweb.util.SimpleInjector
 
 object Thing extends SimpleInjector {
@@ -47,10 +46,7 @@ i.e. a ThingProvider should provide these:
 
 trait ThingProvider {
 
-  private val logger = Logger(classOf[ThingProvider])
-
-
-  /*
+    /*
   Common logic for returning or changing Things
   Datasource implementation details are in Thing provider
    */

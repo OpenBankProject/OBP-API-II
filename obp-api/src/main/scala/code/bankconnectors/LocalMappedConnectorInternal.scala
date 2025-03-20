@@ -198,7 +198,7 @@ object LocalMappedConnectorInternal extends MdcLoggable {
         case _ => Future(transactionRequest, callContext)
       }
     } yield {
-      logger.debug(transactionRequest)
+      logger.debug("transactionRequest", transactionRequest)
       (Full(TransactionRequestBGV1(transactionRequest.id, transactionRequest.status)), callContext)
     }
   }

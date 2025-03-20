@@ -29,7 +29,10 @@ import scala.util.Random
 import scala.reflect.runtime.universe.Type
 import scala.reflect.runtime.universe._
 import scala.concurrent.duration._
-
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
+import org.slf4j.MDC
+import org.apache.commons.lang3.StringUtils
 
 
 object Helper extends Loggable {
@@ -315,7 +318,9 @@ object Helper extends Loggable {
     candidatePort
   }
 
-  trait MdcLoggable extends Loggable {
+  trait MdcLoggable {
+    protected val logger: Logger = LoggerFactory.getLogger(getClass)
+    
     protected def initiate(): Unit = () // The type is Unit and the only value this type can take is the literal ()
     protected def surroundWarnMessage(msg: String, title: String = ""): Unit = {
       
@@ -339,7 +344,7 @@ object Helper extends Loggable {
       logger.debug(s"+-${StringUtils.repeat("-", msg.length)}-+")
     }
     initiate()
-    MDC.put("host" -> getHostname)
+    MDC.put("host", getHostname)
   }
 
   /*

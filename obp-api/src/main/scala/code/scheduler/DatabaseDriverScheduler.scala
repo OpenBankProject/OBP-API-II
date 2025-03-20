@@ -50,7 +50,7 @@ object DatabaseDriverScheduler extends MdcLoggable {
         } catch {
           case e: SQLException => 
             logger.warn("DatabaseDriverScheduler.clearAllMessages - UNSUCCESSFUL")
-            logger.error(e)
+            logger.error("error",e)
         }
     }
   }

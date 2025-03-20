@@ -14,7 +14,7 @@ object AkkaConnectorHelperActor extends MdcLoggable {
     val actorsHelper = Map(
       Props[SouthSideActorOfAkkaConnector] -> actorName
     )
-    actorsHelper.foreach { a => logger.info(actorSystem.actorOf(a._1, name = a._2)) }
+    actorsHelper.foreach { a => logger.info("startAkkaConnectorHelperActors", actorSystem.actorOf(a._1, name = a._2)) }
   }
 
 }

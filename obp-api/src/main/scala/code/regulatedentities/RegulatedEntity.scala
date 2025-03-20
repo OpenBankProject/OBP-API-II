@@ -2,7 +2,8 @@ package code.regulatedentities
 
 
 import com.openbankproject.commons.model.RegulatedEntityTrait
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 object RegulatedEntityX extends SimpleInjector {
@@ -10,9 +11,7 @@ object RegulatedEntityX extends SimpleInjector {
   def buildOne: RegulatedEntityProvider = MappedRegulatedEntityProvider
 }
 /* For ProductFee */
-trait RegulatedEntityProvider {
-
-  private val logger = Logger(classOf[RegulatedEntityProvider])
+trait RegulatedEntityProvider extends MdcLoggable {
 
   def getRegulatedEntities(): List[RegulatedEntityTrait]
 

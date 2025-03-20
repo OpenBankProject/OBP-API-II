@@ -2,7 +2,7 @@
 //
 //import code.api.util.APIUtil
 //import com.openbankproject.commons.model.{BankId, CustomerId}
-//import net.liftweb.common.Logger
+//import code.util.Helper.MdcLoggable
 //import net.liftweb.util.SimpleInjector
 //
 //object YearlyCharge extends SimpleInjector {
@@ -42,11 +42,9 @@
 //
 //
 //
-//trait YearlyChargeProvider {
+//trait YearlyChargeProvider extends MdcLoggable {
 //
-//  private val logger = Logger(classOf[YearlyChargeProvider])
-//
-//
+
 //  /*
 //  Common logic for returning or changing Things
 //  Datasource implementation details are in Thing provider

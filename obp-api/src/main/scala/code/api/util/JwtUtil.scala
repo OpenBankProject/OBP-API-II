@@ -79,8 +79,8 @@ object JwtUtil extends MdcLoggable {
       signedJWT = SignedJWT.parse(jwtToken)
     } catch {
       case e: Exception =>
-      logger.error(msg = "code.api.util.JwtUtil.getSubject")
-      logger.error(e)
+      logger.error("code.api.util.JwtUtil.getSubject")
+      logger.error("error",e)
       None
     }
     // claims extraction...
@@ -100,8 +100,8 @@ object JwtUtil extends MdcLoggable {
       Some(signedJWT.getJWTClaimsSet.getIssuer())
     } catch {
       case e: Exception =>
-        logger.error(msg = "code.api.util.JwtUtil.getIssuer")
-        logger.error(e)
+        logger.error("code.api.util.JwtUtil.getIssuer")
+        logger.error("error",e)
         None
     }
   }
@@ -119,8 +119,8 @@ object JwtUtil extends MdcLoggable {
       signedJWT.getJWTClaimsSet.getAudience().asScala.toList
     } catch {
       case e: Exception =>
-        logger.error(msg = "code.api.util.JwtUtil.getAudience")
-        logger.error(e)
+        logger.error("code.api.util.JwtUtil.getAudience")
+        logger.error("error",e)
         Nil
     }
   }
@@ -138,8 +138,8 @@ object JwtUtil extends MdcLoggable {
       signedJWT.getJWTClaimsSet.getStringClaim(name)
     } catch {
       case e: Exception =>
-        logger.error(msg = s"code.api.util.JwtUtil.getClaim: $name")
-        logger.error(e)
+        logger.error(s"code.api.util.JwtUtil.getClaim: $name")
+        logger.error("error",e)
         ""
     }
   }
@@ -156,8 +156,8 @@ object JwtUtil extends MdcLoggable {
       Some(signedJWT.getJWTClaimsSet.getStringClaim(name))
     } catch {
       case e: Exception =>
-        logger.debug(msg = s"code.api.util.JwtUtil.getClaim: $name")
-        logger.debug(e)
+        logger.debug(s"code.api.util.JwtUtil.getClaim: $name")
+        logger.debug("error",e)
         None
     }
   }
@@ -175,8 +175,8 @@ object JwtUtil extends MdcLoggable {
       Some(signedJWT.getHeader().getAlgorithm())
     } catch {
       case e: Exception =>
-        logger.error(msg = "code.api.util.JwtUtil.getAlgorithm")
-        logger.error(e)
+        logger.error("code.api.util.JwtUtil.getAlgorithm")
+        logger.error("error",e)
         None
     }
   }

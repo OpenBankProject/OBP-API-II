@@ -36,7 +36,7 @@ import code.UserRefreshes.MappedUserRefreshes
 import code.accountapplication.MappedAccountApplication
 import code.accountattribute.MappedAccountAttribute
 import code.accountholders.MapperAccountHolders
-import code.actorsystem.ObpActorSystem
+//import code.actorsystem.ObpActorSystem
 import code.api.Constant._
 import code.api.ResourceDocs1_4_0.ResourceDocs300.{ResourceDocs310, ResourceDocs400, ResourceDocs500, ResourceDocs510}
 import code.api.ResourceDocs1_4_0._
@@ -107,7 +107,8 @@ import code.productfee.ProductFee
 import code.products.MappedProduct
 import code.ratelimiting.RateLimiting
 import code.regulatedentities.MappedRegulatedEntity
-import code.scheduler.{DataBaseCleanerScheduler, DatabaseDriverScheduler, JobScheduler, MetricsArchiveScheduler}
+//import code.scheduler.{DataBaseCleanerScheduler, DatabaseDriverScheduler, JobScheduler, MetricsArchiveScheduler}
+import code.scheduler.JobScheduler
 import code.scope.{MappedScope, MappedUserScope}
 import code.signingbaskets.{MappedSigningBasket, MappedSigningBasketConsent, MappedSigningBasketPayment}
 import code.socialmedia.MappedSocialMedia
@@ -118,7 +119,7 @@ import code.transaction.MappedTransaction
 import code.transaction.internalMapping.TransactionIdMapping
 import code.transactionChallenge.MappedExpectedChallengeAnswer
 import code.transactionRequestAttribute.TransactionRequestAttribute
-import code.transactionStatusScheduler.TransactionRequestStatusScheduler
+//import code.transactionStatusScheduler.TransactionRequestStatusScheduler
 import code.transaction_types.MappedTransactionType
 import code.transactionattribute.MappedTransactionAttribute
 import code.transactionrequests.{MappedTransactionRequest, MappedTransactionRequestTypeCharge, TransactionRequestReasons}
@@ -320,7 +321,7 @@ class Boot extends MdcLoggable {
     createBootstrapSuperUser()
     
     //launch the scheduler to clean the database from the expired tokens and nonces, 1 hour
-    DataBaseCleanerScheduler.start(intervalInSeconds = 60*60)
+//    DataBaseCleanerScheduler.start(intervalInSeconds = 60*60)
 
 //    if (Props.devMode || Props.testMode) {
 //      StoredProceduresMockedData.createOrDropMockedPostgresStoredProcedures()
@@ -420,15 +421,15 @@ class Boot extends MdcLoggable {
 
     logger.debug(s"If you can read this, logging level is debug")
 
-    val actorSystem = ObpActorSystem.startLocalActorSystem()
-    connector match {
-      case "akka_vDec2018" =>
-        // Start Actor system of Akka connector
-        ObpActorSystem.startNorthSideAkkaConnectorActorSystem()
-      case "star" if (APIUtil.getPropsValue("starConnector_supported_types","").split(",").contains("akka"))  =>
-        ObpActorSystem.startNorthSideAkkaConnectorActorSystem()
-      case _ => // Do nothing
-    }
+//    val actorSystem = ObpActorSystem.startLocalActorSystem()
+//    connector match {
+//      case "akka_vDec2018" =>
+//        // Start Actor system of Akka connector
+//        ObpActorSystem.startNorthSideAkkaConnectorActorSystem()
+//      case "star" if (APIUtil.getPropsValue("starConnector_supported_types","").split(",").contains("akka"))  =>
+//        ObpActorSystem.startNorthSideAkkaConnectorActorSystem()
+//      case _ => // Do nothing
+//    }
     
     // where to search snippets
 //    LiftRules.addToPackages("code")
@@ -624,22 +625,22 @@ class Boot extends MdcLoggable {
 //      )
 //    }
 
-    if ( !APIUtil.getPropsAsLongValue("transaction_request_status_scheduler_delay").isEmpty ) {
-      val delay = APIUtil.getPropsAsLongValue("transaction_request_status_scheduler_delay").openOrThrowException("Incorrect value for transaction_request_status_scheduler_delay, please provide number of seconds.")
-      TransactionRequestStatusScheduler.start(delay)
-    }
-    APIUtil.getPropsAsLongValue("database_messages_scheduler_interval") match {
-      case Full(i) => DatabaseDriverScheduler.start(i)
-      case _ => // Do not start it
-    }
+//    if ( !APIUtil.getPropsAsLongValue("transaction_request_status_scheduler_delay").isEmpty ) {
+//      val delay = APIUtil.getPropsAsLongValue("transaction_request_status_scheduler_delay").openOrThrowException("Incorrect value for transaction_request_status_scheduler_delay, please provide number of seconds.")
+//      TransactionRequestStatusScheduler.start(delay)
+//    }
+//    APIUtil.getPropsAsLongValue("database_messages_scheduler_interval") match {
+//      case Full(i) => DatabaseDriverScheduler.start(i)
+//      case _ => // Do not start it
+//    }
     
-    APIUtil.getPropsAsBoolValue("enable_metrics_scheduler", true) match {
-      case true =>
-        val interval =
-          APIUtil.getPropsAsIntValue("retain_metrics_scheduler_interval_in_seconds", 3600)
-        MetricsArchiveScheduler.start(intervalInSeconds = interval)
-      case false => // Do not start it
-    }
+//    APIUtil.getPropsAsBoolValue("enable_metrics_scheduler", true) match {
+//      case true =>
+//        val interval =
+//          APIUtil.getPropsAsIntValue("retain_metrics_scheduler_interval_in_seconds", 3600)
+//        MetricsArchiveScheduler.start(intervalInSeconds = interval)
+//      case false => // Do not start it
+//    }
 
 //    object UsernameLockedChecker  {
 //      def onBeginServicing(session: LiftSession, req: Req): Unit = {
@@ -745,7 +746,7 @@ class Boot extends MdcLoggable {
           e.printStackTrace()
         } else {
           logger.warn("------------------------------ Mirror consumer in hydra issue ------------------------------")
-          logger.warn(e)
+          logger.warn("createHydraClients",e)
         }
     }
   }

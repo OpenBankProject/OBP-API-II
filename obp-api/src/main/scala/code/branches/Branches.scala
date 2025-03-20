@@ -5,9 +5,7 @@ package code.branches
 
 // Need to import these one by one because in same package!
 import code.api.util.OBPQueryParam
-
 import com.openbankproject.commons.model._
-import net.liftweb.common.Logger
 import net.liftweb.util.SimpleInjector
 
 object Branches extends SimpleInjector {
@@ -209,9 +207,7 @@ object Branches extends SimpleInjector {
 
 trait BranchesProvider {
 
-  private val logger = Logger(classOf[BranchesProvider])
-
-
+  
   /*
   Common logic for returning branches.
   Implementation details in branchesData

@@ -5,7 +5,7 @@ package code.bankattribute
 import code.api.util.APIUtil
 import com.openbankproject.commons.model.BankId
 import com.openbankproject.commons.model.enums.BankAttributeType
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box
 import net.liftweb.util.SimpleInjector
 
 import scala.concurrent.Future
@@ -28,11 +28,9 @@ object BankAttributeX extends SimpleInjector {
 
 }
 
-trait BankAttributeProviderTrait {
+trait BankAttributeProviderTrait extends {
 
-  private val logger = Logger(classOf[BankAttributeProviderTrait])
-
-  def getBankAttributesFromProvider(bankId: BankId): Future[Box[List[BankAttribute]]]
+    def getBankAttributesFromProvider(bankId: BankId): Future[Box[List[BankAttribute]]]
 
   def getBankAttributeById(bankAttributeId: String): Future[Box[BankAttribute]]
 

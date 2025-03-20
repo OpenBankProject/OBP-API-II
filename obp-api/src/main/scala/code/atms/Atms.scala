@@ -6,7 +6,7 @@ package code.atms
 
 import code.api.util.OBPQueryParam
 import com.openbankproject.commons.model._
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box
 import net.liftweb.util.SimpleInjector
 
 import scala.collection.immutable.List
@@ -81,12 +81,9 @@ object Atms extends SimpleInjector {
 
 }
 
-trait AtmsProvider {
+trait AtmsProvider{
 
-  private val logger = Logger(classOf[AtmsProvider])
-
-
-  /*
+    /*
   Common logic for returning atms.
    */
   final def getAtms(bankId : BankId, queryParams: List[OBPQueryParam]) : Option[List[AtmT]] = {

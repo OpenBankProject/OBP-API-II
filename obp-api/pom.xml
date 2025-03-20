@@ -25,29 +25,42 @@
       <groupId>com.tesobe</groupId>
       <artifactId>obp-commons</artifactId>
     </dependency>
-    <!--embed akka adapter start-->
-    <dependency>
-      <groupId>com.github.OpenBankProject.OBP-Adapter-Akka-SpringBoot</groupId>
-      <artifactId>adapter-akka-commons</artifactId>
-      <version>v1.1.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!--embed akka adapter end-->
+<!--    &lt;!&ndash;embed akka adapter start&ndash;&gt;-->
+<!--    <dependency>-->
+<!--      <groupId>com.github.OpenBankProject.OBP-Adapter-Akka-SpringBoot</groupId>-->
+<!--      <artifactId>adapter-akka-commons</artifactId>-->
+<!--      <version>v1.1.0</version>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>*</groupId>-->
+<!--          <artifactId>*</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
+<!--    &lt;!&ndash;embed akka adapter end&ndash;&gt;-->
     <dependency>
       <groupId>com.github.everit-org.json-schema</groupId>
       <artifactId>org.everit.json.schema</artifactId>
       <version>1.6.1</version>
     </dependency>
+    
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.13</version>
+      <version>1.4.14</version>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>2.0.17</version>
+    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.slf4j</groupId>-->
+<!--      <artifactId>slf4j-ext</artifactId>-->
+<!--      <version>2.0.17</version>-->
+<!--    </dependency>-->
+    
+    
     <dependency>
       <groupId>net.liftweb</groupId>
       <artifactId>lift-mapper_${scala.version}</artifactId>
@@ -56,16 +69,6 @@
       <groupId>net.databinder.dispatch</groupId>
       <artifactId>dispatch-lift-json_${scala.version}</artifactId>
       <version>0.13.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>log4j-over-slf4j</artifactId>
-      <version>1.7.26</version>
-    </dependency>
-    <dependency>
-      <artifactId>slf4j-ext</artifactId>
-      <groupId>org.slf4j</groupId>
-      <version>1.7.26</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
@@ -104,12 +107,23 @@
       <artifactId>postgresql</artifactId>
       <version>42.4.4</version>
     </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.12.2</version>
+    </dependency>
     <!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8-production -->
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
       <artifactId>ojdbc8-production</artifactId>
       <version>23.2.0.0</version>
       <type>pom</type>
+      <exclusions>
+        <exclusion>
+          <groupId>com.oracle.xml</groupId>
+          <artifactId>oracle.xml.jaxp</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
     <dependency>

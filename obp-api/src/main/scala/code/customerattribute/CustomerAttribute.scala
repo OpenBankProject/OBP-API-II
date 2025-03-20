@@ -6,7 +6,9 @@ import code.api.util.APIUtil
 import com.openbankproject.commons.dto.CustomerAndAttribute
 import com.openbankproject.commons.model.enums.CustomerAttributeType
 import com.openbankproject.commons.model.{BankId, Customer, CustomerAttribute, CustomerId}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 import scala.collection.immutable.List
@@ -30,9 +32,7 @@ object CustomerAttributeX extends SimpleInjector {
 
 }
 
-trait CustomerAttributeProvider {
-
-  private val logger = Logger(classOf[CustomerAttributeProvider])
+trait CustomerAttributeProvider extends MdcLoggable{
 
   def getCustomerAttributesFromProvider(customerId: CustomerId): Future[Box[List[CustomerAttribute]]]
   def getCustomerAttributes(bankId: BankId,

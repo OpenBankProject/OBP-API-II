@@ -5,7 +5,8 @@ package code.cardattribute
 import code.api.util.APIUtil
 import com.openbankproject.commons.model.enums.CardAttributeType
 import com.openbankproject.commons.model.{AccountId, BankId, CardAttribute, ProductCode}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 import scala.concurrent.Future
@@ -27,9 +28,7 @@ object CardAttributeX extends SimpleInjector {
 
 }
 
-trait CardAttributeProvider {
-
-  private val logger = Logger(classOf[CardAttributeProvider])
+trait CardAttributeProvider extends MdcLoggable{
 
   def getCardAttributesFromProvider(cardId: String): Future[Box[List[CardAttribute]]]
 

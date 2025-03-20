@@ -167,7 +167,7 @@ object Redis extends MdcLoggable {
       tryDecode match {
         case Success(v) => v.asInstanceOf[T]
         case Failure(e) =>
-          logger.error(e)
+          logger.error("error",e)
           "NONE".asInstanceOf[T]
       }
     }

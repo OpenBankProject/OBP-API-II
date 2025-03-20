@@ -6,7 +6,7 @@ import code.bankconnectors.LocalMappedOutInBoundTransfer
 import code.bankconnectors.akka.actor.{AkkaConnectorActorConfig, AkkaConnectorHelperActor}
 import code.util.Helper
 import code.util.Helper.MdcLoggable
-import com.openbankproject.adapter.akka.commons.config.AkkaConfig
+//import com.openbankproject.adapter.akka.commons.config.AkkaConfig
 import com.typesafe.config.ConfigFactory
 import net.liftweb.common.Full
 
@@ -65,11 +65,11 @@ trait ObpLookupSystem extends MdcLoggable {
           logger.error("Failed to find an available port.")
         }
 
-        if(embeddedAdapter) {
-          AkkaConfig(LocalMappedOutInBoundTransfer, Some(ObpActorSystem.northSideAkkaConnectorActorSystem))
-        } else {
+//        if(embeddedAdapter) {
+//          AkkaConfig(LocalMappedOutInBoundTransfer, Some(ObpActorSystem.northSideAkkaConnectorActorSystem))
+//        } else {
           AkkaConnectorHelperActor.startAkkaConnectorHelperActors(ObpActorSystem.northSideAkkaConnectorActorSystem)
-        }
+//        }
 
         s"akka.tcp://SouthSideAkkaConnector_${props_hostname}@${hostname}:${port}/user/${actorName}"
     }

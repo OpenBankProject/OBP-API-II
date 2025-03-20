@@ -382,7 +382,7 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
         case ParamFailure(a, b, c, apiFailure : APIFailure) => ParamFailure(a, b, c, apiFailure : APIFailure)
         case Failure(msg, t, c) => Failure(msg, t, c)
         case unhandled =>
-          logger.debug(unhandled)
+          logger.debug("hasAnOAuthHeader", unhandled)
           Failure("oauth error")
       }
     } else if (hasAnOAuth2Header(authorization)) {
@@ -395,7 +395,7 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
         case ParamFailure(a, b, c, apiFailure : APIFailure) => ParamFailure(a, b, c, apiFailure : APIFailure)
         case Failure(msg, t, c) => Failure(msg, t, c)
         case unhandled =>
-          logger.debug(unhandled)
+          logger.debug("hasAnOAuth2Header", unhandled)
           Failure("oauth error")
       }
     }

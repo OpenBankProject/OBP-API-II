@@ -3,7 +3,8 @@ package code.transactionrequests
 
 import code.api.util.{APIUtil, CallContext}
 import com.openbankproject.commons.model.{TransactionRequest, TransactionRequestChallenge, TransactionRequestCharge, _}
-import net.liftweb.common.{Box, Logger}
+import net.liftweb.common.Box  
+import code.util.Helper.MdcLoggable
 import net.liftweb.util.SimpleInjector
 
 object TransactionRequests extends SimpleInjector {
@@ -29,9 +30,7 @@ object TransactionRequests extends SimpleInjector {
 
 }
 
-trait TransactionRequestProvider {
-
-  private val logger = Logger(classOf[TransactionRequestProvider])
+trait TransactionRequestProvider extends MdcLoggable {
 
   final def getTransactionRequest(transactionRequestId : TransactionRequestId) : Box[TransactionRequest] = {
     getTransactionRequestFromProvider(transactionRequestId)

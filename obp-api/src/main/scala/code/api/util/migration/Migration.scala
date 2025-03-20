@@ -613,7 +613,7 @@ object Migration extends MdcLoggable {
             true
           } catch {
             case e: SQLException => 
-              logger.error(e)
+              logger.error("error",e)
               false
           }
       }
