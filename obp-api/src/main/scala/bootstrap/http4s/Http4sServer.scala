@@ -14,8 +14,8 @@ object Http4sServer extends IOApp {
 
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] =  
     bankServices <+> 
-      helloWorldService //<+>
-//      code.api.v1_3_0.Http4s130.wrappedRoutesV130Services
+      helloWorldService <+>
+      code.api.v1_3_0.Http4s130.wrappedRoutesV130Services
       
   val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
 
