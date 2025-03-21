@@ -65,6 +65,9 @@ object Http4s130 {
     def withCallContext(routes: HttpRoutes[IO]): HttpRoutes[IO] = Kleisli { req: Request[IO] =>
       val callContext = CallContext()
       val updatedAttributes = req.attributes.insert(callContextKey, callContext)
+      println("why hello will come here???")
+      println(req)
+//      throw new RuntimeException("1313123313")
       val updatedReq = req.withAttributes(updatedAttributes)
       routes(updatedReq)
     }

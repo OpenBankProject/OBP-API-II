@@ -33,17 +33,49 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 import java.io.FileInputStream
 import fs2.io.net.tls.TLSContext
 import cats.effect.kernel.Async
-
+import org.http4s.server.middleware.ErrorAction
+import org.http4s.server.middleware.ErrorHandling
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object Http4sServer extends IOApp {
 
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] =  
-    bankServices <+> 
-      helloWorldService <+>
-      code.api.v1_3_0.Http4s130.wrappedRoutesV130Services
-      
-  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
+  // create LoggerFactory
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+  
+  //this is the routers
+  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] =
+    code.api.v1_3_0.Http4s130.wrappedRoutesV130Services <+>
+      bankServices <+>
+//      loggingErrorHandlingRoutes <+>
+      helloWorldService
 
+
+  def errorHandler(t: Throwable, msg: => String): OptionT[IO, Unit] = {
+    OptionT.liftF(
+      LoggerFactory[IO].getLogger.error(t)(msg)
+    )
+  }
+  
+//  def errorHandler(t: Throwable, msg: => String) : OptionT[IO, Unit] =
+//    OptionT.liftF(
+//      IO.println(msg) >>
+//        IO.println(t) >>
+//        IO(t.printStackTrace())
+//    )
+
+
+  val withErrorLogging = ErrorHandling.Recover.total(
+    ErrorAction.log(
+      services,
+      messageFailureLogAction = errorHandler,
+      serviceErrorLogAction = errorHandler
+    )
+  )
+
+  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (withErrorLogging).orNotFound
+
+  
   //Start OBP relevant objects, and settings
   new bootstrap.liftweb.Boot().boot
 

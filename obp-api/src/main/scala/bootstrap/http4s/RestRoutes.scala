@@ -19,14 +19,50 @@ import org.http4s._
 import org.http4s.dsl.io._
 import net.liftweb.json.JsonAST.{JValue, prettyRender}
 import net.liftweb.json.{Extraction, MappingException, compactRender, parse}
+//import org.http4s.server.middleware.ErrorHandling
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+import cats.data.{OptionT,Kleisli }
+import cats.effect.IO
+
+
 
 object RestRoutes {
   implicit val formats: Formats = CustomJsonFormats.formats
+
+  case class ErrorResponse(message: String)
   
   val helloWorldService: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>
-      Ok(s"Hello, $name.")
+      if(name=="error"){
+        BadRequest(prettyRender(Extraction.decompose(ErrorResponse("This is the error!!!"))))
+      }else if(name=="error2"){
+        IO.raiseError(new RuntimeException("Something went wrong!"))
+          .handleErrorWith { error =>
+            InternalServerError( prettyRender(Extraction.decompose(ErrorResponse(error.getMessage))))
+          }
+      }else if(name=="exception"){
+        throw new Exception("Hey I am the exception !")
+      }else{
+        Ok(s"Hello, $name.")
+      }  
   }
+
+//  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+
+//  val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
+//    case GET -> Root / "logerror" =>
+//      IO.raiseError(new RuntimeException("logerror Something went wrong!"))
+//  }
+//  val loggingErrorHandlingRoutes: HttpRoutes[IO] = ErrorHandling(routes).handleErrorWith { error =>
+//    Kleisli { req =>
+//      for {
+//        _ <- OptionT.liftF(LoggerFactory[IO].getLogger.error(s"Error occurred: ${error.getMessage}"))
+//        response <- OptionT.liftF(InternalServerError(prettyRender(Extraction.decompose(ErrorResponse("Internal server error")))))
+//      } yield response
+//    }
+//  }
+
 
   val bankServices: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "banks"  =>
