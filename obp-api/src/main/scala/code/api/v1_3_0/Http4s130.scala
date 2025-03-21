@@ -6,11 +6,11 @@ import code.api.util.ApiTag._
 import code.api.util.ErrorMessages._
 import code.api.util.FutureUtil.EndpointContext
 import code.api.util.NewStyle.HttpCode
-import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
+import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
 import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
 import com.openbankproject.commons.ExecutionContext.Implicits.global
-import com.openbankproject.commons.model.BankId
+import com.openbankproject.commons.model.{BankCommons, BankId, ErrorMessage}
 import com.openbankproject.commons.util.{ApiVersion, ScannedApiVersion}
 import net.liftweb.common.Full
 import net.liftweb.http.rest.RestHelper
@@ -19,11 +19,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import cats.effect._
 import org.http4s.{HttpRoutes, _}
-import org.http4s.dsl.io._
-import cats.implicits._
-import code.bankconnectors.Connector
-import code.model.dataAccess.MappedBank
-import com.openbankproject.commons.model.BankCommons
+import org.http4s.dsl.io.{InternalServerError, _}
 import net.liftweb.json.Formats
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
@@ -43,10 +39,12 @@ import org.http4s.implicits._
 import org.http4s.ember.server.EmberServerBuilder
 import com.comcast.ip4s._
 import cats.effect.IO
+import code.api.APIFailureNewStyle
 import org.http4s.{HttpRoutes, Request, Response}
 import org.http4s.dsl.io._
 import org.typelevel.vault.Key
 import code.api.Constant._
+import org.http4s.dsl.io._
 
 object Http4s130 {
 
@@ -58,6 +56,8 @@ object Http4s130 {
   
   import cats.effect.unsafe.implicits.global
   val callContextKey: Key[CallContext] = Key.newKey[IO, CallContext].unsafeRunSync()
+  
+  case class ErrorResponse(message: String)
   
   object CallContextMiddleware {
   
@@ -114,7 +114,11 @@ object Http4s130 {
         } yield {
           convertAnyToJsonString(JSONFactory1_3_0.createPhysicalCardsJSON(cards, u))
         }
-      })))
+      }))) handleErrorWith { error =>
+        val apiFailureNewStyle = parse(error.getMessage).extract[APIFailureNewStyle]
+        val errorMessage =  ErrorMessage(apiFailureNewStyle.failCode, apiFailureNewStyle.failMsg)
+        InternalServerError(prettyRender(Extraction.decompose(errorMessage)))
+      }
     }
   }
 
