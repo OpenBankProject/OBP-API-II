@@ -48,22 +48,6 @@ object RestRoutes {
       }  
   }
 
-//  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
-
-//  val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-//    case GET -> Root / "logerror" =>
-//      IO.raiseError(new RuntimeException("logerror Something went wrong!"))
-//  }
-//  val loggingErrorHandlingRoutes: HttpRoutes[IO] = ErrorHandling(routes).handleErrorWith { error =>
-//    Kleisli { req =>
-//      for {
-//        _ <- OptionT.liftF(LoggerFactory[IO].getLogger.error(s"Error occurred: ${error.getMessage}"))
-//        response <- OptionT.liftF(InternalServerError(prettyRender(Extraction.decompose(ErrorResponse("Internal server error")))))
-//      } yield response
-//    }
-//  }
-
-
   val bankServices: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "banks"  =>
       val banks = Connector.connector.vend.getBanksLegacy(None).map(_._1).openOrThrowException("xxxxx")

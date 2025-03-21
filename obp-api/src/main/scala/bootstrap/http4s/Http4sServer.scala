@@ -37,32 +37,32 @@ import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
+import net.liftweb.json.JsonAST.{JValue, prettyRender}
+import net.liftweb.json.{Extraction, MappingException, compactRender, parse}
+import code.api.util.{APIUtil, CustomJsonFormats}
+import code.util.Helper.MdcLoggable
+import fs2.text.utf8
 
-object Http4sServer extends IOApp {
 
-  // create LoggerFactory
-  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+object Http4sServer extends IOApp with MdcLoggable {
+  implicit val formats = CustomJsonFormats.formats
   
   //this is the routers
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] =
     code.api.v1_3_0.Http4s130.wrappedRoutesV130Services <+>
       bankServices <+>
-//      loggingErrorHandlingRoutes <+>
       helloWorldService
 
-
+  case class ErrorResponse(message: String)
+  
   def errorHandler(t: Throwable, msg: => String): OptionT[IO, Unit] = {
+    val errorResponse = ErrorResponse(msg)
+    val jsonResponse = prettyRender(Extraction.decompose(errorResponse))
+
     OptionT.liftF(
-      LoggerFactory[IO].getLogger.error(t)(msg)
+      IO(logger.error(s"Error occurred: $jsonResponse", t))
     )
   }
-  
-//  def errorHandler(t: Throwable, msg: => String) : OptionT[IO, Unit] =
-//    OptionT.liftF(
-//      IO.println(msg) >>
-//        IO.println(t) >>
-//        IO(t.printStackTrace())
-//    )
 
 
   val withErrorLogging = ErrorHandling.Recover.total(
@@ -73,12 +73,31 @@ object Http4sServer extends IOApp {
     )
   )
 
-  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (withErrorLogging).orNotFound
+  // set the log middleware
+  def logResponses(service: HttpRoutes[IO]): HttpRoutes[IO] = HttpRoutes { req =>
+    service(req).flatMap { response =>
+      if (response.status.code >= 400) { // code >= 400）
+
+        val bodyAsStringIO = response.body.through(utf8.decode).compile.string
+
+        for {
+          bodyAsString <- OptionT.liftF(bodyAsStringIO)
+          _ <- OptionT.liftF(IO(logger.error(s"HTTP ${response.status.code} - ${response.status.reason}\nBody: $bodyAsString")))
+          result <- OptionT.pure[IO](response)
+        } yield result
+        
+      } else {
+        OptionT.pure[IO](response)
+      }
+    }
+  }
+
+  val withLogging = logResponses(withErrorLogging)
+  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (withLogging).orNotFound
 
   
   //Start OBP relevant objects, and settings
   new bootstrap.liftweb.Boot().boot
-
 
   // Define the host and port as variables
   val host: Host = Host.fromString(HostName).head
