@@ -9,12 +9,13 @@ import code.api.util.NewStyle.HttpCode
 import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
 import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
+import code.api.http4s.AuthMiddleware._
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.{BankCommons, BankId, ErrorMessage}
 import com.openbankproject.commons.util.{ApiVersion, ScannedApiVersion}
 import net.liftweb.common.Full
 import net.liftweb.http.rest.RestHelper
-
+import com.openbankproject.commons.model.User
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 import cats.effect._
@@ -87,6 +88,19 @@ object Http4s130 {
       })))
     }
 
+    case req @ GET -> Root / ApiPathZero / apiVersion / "cards1" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        import com.openbankproject.commons.ExecutionContext.Implicits.global
+        val futureLogic = for {
+          (cards, updatedCtx) <- NewStyle.function.getPhysicalCardsForUser(user, Some(callContext))
+        } yield {
+          convertAnyToJsonString(JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
+        }
+
+        IO.fromFuture(IO(futureLogic)).flatMap(Ok(_))
+        
+      }(req)
+      
     case req @ GET -> Root /ApiPathZero/ apiVersion / "banks" / bankId / "cards"  => {
       Ok(IO.fromFuture(IO({ 
         import com.openbankproject.commons.ExecutionContext.Implicits.global

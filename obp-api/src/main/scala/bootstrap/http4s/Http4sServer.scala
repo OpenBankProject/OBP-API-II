@@ -45,7 +45,6 @@ import code.api.util.{APIUtil, CustomJsonFormats}
 import code.util.Helper.MdcLoggable
 import fs2.text.utf8
 import org.http4s.dsl.io._
-import code.api.http4s.Http4sUserRoutes.userRoutes
 import code.api.http4s.CallContextMiddleware.withCallContext
 
 
@@ -56,7 +55,6 @@ object Http4sServer extends IOApp with MdcLoggable {
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = withCallContext(
     Http4s130.wrappedRoutesV130Services <+>
       bankServices <+>
-      userRoutes <+>
       helloWorldService
   )
 

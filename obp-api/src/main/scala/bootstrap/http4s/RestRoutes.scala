@@ -26,7 +26,9 @@ import cats.data.{OptionT,Kleisli }
 import cats.effect.IO
 
 
-
+/**
+ * this to test the error handing. try to make the proper error response
+ */
 object RestRoutes {
   implicit val formats: Formats = CustomJsonFormats.formats
 
