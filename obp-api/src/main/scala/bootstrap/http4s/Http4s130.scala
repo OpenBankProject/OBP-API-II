@@ -66,10 +66,6 @@ object Http4s130 {
 
         IO.fromFuture(IO(futureLogic)).flatMap {
           case (json, _) => Ok(json)
-        }.handleErrorWith { error =>
-          val apiFailureNewStyle = parse(error.getMessage).extract[APIFailureNewStyle]
-          val errorMessage = ErrorMessage(apiFailureNewStyle.failCode, apiFailureNewStyle.failMsg)
-          org.http4s.dsl.io.InternalServerError(prettyRender(Extraction.decompose(errorMessage)))
         }
       }(req)
   }

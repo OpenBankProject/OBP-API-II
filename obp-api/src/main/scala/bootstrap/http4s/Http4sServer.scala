@@ -47,58 +47,19 @@ import code.util.Helper.MdcLoggable
 import fs2.text.utf8
 import org.http4s.dsl.io._
 import code.api.http4s.CallContextMiddleware.withCallContext
-
+import code.api.http4s.middleware.JsonErrorHandler
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats
   
   //this is the routers
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = withCallContext(
+  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = JsonErrorHandler(withCallContext(
     v130Services <+> 
       bankServices <+> 
       helloWorldService
-  )
+  ))
 
-  case class ErrorResponse(message: String)
-  
-  def errorHandler(t: Throwable, msg: => String): OptionT[IO, Response[IO]] = {
-    val errorResponse = ErrorResponse(t.getMessage)
-    val jsonResponse = prettyRender(Extraction.decompose(errorResponse))
-
-    val logAction = IO(logger.error(s"Error occurred: ${jsonResponse}", t))
-
-    // TODO. this need to check
-    OptionT.liftF(logAction *> BadRequest(jsonResponse))
-  }
-
-
-  val withErrorHandling = ErrorHandling.Recover.total(
-    ErrorAction.log(
-      services,
-      messageFailureLogAction = (t, msg) => errorHandler(t, msg).void,
-      serviceErrorLogAction = (t, msg) => errorHandler(t, msg).void
-    )
-  )
-
-  def logResponses(service: HttpRoutes[IO]): HttpRoutes[IO] = HttpRoutes { req =>
-    service(req).flatMap { response =>
-      if (response.status.code >= 400) {
-        val bodyAsStringIO = response.body.through(utf8.decode).compile.string
-
-        for {
-          bodyAsString <- OptionT.liftF(bodyAsStringIO)
-          _ <- OptionT.liftF(IO(logger.error(s"HTTP ${response.status.code} - ${response.status.reason}\nBody: $bodyAsString")))
-          result <- OptionT.pure[IO](response)
-        } yield result
-        
-      } else {
-        OptionT.pure[IO](response)
-      }
-    }
-  }
-
-  val withLogging = logResponses(withErrorHandling)
-  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = withLogging.orNotFound
+  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
 
   
   //Start OBP relevant objects, and settings
