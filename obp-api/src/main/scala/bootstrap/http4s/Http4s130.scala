@@ -1,4 +1,4 @@
-package code.api.v1_3_0
+package bootstrap.http4s
 
 import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON._
 import code.api.util.APIUtil._
@@ -44,6 +44,7 @@ import org.http4s.{HttpRoutes, Request, Response}
 import org.http4s.dsl.io._
 import org.typelevel.vault.Key
 import code.api.Constant._
+import code.api.v1_3_0.JSONFactory1_3_0
 import org.http4s.dsl.io._
 
 object Http4s130 {
@@ -58,21 +59,6 @@ object Http4s130 {
   val callContextKey: Key[CallContext] = Key.newKey[IO, CallContext].unsafeRunSync()
   
   case class ErrorResponse(message: String)
-  
-  object CallContextMiddleware {
-  
-
-    def withCallContext(routes: HttpRoutes[IO]): HttpRoutes[IO] = Kleisli { req: Request[IO] =>
-      val callContext = CallContext()
-      val updatedAttributes = req.attributes.insert(callContextKey, callContext)
-      println("why hello will come here???")
-      println(req)
-//      throw new RuntimeException("1313123313")
-      val updatedReq = req.withAttributes(updatedAttributes)
-      routes(updatedReq)
-    }
-  }
-  
   
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case req @ GET -> Root /ApiPathZero / apiVersion / "root" =>
@@ -122,5 +108,5 @@ object Http4s130 {
     }
   }
 
-  val wrappedRoutesV130Services: HttpRoutes[IO] = CallContextMiddleware.withCallContext(v130Services)
+  val wrappedRoutesV130Services: HttpRoutes[IO] = v130Services
 }

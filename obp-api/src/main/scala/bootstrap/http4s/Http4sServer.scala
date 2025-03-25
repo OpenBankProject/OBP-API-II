@@ -16,6 +16,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.HttpRoutes
 import org.http4s.implicits._
 import com.comcast.ip4s.{Host, Port}
+
 import java.net.URI
 import java.security.KeyStore
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
@@ -27,6 +28,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.HttpRoutes
 import org.http4s.implicits._
 import com.comcast.ip4s.{Host, Port}
+
 import java.net.URI
 import java.security.KeyStore
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
@@ -43,15 +45,20 @@ import code.api.util.{APIUtil, CustomJsonFormats}
 import code.util.Helper.MdcLoggable
 import fs2.text.utf8
 import org.http4s.dsl.io._
+import code.api.http4s.Http4sUserRoutes.userRoutes
+import code.api.http4s.CallContextMiddleware.withCallContext
+
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats
   
   //this is the routers
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] =
-    code.api.v1_3_0.Http4s130.wrappedRoutesV130Services <+>
+  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = withCallContext(
+    Http4s130.wrappedRoutesV130Services <+>
       bankServices <+>
+      userRoutes <+>
       helloWorldService
+  )
 
   case class ErrorResponse(message: String)
   

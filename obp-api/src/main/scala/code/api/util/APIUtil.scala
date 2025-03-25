@@ -113,6 +113,8 @@ import scala.concurrent.Future
 import scala.io.BufferedSource
 import scala.util.control.Breaks.{break, breakable}
 import scala.xml.{Elem, XML}
+import cats.effect.IO
+import org.http4s.{HttpRoutes, Request, Response}
 
 object APIUtil extends MdcLoggable with CustomJsonFormats{
 
@@ -349,7 +351,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    * and if both values match (that is, the resource has not changed), the server sends back a 304 Not Modified status, 
    * without a body, which tells the client that the cached version of the response is still good to use (fresh).
    */
-  private def checkIfNotMatchHeader(cc: Option[CallContext], httpCode: Int, httpBody: Box[String], headerValue: String): Int = {
+  def checkIfNotMatchHeader(cc: Option[CallContext], httpCode: Int, httpBody: Box[String], headerValue: String): Int = {
     val url = cc.map(_.url).getOrElse("")
     val hash = HashUtil.calculateETag(url, httpBody)
     if (httpCode == 200 && hash == headerValue) 304 else httpCode
@@ -360,7 +362,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   // with a 200 status, only if it has been last modified after the given date. 
   // If the resource has not been modified since, the response is a 304 without any body; 
   // the Last-Modified response header of a previous request contains the date of last modification
-  private def checkIfModifiedSinceHeader(cc: Option[CallContext], httpVerb: String, httpCode: Int, httpBody: Box[String], headerValue: String): Int = {
+  def checkIfModifiedSinceHeader(cc: Option[CallContext], httpVerb: String, httpCode: Int, httpBody: Box[String], headerValue: String): Int = {
     def headerValueToMillis(): Long = {
       var epochTime = 0L
       // Create a DateFormat and set the timezone to GMT.
@@ -440,7 +442,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     }
   }
   
-  private def checkConditionalRequest(cc: Option[CallContext], httpVerb: String, httpCode: Int, httpBody: Box[String]) = {
+  def checkConditionalRequest(cc: Option[CallContext], httpVerb: String, httpCode: Int, httpBody: Box[String]) = {
     val requestHeaders: List[HTTPParam] = cc.map(_.requestHeaders).getOrElse(Nil)
     requestHeaders.filter(_.name == RequestHeader.`If-None-Match` ).headOption match {
       case Some(value) => // Handle the If-None-Match HTTP request header
@@ -457,7 +459,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     }
   }
 
-  private def getHeadersNewStyle(cc: Option[CallContextLight]) = {
+  def getHeadersNewStyle(cc: Option[CallContextLight]) = {
     CustomResponseHeaders(
       getGatewayLoginHeader(cc).list ::: 
         getRateLimitHeadersNewStyle(cc).list ::: 
@@ -467,7 +469,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     )
   }
 
-  private def getRateLimitHeadersNewStyle(cc: Option[CallContextLight]) = {
+  def getRateLimitHeadersNewStyle(cc: Option[CallContextLight]) = {
     (cc, RateLimitingUtil.useConsumerLimits) match {
       case (Some(x), true) =>
         CustomResponseHeaders(
@@ -481,7 +483,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
         CustomResponseHeaders((Nil))
     }
   }
-  private def getPaginationHeadersNewStyle(cc: Option[CallContextLight]) = {
+  def getPaginationHeadersNewStyle(cc: Option[CallContextLight]) = {
     cc match {
       case Some(x) if x.paginationLimit.isDefined && x.paginationOffset.isDefined =>
         CustomResponseHeaders(
@@ -491,7 +493,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
         CustomResponseHeaders(Nil)
     }
   }
-  private def getSignRequestHeadersNewStyle(cc: Option[CallContext], httpBody: Box[String]): CustomResponseHeaders = {
+  def getSignRequestHeadersNewStyle(cc: Option[CallContext], httpBody: Box[String]): CustomResponseHeaders = {
     cc.map { i =>
       if(JwsUtil.forceVerifyRequestSignResponse(i.url)) {
         val headers = JwsUtil.signResponse(httpBody, i.verb, i.url, "application/json;charset=utf-8")
@@ -501,7 +503,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       }
     }.getOrElse(CustomResponseHeaders(Nil))
   }
-  private def getRequestHeadersNewStyle(cc: Option[CallContext], httpBody: Box[String]): CustomResponseHeaders = {
+  def getRequestHeadersNewStyle(cc: Option[CallContext], httpBody: Box[String]): CustomResponseHeaders = {
     cc.map { i =>
       val hash = HashUtil.calculateETag(i.url, httpBody)
       CustomResponseHeaders(
@@ -513,7 +515,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       )
     }.getOrElse(CustomResponseHeaders(Nil))
   }
-  private def getSignRequestHeadersError(cc: Option[CallContextLight], httpBody: String): CustomResponseHeaders = {
+  def getSignRequestHeadersError(cc: Option[CallContextLight], httpBody: String): CustomResponseHeaders = {
     cc.map { i =>
       if(JwsUtil.forceVerifyRequestSignResponse(i.url)) {
         val headers = JwsUtil.signResponse(Full(httpBody), i.verb, i.url, "application/json;charset=utf-8")
@@ -1079,7 +1081,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     }
   }
 
-  private def getPaginationParam(httpParams: List[HTTPParam], paramName: String, defaultValue: Option[Int], minimumValue: Int, errorMsg: String): Box[Int]= {
+  def getPaginationParam(httpParams: List[HTTPParam], paramName: String, defaultValue: Option[Int], minimumValue: Int, errorMsg: String): Box[Int]= {
     getHttpValues(httpParams, paramName) match {
       case Full(v) => {
         tryo{
@@ -1373,14 +1375,14 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     def callback(url: String) = IMap(CallbackName -> url)
 
     //normalize to OAuth percent encoding
-    private def %% (str: String): String = {
+    def %% (str: String): String = {
       val remaps = ("+", "%20") :: ("%7E", "~") :: ("*", "%2A") :: Nil
       (encode_%(str) /: remaps) { case (str, (a, b)) => str.replace(a,b) }
     }
-    private def %% (s: Seq[String]): String = s map %% mkString "&"
-    private def %% (t: (String, Any)): (String, String) = (%%(t._1), %%(t._2.toString))
+    def %% (s: Seq[String]): String = s map %% mkString "&"
+    def %% (t: (String, Any)): (String, String) = (%%(t._1), %%(t._2.toString))
 
-    private def bytes(str: String) = str.getBytes(UTF_8)
+    def bytes(str: String) = str.getBytes(UTF_8)
 
     /** Add OAuth operators to dispatch.Request */
     implicit def Request2RequestSigner(r: Request) = new RequestSigner(r)
@@ -1552,7 +1554,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   val dynamicEndpointStub: OBPEndpoint = Functions.doNothing
 
   object ResourceDoc{
-    private val operationIdToResourceDoc: ConcurrentHashMap[String, ResourceDoc] = new ConcurrentHashMap[String, ResourceDoc]
+    val operationIdToResourceDoc: ConcurrentHashMap[String, ResourceDoc] = new ConcurrentHashMap[String, ResourceDoc]
 
     def getResourceDocs(operationIds: List[String]): List[ResourceDoc] = {
       logger.trace(s"ResourceDoc operationIdToResourceDoc.size is ${operationIdToResourceDoc.size()}")
@@ -1648,7 +1650,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     // add connector method to endpoint info
     addEndpointInfos(connectorMethods, partialFunctionName, implementedInApiVersion)
 
-    private val rolesForCheck = roles match {
+    val rolesForCheck = roles match {
       case Some(list) => list
       case _ => Nil
     }
@@ -1707,19 +1709,19 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       this
     }
 
-    private val requestUrlPartPath: Array[String] = StringUtils.split(requestUrl, '/')
+    val requestUrlPartPath: Array[String] = StringUtils.split(requestUrl, '/')
 
-    private val isNeedCheckAuth = errorResponseBodies.contains($UserNotLoggedIn)
-    private val isNeedCheckRoles = _autoValidateRoles && rolesForCheck.nonEmpty
-    private val isNeedCheckBank = errorResponseBodies.contains($BankNotFound) && requestUrlPartPath.contains("BANK_ID")
-    private val isNeedCheckAccount = errorResponseBodies.contains($BankAccountNotFound) &&
+    val isNeedCheckAuth = errorResponseBodies.contains($UserNotLoggedIn)
+    val isNeedCheckRoles = _autoValidateRoles && rolesForCheck.nonEmpty
+    val isNeedCheckBank = errorResponseBodies.contains($BankNotFound) && requestUrlPartPath.contains("BANK_ID")
+    val isNeedCheckAccount = errorResponseBodies.contains($BankAccountNotFound) &&
       requestUrlPartPath.contains("BANK_ID") && requestUrlPartPath.contains("ACCOUNT_ID")
-    private val isNeedCheckView = errorResponseBodies.contains($UserNoPermissionAccessView) &&
+    val isNeedCheckView = errorResponseBodies.contains($UserNoPermissionAccessView) &&
       requestUrlPartPath.contains("BANK_ID") && requestUrlPartPath.contains("ACCOUNT_ID") && requestUrlPartPath.contains("VIEW_ID")
 
-    private val isNeedCheckCounterparty = errorResponseBodies.contains($CounterpartyNotFoundByCounterpartyId) && requestUrlPartPath.contains("COUNTERPARTY_ID")
+    val isNeedCheckCounterparty = errorResponseBodies.contains($CounterpartyNotFoundByCounterpartyId) && requestUrlPartPath.contains("COUNTERPARTY_ID")
     
-    private val reversedRequestUrl = requestUrlPartPath.reverse
+    val reversedRequestUrl = requestUrlPartPath.reverse
     def getPathParams(url: List[String]): Map[String, String] =
       reversedRequestUrl.zip(url.reverse) collect {
         case pair @(k, _) if isPathVariable(k) => pair
@@ -1965,11 +1967,11 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    *  3. endpoint's corresponding ResourceDoc.errorResponseBodies must contains $BankNotFound, $BankAccountNotFound or $UserNoPermissionAccessView
    */
   object SS {
-    private val _user = new ThreadGlobal[User]
-    private val _bank = new ThreadGlobal[Bank]
-    private val _bankAccount = new ThreadGlobal[BankAccount]
-    private val _view = new ThreadGlobal[View]
-    private val _callContext = new ThreadGlobal[Option[CallContext]]
+    val _user = new ThreadGlobal[User]
+    val _bank = new ThreadGlobal[Bank]
+    val _bankAccount = new ThreadGlobal[BankAccount]
+    val _view = new ThreadGlobal[View]
+    val _callContext = new ThreadGlobal[Option[CallContext]]
 
     def init[B](boxUser: Box[User], bank: Bank, bankAccount: BankAccount, view: View, callContext: Option[CallContext])(f: => B):B = {
       _user.doWith(boxUser.orNull){
@@ -1985,10 +1987,10 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       }
     }
 
-    private def bank: Bank = _bank.box.openOrThrowException(buildErrorMsg(nameOf($BankNotFound)))
-    private def bankAccount: BankAccount = _bankAccount.box.openOrThrowException(buildErrorMsg(nameOf($BankAccountNotFound)))
-    private def getView: View = _view.box.openOrThrowException(buildErrorMsg(nameOf($UserNoPermissionAccessView)))
-    private def callContext: Option[CallContext] = _callContext.box.orNull
+    def bank: Bank = _bank.box.openOrThrowException(buildErrorMsg(nameOf($BankNotFound)))
+    def bankAccount: BankAccount = _bankAccount.box.openOrThrowException(buildErrorMsg(nameOf($BankAccountNotFound)))
+    def getView: View = _view.box.openOrThrowException(buildErrorMsg(nameOf($UserNoPermissionAccessView)))
+    def callContext: Option[CallContext] = _callContext.box.orNull
 
     /**
      * Get current login user, recommend call cc.loggedInUser instead.
@@ -2044,7 +2046,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
      */
     def userAccount: Future[(Box[User], BankAccount, Option[CallContext])] = Future.successful((_user.box, bankAccount, callContext))
 
-    private def buildErrorMsg(msg: String) =
+    def buildErrorMsg(msg: String) =
       s"""
          |This method invoke must fulfill three point:
          | 1. be invoked at endpoint's body
@@ -2943,7 +2945,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     })
   }
 
-  private def getFilteredOrFullErrorMessage[T](e: Box[Throwable]): JsonResponse = {
+  def getFilteredOrFullErrorMessage[T](e: Box[Throwable]): JsonResponse = {
     getPropsAsBoolValue("display_internal_errors", false) match {
       case true => // Show all error in a chain
         errorJsonResponse(
@@ -3427,7 +3429,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    * This function is used to factor out common code at endpoints regarding Authorized access
    * @param emptyUserErrorMsg is a message which will be provided as a response in case that Box[User] = Empty
    */
-  def authenticatedAccessHttp4s(req: org.http4s.Request[cats.effect.IO], cc: CallContext, emptyUserErrorMsg: String = UserNotLoggedIn): OBPReturnType[Box[User]] = {
+  def authenticatedAccessHttp4s(req: Request[IO], cc: CallContext, emptyUserErrorMsg: String = UserNotLoggedIn): OBPReturnType[Box[User]] = {
     anonymousAccessHttp4s(req, cc) map{
       x => (
         fullBoxOrException(x._1 ~> APIFailureNewStyle(emptyUserErrorMsg, 401, Some(cc.toLight))),
@@ -3828,7 +3830,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   }
   
   // TODO This function needs testing in a cluster environment
-  private def getActiveBrand(): Option[String] = {
+  def getActiveBrand(): Option[String] = {
     val brandParameter = "brand"
 
     // Use brand in parameter (query or form)
@@ -4185,7 +4187,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     currentSupportFormats.toStream.map(_.parse(date, parsePosition)).find(null !=)
   }
 
-  private def passesPsd2ServiceProviderCommon(cc: Option[CallContext], serviceProvider: String) = {
+  def passesPsd2ServiceProviderCommon(cc: Option[CallContext], serviceProvider: String) = {
     val result: Box[Boolean] = getPropsAsBoolValue("requirePsd2Certificates", false) match {
       case false => Full(true)
       case true =>
@@ -4536,25 +4538,28 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   lazy val loginButtonText = getWebUiPropsValue("webui_login_button_text", S.?("log.in"))
 
   // the follow PartialFunction just delegate one method, in this way will be compiled to a class, in order to trace call whitch connector methods
-  private val authenticatedAccessFun: PartialFunction[CallContext, OBPReturnType[Box[User]]] = {
+  val authenticatedAccessFun: PartialFunction[CallContext, OBPReturnType[Box[User]]] = {
     case x => authenticatedAccess(x)
   }
-  private val anonymousAccessFun: PartialFunction[CallContext, OBPReturnType[Box[User]]] = {
+  val authenticatedAccessFunHttp4s: PartialFunction[(Request[IO], CallContext), OBPReturnType[Box[User]]] = {
+    case (req,x) => authenticatedAccessHttp4s(req, x)
+  }
+  val anonymousAccessFun: PartialFunction[CallContext, OBPReturnType[Box[User]]] = {
     case x => anonymousAccess(x)
   }
-  private val checkRolesFun: PartialFunction[String, (String, List[ApiRole], Option[CallContext]) => Future[Box[Unit]]] = {
+  val checkRolesFun: PartialFunction[String, (String, List[ApiRole], Option[CallContext]) => Future[Box[Unit]]] = {
     case x => NewStyle.function.handleEntitlementsAndScopes(x, _, _, _)
   }
-  private val checkBankFun: PartialFunction[BankId, Option[CallContext] => OBPReturnType[Bank]] = {
+  val checkBankFun: PartialFunction[BankId, Option[CallContext] => OBPReturnType[Bank]] = {
     case x => NewStyle.function.getBank(x, _)
   }
-  private val checkAccountFun: PartialFunction[BankId, (AccountId, Option[CallContext]) => OBPReturnType[BankAccount]] = {
+  val checkAccountFun: PartialFunction[BankId, (AccountId, Option[CallContext]) => OBPReturnType[BankAccount]] = {
     case x => NewStyle.function.getBankAccount(x, _, _)
   }
-  private val checkViewFun: PartialFunction[ViewId, (BankIdAccountId, Option[User], Option[CallContext]) => Future[View]] = {
+  val checkViewFun: PartialFunction[ViewId, (BankIdAccountId, Option[User], Option[CallContext]) => Future[View]] = {
     case x => NewStyle.function.checkViewAccessAndReturnView(x, _, _, _)
   }
-  private val checkCounterpartyFun: PartialFunction[CounterpartyId, Option[CallContext] => OBPReturnType[CounterpartyTrait]] = {
+  val checkCounterpartyFun: PartialFunction[CounterpartyId, Option[CallContext] => OBPReturnType[CounterpartyTrait]] = {
     case x => NewStyle.function.getCounterpartyByCounterpartyId(x, _)
   }
 
@@ -4651,7 +4656,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    * eg: one endpoint:    
    *         
    */
-  private def getDependentConnectorMethods(endpoint: PartialFunction[_, _]): List[String] = 
+  def getDependentConnectorMethods(endpoint: PartialFunction[_, _]): List[String] = 
   if (SHOW_USED_CONNECTOR_METHODS && endpoint != null) {
     val connectorTypeName = classOf[Connector].getName
     val endpointClassName = endpoint.getClass.getName
@@ -4742,7 +4747,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    */
   val connectorToEndpoint = mutable.Map[String, List[EndpointInfo]]()
 
-  private def addEndpointInfos(connectorMethods: List[String], partialFunctionName: String, apiVersion: ScannedApiVersion) = {
+  def addEndpointInfos(connectorMethods: List[String], partialFunctionName: String, apiVersion: ScannedApiVersion) = {
     val endpointInfo = EndpointInfo(partialFunctionName, apiVersion.fullyQualifiedVersion)
     connectorMethods.foreach(method => {
       val infos = connectorToEndpoint.getOrElse(method, Nil)
@@ -4867,7 +4872,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 
   val beforeAuthenticateInterceptResult: (Option[CallContext], String) => Box[JsonResponse] = getInterceptResult(beforeAuthenticateInterceptors)
 
-  private def getInterceptResult(interceptors: List[PartialFunction[(Option[CallContext], String), Box[JsonResponse]]])
+  def getInterceptResult(interceptors: List[PartialFunction[(Option[CallContext], String), Box[JsonResponse]]])
                                 (callContext: Option[CallContext], operationId: String): Box[JsonResponse] = {
     var jsonResponse:Box[JsonResponse] = Empty
     // why not use collectFirst method? because the parameter is PartialFunction, it will calculate twice
@@ -4885,13 +4890,13 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     jsonResponse
   }
 
-  private val isEnabledForceError = APIUtil.getPropsAsBoolValue("enable.force_error", false)
+  val isEnabledForceError = APIUtil.getPropsAsBoolValue("enable.force_error", false)
 
   /**
    * is Force-Error enabled or not, because test mode need modify this props, the Test mode read from Props every time
    * @return
    */
-  private def enableForceError = Props.mode match {
+  def enableForceError = Props.mode match {
     case Props.RunModes.Test =>
       APIUtil.getPropsAsBoolValue("enable.force_error", false)
     case _ => isEnabledForceError
@@ -4913,7 +4918,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     }
   )
 
-  private val afterAuthenticateInterceptors: List[PartialFunction[(Option[CallContext], String), Box[JsonResponse]]] = List(
+  val afterAuthenticateInterceptors: List[PartialFunction[(Option[CallContext], String), Box[JsonResponse]]] = List(
     // add interceptor functions one by one.
     {// process force error
       case (Some(callContext), operationId) if enableForceError =>
