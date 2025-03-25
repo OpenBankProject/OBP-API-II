@@ -1,6 +1,7 @@
 package bootstrap.http4s
 
 import bootstrap.http4s.RestRoutes.{bankServices, helloWorldService}
+import bootstrap.http4s.Http4s130.v130Services
 import cats.data.{Kleisli, OptionT}
 
 import scala.language.higherKinds
@@ -53,8 +54,8 @@ object Http4sServer extends IOApp with MdcLoggable {
   
   //this is the routers
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = withCallContext(
-    Http4s130.wrappedRoutesV130Services <+>
-      bankServices <+>
+    v130Services <+> 
+      bankServices <+> 
       helloWorldService
   )
 
