@@ -23,7 +23,8 @@ object JsonErrorHandler {
     Kleisli { req =>
       OptionT {
         routes(req).value.handleErrorWith { error =>
-          logger.error(s"[Error] ${error.getMessage} at ${req.method} ${req.uri}") *> IO {
+          val stackTrace = error.getStackTrace.mkString("\n")
+          logger.error(s"[Error] ${error.getMessage} at ${req.method} ${req.uri}\n$stackTrace") *> IO {
             try {
               val failure = parse(error.getMessage).extract[APIFailureNewStyle]
               val errorMessage = ErrorMessage(failure.failCode, failure.failMsg)
@@ -43,6 +44,4 @@ object JsonErrorHandler {
         }
       }
     }
-
-
 }
