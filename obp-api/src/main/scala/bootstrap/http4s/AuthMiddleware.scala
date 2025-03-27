@@ -1,12 +1,12 @@
-package code.api.http4s
+package bootstrap.http4s
 
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import code.api.util.CallContext
 import com.openbankproject.commons.model.User
-import code.api.http4s.AuthZChecks._
-import code.api.http4s.CallContextKeyProvider.callContextKey
+import bootstrap.http4s.AuthZChecks._
+import bootstrap.http4s.CallContextKeyProvider.callContextKey
 
 object AuthMiddleware {
 

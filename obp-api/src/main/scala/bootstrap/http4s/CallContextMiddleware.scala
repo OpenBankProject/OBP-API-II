@@ -1,10 +1,10 @@
-package code.api.http4s
+package bootstrap.http4s
 
 import cats.data.Kleisli
 import cats.effect.IO
 import org.http4s._
 import code.api.util.CallContext
-import code.api.http4s.CallContextKeyProvider.callContextKey
+import bootstrap.http4s.CallContextKeyProvider.callContextKey
 
 object CallContextMiddleware {
 

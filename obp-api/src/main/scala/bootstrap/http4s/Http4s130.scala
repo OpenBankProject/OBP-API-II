@@ -9,7 +9,7 @@ import code.api.util.NewStyle.HttpCode
 import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
 import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
-import code.api.http4s.AuthMiddleware._
+import bootstrap.http4s.AuthMiddleware._
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.{BankId, ErrorMessage, User}
 import net.liftweb.common.Full

@@ -46,8 +46,8 @@ import code.api.util.{APIUtil, CustomJsonFormats}
 import code.util.Helper.MdcLoggable
 import fs2.text.utf8
 import org.http4s.dsl.io._
-import code.api.http4s.CallContextMiddleware.withCallContext
-import code.api.http4s.middleware.JsonErrorHandler
+import bootstrap.http4s.CallContextMiddleware.withCallContext
+import bootstrap.http4s.middleware.JsonErrorHandler
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats

@@ -1,4 +1,4 @@
-package code.api.http4s
+package bootstrap.http4s
 
 import cats.effect.IO
 import org.typelevel.vault.Key
