@@ -17,10 +17,15 @@ import scala.concurrent.Future
 import cats.effect._
 import org.http4s.{HttpRoutes, _}
 import org.http4s.dsl.io._
-import net.liftweb.json.{Formats, JsonAST, Extraction, MappingException, parse, prettyRender}
+import net.liftweb.json.{Extraction, Formats, JsonAST, MappingException, parse, prettyRender}
 import code.api.v1_3_0.JSONFactory1_3_0
 import code.api.APIFailureNewStyle
 import code.api.Constant._
+import code.api.ResourceDocs1_4_0.ResourceDocs140.ImplementationsResourceDocs
+import net.liftweb.http.LiftResponse
+import net.liftweb.actor.LAFuture
+import bootstrap.http4s.LiftCompatUtils.createLiftRequestObject 
+
 
 object Http4s130 {
 
@@ -32,6 +37,18 @@ object Http4s130 {
 
 
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
+
+    case req @ GET -> Root / "resource-docs"/ "v5.1.0" / "obp"  =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(ImplementationsResourceDocs.getResourceDocsObpV400, liftRequest, callContext)
+        
+        IO.fromFuture(IO(Future{liftResponse})).flatMap {
+          case (json) => Ok(json.toString)
+        }
+        
+      }(req)
+      
     case req @ GET -> Root / ApiPathZero / apiVersion / "root" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
         val futureLogic = Future {
