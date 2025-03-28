@@ -58,7 +58,7 @@ object APIMethods_FutureDatedPaymentsApi extends RestHelper {
        ApiTag("Future Dated Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdFutureDatedPaymentsGet : OBPEndpoint = {
+     lazy val accountsAccountIdFutureDatedPaymentsGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "future-dated-payments" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -115,7 +115,7 @@ object APIMethods_FutureDatedPaymentsApi extends RestHelper {
        ApiTag("Future Dated Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val futureDatedPaymentsGet : OBPEndpoint = {
+     lazy val futureDatedPaymentsGet : OBPEndpointFuture = {
        case "future-dated-payments" :: Nil JsonGet _ => {
          cc =>
            for {

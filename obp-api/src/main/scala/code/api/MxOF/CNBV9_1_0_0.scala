@@ -1,7 +1,7 @@
 package code.api.MxOF
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, ResourceDoc, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, ResourceDoc, getAllowedEndpoints}
 import code.api.util.ScannedApis
 import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
@@ -20,10 +20,10 @@ object CNBV9_1_0_0 extends OBPRestHelper with MdcLoggable with ScannedApis {
   override val allResourceDocs: ArrayBuffer[ResourceDoc] = APIMethods_AtmsApi.resourceDocs
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  override val routes: List[OBPEndpoint] = getAllowedEndpoints(endpoints, allResourceDocs)
+  override val routes: List[OBPEndpointFuture] = getAllowedEndpoints(endpoints, allResourceDocs)
 
   // Make them available for use!
-  registerRoutes(routes, allResourceDocs, apiPrefix)
+//  registerRoutes(routes, allResourceDocs, apiPrefix)
 
   logger.info(s"version $version has been run! There are ${routes.length} routes.")
 }

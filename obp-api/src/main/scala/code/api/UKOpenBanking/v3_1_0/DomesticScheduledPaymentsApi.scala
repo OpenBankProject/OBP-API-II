@@ -137,7 +137,7 @@ object APIMethods_DomesticScheduledPaymentsApi extends RestHelper {
        ApiTag("Domestic Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createDomesticScheduledPaymentConsents : OBPEndpoint = {
+     lazy val createDomesticScheduledPaymentConsents : OBPEndpointFuture = {
        case "domestic-scheduled-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -337,7 +337,7 @@ object APIMethods_DomesticScheduledPaymentsApi extends RestHelper {
        ApiTag("Domestic Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createDomesticScheduledPayments : OBPEndpoint = {
+     lazy val createDomesticScheduledPayments : OBPEndpointFuture = {
        case "domestic-scheduled-payments" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -537,7 +537,7 @@ object APIMethods_DomesticScheduledPaymentsApi extends RestHelper {
        ApiTag("Domestic Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getDomesticScheduledPaymentConsentsConsentId : OBPEndpoint = {
+     lazy val getDomesticScheduledPaymentConsentsConsentId : OBPEndpointFuture = {
        case "domestic-scheduled-payment-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -737,7 +737,7 @@ object APIMethods_DomesticScheduledPaymentsApi extends RestHelper {
        ApiTag("Domestic Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getDomesticScheduledPaymentsDomesticScheduledPaymentId : OBPEndpoint = {
+     lazy val getDomesticScheduledPaymentsDomesticScheduledPaymentId : OBPEndpointFuture = {
        case "domestic-scheduled-payments" :: domesticscheduledpaymentid :: Nil JsonGet _ => {
          cc =>
            for {

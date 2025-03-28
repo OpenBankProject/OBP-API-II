@@ -174,7 +174,7 @@ object APIMethods_InternationalScheduledPaymentsApi extends RestHelper {
        ApiTag("International Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createInternationalScheduledPaymentConsents : OBPEndpoint = {
+     lazy val createInternationalScheduledPaymentConsents : OBPEndpointFuture = {
        case "international-scheduled-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -446,7 +446,7 @@ object APIMethods_InternationalScheduledPaymentsApi extends RestHelper {
        ApiTag("International Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createInternationalScheduledPayments : OBPEndpoint = {
+     lazy val createInternationalScheduledPayments : OBPEndpointFuture = {
        case "international-scheduled-payments" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -718,7 +718,7 @@ object APIMethods_InternationalScheduledPaymentsApi extends RestHelper {
        ApiTag("International Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalScheduledPaymentConsentsConsentId : OBPEndpoint = {
+     lazy val getInternationalScheduledPaymentConsentsConsentId : OBPEndpointFuture = {
        case "international-scheduled-payment-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -892,7 +892,7 @@ object APIMethods_InternationalScheduledPaymentsApi extends RestHelper {
        ApiTag("International Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalScheduledPaymentConsentsConsentIdFundsConfirmation : OBPEndpoint = {
+     lazy val getInternationalScheduledPaymentConsentsConsentIdFundsConfirmation : OBPEndpointFuture = {
        case "international-scheduled-payment-consents" :: consentid:: "funds-confirmation" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -1054,7 +1054,7 @@ object APIMethods_InternationalScheduledPaymentsApi extends RestHelper {
        ApiTag("International Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalScheduledPaymentsInternationalScheduledPaymentId : OBPEndpoint = {
+     lazy val getInternationalScheduledPaymentsInternationalScheduledPaymentId : OBPEndpointFuture = {
        case "international-scheduled-payments" :: internationalscheduledpaymentid :: Nil JsonGet _ => {
          cc =>
            for {

@@ -61,7 +61,7 @@ object APIMethods_StatementsApi extends RestHelper {
        ApiTag("Statements") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdStatementsGet : OBPEndpoint = {
+     lazy val accountsAccountIdStatementsGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "statements" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -103,7 +103,7 @@ object APIMethods_StatementsApi extends RestHelper {
        ApiTag("Statements") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdStatementsStatementIdFileGet : OBPEndpoint = {
+     lazy val accountsAccountIdStatementsStatementIdFileGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "statements" :: statementId:: "file" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -145,7 +145,7 @@ object APIMethods_StatementsApi extends RestHelper {
        ApiTag("Statements") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdStatementsStatementIdGet : OBPEndpoint = {
+     lazy val accountsAccountIdStatementsStatementIdGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "statements" :: statementId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -202,7 +202,7 @@ object APIMethods_StatementsApi extends RestHelper {
        ApiTag("Statements") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdStatementsStatementIdTransactionsGet : OBPEndpoint = {
+     lazy val accountsAccountIdStatementsStatementIdTransactionsGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "statements" :: statementId:: "transactions" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -259,7 +259,7 @@ object APIMethods_StatementsApi extends RestHelper {
        ApiTag("Statements") :: apiTagMockedData :: Nil
      )
 
-     lazy val statementsGet : OBPEndpoint = {
+     lazy val statementsGet : OBPEndpointFuture = {
        case "statements" :: Nil JsonGet _ => {
          cc =>
            for {

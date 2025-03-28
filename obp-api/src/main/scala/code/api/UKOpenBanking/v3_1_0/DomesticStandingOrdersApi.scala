@@ -128,7 +128,7 @@ object APIMethods_DomesticStandingOrdersApi extends RestHelper {
        ApiTag("Domestic Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val createDomesticStandingOrderConsents : OBPEndpoint = {
+     lazy val createDomesticStandingOrderConsents : OBPEndpointFuture = {
        case "domestic-standing-order-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -310,7 +310,7 @@ object APIMethods_DomesticStandingOrdersApi extends RestHelper {
        ApiTag("Domestic Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val createDomesticStandingOrders : OBPEndpoint = {
+     lazy val createDomesticStandingOrders : OBPEndpointFuture = {
        case "domestic-standing-orders" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -492,7 +492,7 @@ object APIMethods_DomesticStandingOrdersApi extends RestHelper {
        ApiTag("Domestic Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val getDomesticStandingOrderConsentsConsentId : OBPEndpoint = {
+     lazy val getDomesticStandingOrderConsentsConsentId : OBPEndpointFuture = {
        case "domestic-standing-order-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -674,7 +674,7 @@ object APIMethods_DomesticStandingOrdersApi extends RestHelper {
        ApiTag("Domestic Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val getDomesticStandingOrdersDomesticStandingOrderId : OBPEndpoint = {
+     lazy val getDomesticStandingOrdersDomesticStandingOrderId : OBPEndpointFuture = {
        case "domestic-standing-orders" :: domesticstandingorderid :: Nil JsonGet _ => {
          cc =>
            for {

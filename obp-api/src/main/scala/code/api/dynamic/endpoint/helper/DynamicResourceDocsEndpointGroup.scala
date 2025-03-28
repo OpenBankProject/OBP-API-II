@@ -26,7 +26,7 @@ object DynamicResourceDocsEndpointGroup extends EndpointGroup {
    * 
    * 2rd: JsonDynamicResourceDoc.exampleRequestBody : Option[JValue] <---vs---> ResourceDoc.exampleRequestBody: scala.Product
    * 
-   * 3rd: JsonDynamicResourceDoc no partialFunction <---vs---> partialFunction: OBPEndpoint
+   * 3rd: JsonDynamicResourceDoc no partialFunction <---vs---> partialFunction: OBPEndpointFuture
    * 
    * ....
    * 

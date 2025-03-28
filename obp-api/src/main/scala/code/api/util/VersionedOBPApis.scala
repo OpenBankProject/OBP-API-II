@@ -1,6 +1,6 @@
 package code.api.util
 
-import code.api.util.APIUtil.{OBPEndpoint, ResourceDoc}
+import code.api.util.APIUtil.{OBPEndpointFuture, ResourceDoc}
 import com.openbankproject.commons.util.ApiVersion
 
 import scala.collection.mutable.ArrayBuffer
@@ -12,5 +12,5 @@ trait VersionedOBPApis {
 
   def allResourceDocs: ArrayBuffer[ResourceDoc]
 
-  def routes: List[OBPEndpoint]
+  def routes: List[OBPEndpointFuture]
 }

@@ -27,7 +27,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.v1_2_1
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 import code.api.util.VersionedOBPApis
 import code.util.Helper.MdcLoggable
@@ -116,11 +116,11 @@ object OBPAPI1_2_1 extends OBPRestHelper with APIMethods121 with MdcLoggable wit
   val allResourceDocs = Implementations1_2_1.resourceDocs
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  val routes : List[OBPEndpoint] =
-    getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs)
+//  val routes : List[OBPEndpointFuture] =
+//    getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs)
 
 
-  registerRoutes(routes, allResourceDocs, apiPrefix)
+//  registerRoutes(routes, allResourceDocs, apiPrefix)
 
   logger.info(s"version $version has been run! There are ${routes.length} routes.")
 

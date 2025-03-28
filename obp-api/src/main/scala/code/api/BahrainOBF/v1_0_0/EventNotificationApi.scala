@@ -97,7 +97,7 @@ object APIMethods_EventNotificationApi extends RestHelper {
        ApiTag("Event Notification") :: apiTagMockedData :: Nil
      )
 
-     lazy val eventNotificationsPost : OBPEndpoint = {
+     lazy val eventNotificationsPost : OBPEndpointFuture = {
        case "event-notifications" :: Nil JsonPost _ => {
          cc => implicit val ec = EndpointContext(Some(cc))
            for {

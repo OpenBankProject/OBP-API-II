@@ -45,7 +45,7 @@ object APIMethods_FilePaymentConsentsApi extends RestHelper {
        ApiTag("File Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentConsentsConsentIdFileGet : OBPEndpoint = {
+     lazy val filePaymentConsentsConsentIdFileGet : OBPEndpointFuture = {
        case "file-payment-consents" :: consentId:: "file" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -72,7 +72,7 @@ object APIMethods_FilePaymentConsentsApi extends RestHelper {
        ApiTag("File Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentConsentsConsentIdFilePost : OBPEndpoint = {
+     lazy val filePaymentConsentsConsentIdFilePost : OBPEndpointFuture = {
        case "file-payment-consents" :: consentId:: "file" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -162,7 +162,7 @@ object APIMethods_FilePaymentConsentsApi extends RestHelper {
        ApiTag("File Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentConsentsConsentIdGet : OBPEndpoint = {
+     lazy val filePaymentConsentsConsentIdGet : OBPEndpointFuture = {
        case "file-payment-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -344,7 +344,7 @@ object APIMethods_FilePaymentConsentsApi extends RestHelper {
        ApiTag("File Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentConsentsPost : OBPEndpoint = {
+     lazy val filePaymentConsentsPost : OBPEndpointFuture = {
        case "file-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {

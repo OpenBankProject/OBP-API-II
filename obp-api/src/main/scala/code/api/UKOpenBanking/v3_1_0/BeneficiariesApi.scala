@@ -111,7 +111,7 @@ object APIMethods_BeneficiariesApi extends RestHelper {
        ApiTag("Beneficiaries") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccountsAccountIdBeneficiaries : OBPEndpoint = {
+     lazy val getAccountsAccountIdBeneficiaries : OBPEndpointFuture = {
        case "accounts" :: accountid:: "beneficiaries" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -275,7 +275,7 @@ object APIMethods_BeneficiariesApi extends RestHelper {
        ApiTag("Beneficiaries") :: apiTagMockedData :: Nil
      )
 
-     lazy val getBeneficiaries : OBPEndpoint = {
+     lazy val getBeneficiaries : OBPEndpointFuture = {
        case "beneficiaries" :: Nil JsonGet _ => {
          cc =>
            for {

@@ -63,7 +63,7 @@ object APIMethods_InternationalPaymentConsentsApi extends RestHelper {
        ApiTag("International Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val internationalPaymentConsentsConsentIdFundsConfirmationGet : OBPEndpoint = {
+     lazy val internationalPaymentConsentsConsentIdFundsConfirmationGet : OBPEndpointFuture = {
        case "international-payment-consents" :: consentId:: "funds-confirmation" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -241,7 +241,7 @@ object APIMethods_InternationalPaymentConsentsApi extends RestHelper {
        ApiTag("International Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val internationalPaymentConsentsConsentIdGet : OBPEndpoint = {
+     lazy val internationalPaymentConsentsConsentIdGet : OBPEndpointFuture = {
        case "international-payment-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -621,7 +621,7 @@ object APIMethods_InternationalPaymentConsentsApi extends RestHelper {
        ApiTag("International Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val internationalPaymentConsentsPost : OBPEndpoint = {
+     lazy val internationalPaymentConsentsPost : OBPEndpointFuture = {
        case "international-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {

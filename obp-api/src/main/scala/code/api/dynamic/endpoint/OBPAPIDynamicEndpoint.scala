@@ -29,9 +29,9 @@ package code.api.dynamic.endpoint
 import APIMethodsDynamicEndpoint.ImplementationsDynamicEndpoint
 import code.api.OBPRestHelper
 import code.api.dynamic.endpoint.helper.DynamicEndpoints
-import code.api.util.APIUtil.OBPEndpoint
+import code.api.util.APIUtil.OBPEndpointFuture
 import code.api.util.{APIUtil, VersionedOBPApis}
-import code.api.v5_0_0.OBPAPI5_0_0.{allResourceDocs, apiPrefix, registerRoutes, routes}
+import code.api.v5_0_0.OBPAPI5_0_0.{allResourceDocs,routes}
 import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 import net.liftweb.common.{Box, Full}
@@ -50,23 +50,23 @@ object OBPAPIDynamicEndpoint extends OBPRestHelper with MdcLoggable with Version
   // if old version ResourceDoc objects have the same name endpoint with new version, omit old version ResourceDoc.
   def allResourceDocs = collectResourceDocs(ImplementationsDynamicEndpoint.resourceDocs)
 
-  val routes : List[OBPEndpoint] = List(APIUtil.dynamicEndpointStub,
-    //This is for the dynamic endpoints which are created by dynamic swagger files
-    ImplementationsDynamicEndpoint.dynamicEndpoint,
-    /**
-     * Here is the place where we register the dynamicEndpoint, all the dynamic resource docs endpoints are here.    
-     * Actually, we only register one endpoint for all the dynamic resource docs endpoints.                          
-     * For Liftweb, it just need to handle one endpoint,                                                             
-     *  all the router functionalities are in OBP code.                                                              
-     *  details: please also check code/api/vDynamic/dynamic/DynamicEndpoints.findEndpoint method                      
-     * NOTE: this must be the last one endpoint to register into Liftweb                                             
-     * Because firstly, Liftweb should look for the static endpoints --> then the dynamic ones. 
-     * This is for the dynamic endpoints which are createdy by dynamic resourceDocs
-     */
-    DynamicEndpoints.dynamicEndpoint
-  ) 
+//  val routes : List[OBPEndpointFuture] = List(APIUtil.dynamicEndpointStub,
+//    //This is for the dynamic endpoints which are created by dynamic swagger files
+//    ImplementationsDynamicEndpoint.dynamicEndpoint,
+//    /**
+//     * Here is the place where we register the dynamicEndpoint, all the dynamic resource docs endpoints are here.    
+//     * Actually, we only register one endpoint for all the dynamic resource docs endpoints.                          
+//     * For Liftweb, it just need to handle one endpoint,                                                             
+//     *  all the router functionalities are in OBP code.                                                              
+//     *  details: please also check code/api/vDynamic/dynamic/DynamicEndpoints.findEndpoint method                      
+//     * NOTE: this must be the last one endpoint to register into Liftweb                                             
+//     * Because firstly, Liftweb should look for the static endpoints --> then the dynamic ones. 
+//     * This is for the dynamic endpoints which are createdy by dynamic resourceDocs
+//     */
+//    DynamicEndpoints.dynamicEndpoint
+//  ) 
 
-  routes.map(endpoint => oauthServe(apiPrefix{endpoint}, None))
+//  routes.map(endpoint => oauthServe(apiPrefix{endpoint}, None))
   
   logger.info(s"version $version has been run! There are ${routes.length} routes.")
   // specified response for OPTIONS request.

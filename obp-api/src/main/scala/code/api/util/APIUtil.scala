@@ -1552,7 +1552,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   /**
    * Any dynamic endpoint's ResourceDoc, it's partialFunction should set this stub endpoint.
    */
-  val dynamicEndpointStub: OBPEndpoint = Functions.doNothing
+  val dynamicEndpointStub: OBPEndpointFuture = Functions.doNothing
 
   object ResourceDoc{
     val operationIdToResourceDoc: ConcurrentHashMap[String, ResourceDoc] = new ConcurrentHashMap[String, ResourceDoc]
@@ -1581,7 +1581,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   
   // Used to document the API calls
   case class ResourceDoc(
-                          partialFunction: OBPEndpoint, // PartialFunction[Req, Box[User] => Box[JsonResponse]],
+                          partialFunction: OBPEndpointFuture, // PartialFunction[Req, Box[User] => Box[JsonResponse]],
                           implementedInApiVersion: ScannedApiVersion, // TODO: Use ApiVersion enumeration instead of string
                           partialFunctionName: String, // The string name of the partial function that implements this resource. Could use it to link to the source code that implements the call
                           requestVerb: String, // GET, POST etc. TODO: Constrain to GET, POST etc.
@@ -1733,7 +1733,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
      * So can avoid duplicate code in endpoint body for expression do check.
      * Note: maybe this will be misused, So currently just comment out.
      */
-    //lazy val wrappedEndpoint: OBPEndpoint = wrappedWithAuthCheck(partialFunction)
+    //lazy val wrappedEndpoint: OBPEndpointFuture = wrappedWithAuthCheck(partialFunction)
 
     /**
      * wrapped an endpoint to a new one, let it do auth check before execute the endpoint body
@@ -1741,7 +1741,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
      * @param obpEndpoint original endpoint
      * @return wrapped endpoint
      */
-    def wrappedWithAuthCheck(obpEndpoint: OBPEndpoint): OBPEndpoint = {
+    def wrappedWithAuthCheck(obpEndpoint: OBPEndpointFuture): OBPEndpointFuture = {
       _isEndpointAuthCheck = true
 
       def checkAuth(cc: CallContext): Future[(Box[User], Option[CallContext])] = {
@@ -1862,12 +1862,12 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
         }
       }
 
-      new OBPEndpoint {
+      new OBPEndpointFuture {
         override def isDefinedAt(x: Req): Boolean =
           obpEndpoint.isDefinedAt(x) && isUrlMatchesResourceDocUrl(x.path.partPath)
 
-        override def apply(req: Req): CallContext => Box[JsonResponse] = {
-          val originFn: CallContext => Box[JsonResponse] = obpEndpoint.apply(req)
+        override def apply(req: Req): OBPEndpointFuture = {
+          val originFn  = obpEndpoint.apply(req)
 
           val pathParams = getPathParams(req.path.partPath)
                             
@@ -1938,7 +1938,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
                       originFn(newCallContext.orNull)
                     }
                   }
-                  (boxResponse, newCallContext)
+                  Future{(boxResponse, newCallContext)}
               }
             }
           }
@@ -2080,15 +2080,15 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 
   // Define relations between API end points. Used to create _links in the JSON and maybe later for API Explorer browsing
   case class ApiRelation(
-                          fromPF : OBPEndpoint,
-                          toPF : OBPEndpoint,
+                          fromPF : OBPEndpointFuture,
+                          toPF : OBPEndpointFuture,
                           rel : String
                         )
 
   // Populated from Resource Doc and ApiRelation
   case class InternalApiLink(
-                              fromPF : OBPEndpoint,
-                              toPF : OBPEndpoint,
+                              fromPF : OBPEndpointFuture,
+                              toPF : OBPEndpointFuture,
                               rel : String,
                               requestUrl: String
                             )
@@ -2104,7 +2104,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
                         )
 
   case class CallerContext(
-                            caller : OBPEndpoint
+                            caller : OBPEndpointFuture
                           )
 
   case class CodeContext(
@@ -2756,20 +2756,18 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   }
 
 
-  type OBPEndpointFuture = PartialFunction[Req, CallContext => Future[Box[JsonResponse]]]
-  
-  type OBPEndpoint = PartialFunction[Req, CallContext => Box[JsonResponse]]
+  type OBPEndpointFuture = PartialFunction[Req, CallContext => Future[(Any, Option[CallContext])]]
   type OBPReturnType[T] = Future[(T, Option[CallContext])]
 
 
-  def getAllowedEndpoints (endpoints : Iterable[OBPEndpoint], resourceDocs: ArrayBuffer[ResourceDoc]) : List[OBPEndpoint] = {
+  def getAllowedEndpoints (endpoints : Iterable[OBPEndpointFuture], resourceDocs: ArrayBuffer[ResourceDoc]) : List[OBPEndpointFuture] = {
 
     val allowedResourceDocs: ArrayBuffer[ResourceDoc] = getAllowedResourceDocs(endpoints, resourceDocs)
 
     allowedResourceDocs.map(_.partialFunction).toList
   }
 
-  def getAllowedResourceDocs(endpoints: Iterable[OBPEndpoint], resourceDocs: ArrayBuffer[ResourceDoc]): ArrayBuffer[ResourceDoc] = {
+  def getAllowedResourceDocs(endpoints: Iterable[OBPEndpointFuture], resourceDocs: ArrayBuffer[ResourceDoc]): ArrayBuffer[ResourceDoc] = {
     // Endpoint Operation Ids
     val disabledEndpointOperationIds = getDisabledEndpointOperationIds
 
@@ -4605,7 +4603,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    * 
    * def method1 = {}
    * def method2 = {}
-   *  eg: the partial function `lazy val createAccountAccessConsents : OBPEndpoint` first method `applicationAccess`, 
+   *  eg: the partial function `lazy val createAccountAccessConsents : OBPEndpointFuture` first method `applicationAccess`, 
    *  please check the applicationAccess method body, here is just first two lines of it:
    * def applicationAccess(cc: CallContext): Future[(Box[User], Option[CallContext])] =
    * getUserAndSessionContextFuture(cc) map { result =>
@@ -4661,7 +4659,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   /**
    * NOTE: MEMORY_USER this ctClass will be cached in ClassPool, it may load too many classes into heap. 
    * get all dependent connector method names for an object
-   * @param endpoint can be OBPEndpoint or other PartialFunction
+   * @param endpoint can be OBPEndpointFuture or other PartialFunction
    * @return a list of connector method name
    * eg: one endpoint:    
    *         
@@ -4708,7 +4706,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       // we loop all the declared methods for this endpoint.
       // in scala PartialFunction is also a class, not a method.  it will implicitly convert all method body code to class methods and fields.
       // eg: the following methods are from "className = code.api.UKOpenBanking.v3_1_0.APIMethods_AccountAccessApi$$anonfun$createAccountAccessConsents$lzycompute$1" 
-      // you can check the `lazy val createAccountAccessConsents : OBPEndpoint ` PartialFunction method body, the following are the converted methods:
+      // you can check the `lazy val createAccountAccessConsents : OBPEndpointFuture ` PartialFunction method body, the following are the converted methods:
       // then for each method, need to analyse the code line by line, to find the methods it used, this is done by `getObpTrace` 
       //  0 = {CtMethod@11476} "javassist.CtMethod@13d04090[public final applyOrElse (Lnet/liftweb/http/Req;Lscala/Function1;)Ljava/lang/Object;]"
       //  1 = {CtMethod@11477} "javassist.CtMethod@c40c7953[public final isDefinedAt (Lnet/liftweb/http/Req;)Z]"
@@ -4986,7 +4984,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 //   * @param addlParams append request parameters
 //   * @return result of call endpoint method
 //   */
-//  def callEndpoint(endpoint: OBPEndpoint, endpointPartPath: List[String], requestType: RequestType, requestBody: String = "", addlParams: Map[String, String] = Map.empty): Either[(String, Int), String] = {
+//  def callEndpoint(endpoint: OBPEndpointFuture, endpointPartPath: List[String], requestType: RequestType, requestBody: String = "", addlParams: Map[String, String] = Map.empty): Either[(String, Int), String] = {
 //    val req: Req = S.request.openOrThrowException("no request object can be extract.")
 //    val pathOrigin = req.path
 //    val forwardPath = pathOrigin.copy(partPath = endpointPartPath)
@@ -5027,7 +5025,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 //    }
 //  }
   
-  def callLiftEndpoint(endpoint: OBPEndpoint, req: Req, callContext: CallContext): Box[JsonResponse] = {
+  def callLiftEndpoint(endpoint: OBPEndpointFuture, req: Req, callContext: CallContext): Box[JsonResponse] = {
 //    val result = 
       endpoint(req)(callContext)
 //    }
@@ -5044,23 +5042,23 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 //    future
 //    result
   }
-  def callLiftEndpointFuture(endpoint: OBPEndpointFuture, req: Req, callContext: CallContext): Future[Box[JsonResponse]] = {
-//    val result = 
-      endpoint(req)(callContext)
-//    }
-
-//    val func: ((=> LiftResponse) => Unit) => Unit = result match {
-//      case Failure("Continuation", Full(continueException), _) => ReflectUtils.getCallByNameValue(continueException, "f").asInstanceOf[((=> LiftResponse) => Unit) => Unit]
-//      case _ => null
-//    }
-
-//    val future = new LAFuture[LiftResponse]
-//    val satisfyFutureFunction: (=> LiftResponse) => Unit = liftResponse => future.satisfy(liftResponse)
-//    func(satisfyFutureFunction)
-//    
-//    future
-//    result
-  }
+//  def callLiftEndpointFuture(endpoint: OBPEndpointFuture, req: Req, callContext: CallContext): Future[Box[JsonResponse]] = {
+////    val result = 
+//      endpoint(req)(callContext)
+////    }
+//
+////    val func: ((=> LiftResponse) => Unit) => Unit = result match {
+////      case Failure("Continuation", Full(continueException), _) => ReflectUtils.getCallByNameValue(continueException, "f").asInstanceOf[((=> LiftResponse) => Unit) => Unit]
+////      case _ => null
+////    }
+//
+////    val future = new LAFuture[LiftResponse]
+////    val satisfyFutureFunction: (=> LiftResponse) => Unit = liftResponse => future.satisfy(liftResponse)
+////    func(satisfyFutureFunction)
+////    
+////    future
+////    result
+//  }
 
   val berlinGroupV13AliasPath = APIUtil.getPropsValue("berlin_group_v1.3_alias.path","").split("/").toList.map(_.trim)
 

@@ -274,7 +274,7 @@ object APIMethods_TransactionsApi extends RestHelper {
        ApiTag("Statements") ::ApiTag("Transactions") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccountsAccountIdStatementsStatementIdTransactions : OBPEndpoint = {
+     lazy val getAccountsAccountIdStatementsStatementIdTransactions : OBPEndpointFuture = {
        case "accounts" :: accountid:: "statements" :: statementid:: "transactions" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -747,7 +747,7 @@ object APIMethods_TransactionsApi extends RestHelper {
        ApiTag("Transactions") :: Nil
      )
 
-     lazy val getAccountsAccountIdTransactions : OBPEndpoint = {
+     lazy val getAccountsAccountIdTransactions : OBPEndpointFuture = {
        case "accounts" :: AccountId(accountId):: "transactions" :: Nil JsonGet _ => {
          cc =>
            val detailViewId = ViewId(Constant.SYSTEM_READ_TRANSACTIONS_DETAIL_VIEW_ID)
@@ -1014,7 +1014,7 @@ object APIMethods_TransactionsApi extends RestHelper {
        ApiTag("Transactions") :: Nil
      )
 
-     lazy val getTransactions : OBPEndpoint = {
+     lazy val getTransactions : OBPEndpointFuture = {
        case "transactions" :: Nil JsonGet _ => {
          cc =>
            for {

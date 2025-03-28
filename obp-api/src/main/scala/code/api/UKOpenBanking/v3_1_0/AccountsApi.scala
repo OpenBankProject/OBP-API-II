@@ -103,7 +103,7 @@ object APIMethods_AccountsApi extends RestHelper {
        ApiTag("Accounts") :: Nil
      )
 
-     lazy val getAccounts : OBPEndpoint = {
+     lazy val getAccounts : OBPEndpointFuture = {
        case "accounts" :: Nil JsonGet _ => {
          cc =>
            val detailViewId = ViewId(Constant.SYSTEM_READ_ACCOUNTS_DETAIL_VIEW_ID)
@@ -210,7 +210,7 @@ object APIMethods_AccountsApi extends RestHelper {
        ApiTag("Accounts") :: Nil
      )
 
-     lazy val getAccountsAccountId : OBPEndpoint = {
+     lazy val getAccountsAccountId : OBPEndpointFuture = {
        case "accounts" :: AccountId(accountId) :: Nil JsonGet _ => {
          val detailViewId = ViewId(Constant.SYSTEM_READ_ACCOUNTS_DETAIL_VIEW_ID)
          val basicViewId = ViewId(Constant.SYSTEM_READ_ACCOUNTS_BASIC_VIEW_ID)

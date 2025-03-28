@@ -69,7 +69,7 @@ object APIMethods_FundsConfirmationsApi extends RestHelper {
        ApiTag("Funds Confirmations") :: apiTagMockedData :: Nil
      )
 
-     lazy val createFundsConfirmationConsents : OBPEndpoint = {
+     lazy val createFundsConfirmationConsents : OBPEndpointFuture = {
        case "funds-confirmation-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -143,7 +143,7 @@ object APIMethods_FundsConfirmationsApi extends RestHelper {
        ApiTag("Funds Confirmations") :: apiTagMockedData :: Nil
      )
 
-     lazy val createFundsConfirmations : OBPEndpoint = {
+     lazy val createFundsConfirmations : OBPEndpointFuture = {
        case "funds-confirmations" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -192,7 +192,7 @@ object APIMethods_FundsConfirmationsApi extends RestHelper {
        ApiTag("Funds Confirmations") :: apiTagMockedData :: Nil
      )
 
-     lazy val deleteFundsConfirmationConsentsConsentId : OBPEndpoint = {
+     lazy val deleteFundsConfirmationConsentsConsentId : OBPEndpointFuture = {
        case "funds-confirmation-consents" :: consentid :: Nil JsonDelete _ => {
          cc =>
            for {
@@ -243,7 +243,7 @@ object APIMethods_FundsConfirmationsApi extends RestHelper {
        ApiTag("Funds Confirmations") :: apiTagMockedData :: Nil
      )
 
-     lazy val getFundsConfirmationConsentsConsentId : OBPEndpoint = {
+     lazy val getFundsConfirmationConsentsConsentId : OBPEndpointFuture = {
        case "funds-confirmation-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {

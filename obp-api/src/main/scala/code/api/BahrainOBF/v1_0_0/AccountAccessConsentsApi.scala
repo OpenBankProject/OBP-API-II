@@ -65,7 +65,7 @@ object APIMethods_AccountAccessConsentsApi extends RestHelper {
        ApiTag("Account Access Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountAccessConsentsConsentIdGet : OBPEndpoint = {
+     lazy val accountAccessConsentsConsentIdGet : OBPEndpointFuture = {
        case "account-access-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -138,7 +138,7 @@ object APIMethods_AccountAccessConsentsApi extends RestHelper {
        ApiTag("Account Access Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountAccessConsentsConsentIdPatch : OBPEndpoint = {
+     lazy val accountAccessConsentsConsentIdPatch : OBPEndpointFuture = {
        case "account-access-consents" :: consentId :: Nil JsonPatch _ => {
          cc =>
            for {
@@ -213,7 +213,7 @@ object APIMethods_AccountAccessConsentsApi extends RestHelper {
        ApiTag("Account Access Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountAccessConsentsPost : OBPEndpoint = {
+     lazy val accountAccessConsentsPost : OBPEndpointFuture = {
        case "account-access-consents" :: Nil JsonPost _ => {
          cc =>
            for {

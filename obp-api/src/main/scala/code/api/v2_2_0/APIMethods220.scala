@@ -29,7 +29,7 @@ import code.views.Views
 import code.views.system.ViewDefinition
 import com.github.dwickern.macros.NameOf.nameOf
 import com.openbankproject.commons.model._
-import net.liftweb.common.{Empty, Full}
+import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.json.Extraction
 import net.liftweb.util.Helpers.tryo
@@ -76,7 +76,7 @@ trait APIMethods220 {
       List(UnknownError, "no connector set"),
       apiTagApi :: Nil)
 
-    lazy val root : OBPEndpoint = {
+    lazy val root : OBPEndpointFuture = {
       case (Nil | "root" :: Nil) JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -130,7 +130,7 @@ trait APIMethods220 {
       ),
       List(apiTagView, apiTagAccount))
 
-    lazy val getViewsForBankAccount : OBPEndpoint = {
+    lazy val getViewsForBankAccount : OBPEndpointFuture = {
       //get the available views on an bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "views" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -187,11 +187,11 @@ trait APIMethods220 {
       ),
       List(apiTagAccount, apiTagView, apiTagOldStyle))
 
-    lazy val createViewForBankAccount : OBPEndpoint = {
+    lazy val createViewForBankAccount : OBPEndpointFuture = {
       //creates a view on an bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "views" :: Nil JsonPost json -> _ => {
         cc =>
-          for {
+          val result = for {
             createViewJsonV121 <- tryo{json.extract[CreateViewJsonV121]} ?~!InvalidJsonFormat
             //customer views are started ith `_`,eg _life, _work, and System views startWith letter, eg: owner
             _<- booleanToBox(isValidCustomViewName(createViewJsonV121.name), InvalidCustomViewFormat+s"Current view_name (${createViewJsonV121.name})")
@@ -214,9 +214,9 @@ trait APIMethods220 {
             )
             view <- Views.views.vend.createCustomView(BankIdAccountId(bankId, accountId), createViewJson) ?~ CreateCustomViewError
           } yield {
-            val viewJSON = JSONFactory220.createViewJSON(view)
-            successJsonResponse(Extraction.decompose(viewJSON), 201)
+           JSONFactory220.createViewJSON(view)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -245,11 +245,11 @@ trait APIMethods220 {
       List(apiTagAccount, apiTagView, apiTagOldStyle)
     )
 
-    lazy val updateViewForBankAccount : OBPEndpoint = {
+    lazy val updateViewForBankAccount : OBPEndpointFuture = {
       //updates a view on a bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "views" :: ViewId(viewId) :: Nil JsonPut json -> _ => {
         cc =>
-          for {
+          val result = for {
             updateJsonV121 <- tryo{json.extract[UpdateViewJsonV121]} ?~!InvalidJsonFormat
             //customer views are started ith `_`,eg _life, _work, and System views startWith letter, eg: owner
             _ <- booleanToBox(viewId.value.startsWith("_"), InvalidCustomViewFormat+s"Current view_name (${viewId.value})")
@@ -273,9 +273,9 @@ trait APIMethods220 {
             )
             updatedView <- Views.views.vend.updateCustomView(BankIdAccountId(bankId, accountId), viewId, updateViewJson) ?~ CreateCustomViewError
           } yield {
-            val viewJSON = JSONFactory220.createViewJSON(updatedView)
-            successJsonResponse(Extraction.decompose(viewJSON), 200)
+            JSONFactory220.createViewJSON(updatedView)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -312,7 +312,7 @@ trait APIMethods220 {
 
     val getCurrentFxRateIsPublic = APIUtil.getPropsAsBoolValue("apiOptions.getCurrentFxRateIsPublic", false)
 
-    lazy val getCurrentFxRate: OBPEndpoint = {
+    lazy val getCurrentFxRate: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "fx" :: fromCurrencyCode :: toCurrencyCode :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -362,7 +362,7 @@ trait APIMethods220 {
       ),
       List(apiTagCounterparty, apiTagPSD2PIS, apiTagAccount, apiTagPsd2))
 
-    lazy val getExplicitCounterpartiesForAccount : OBPEndpoint = {
+    lazy val getExplicitCounterpartiesForAccount : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -412,7 +412,7 @@ trait APIMethods220 {
       List(apiTagCounterparty, apiTagPSD2PIS, apiTagCounterpartyMetaData, apiTagPsd2)
     )
   
-    lazy val getExplicitCounterpartyById : OBPEndpoint = {
+    lazy val getExplicitCounterpartyById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: CounterpartyId(counterpartyId) :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -451,7 +451,7 @@ trait APIMethods220 {
       List(apiTagDocumentation, apiTagApi)
     )
 
-    lazy val getMessageDocs: OBPEndpoint = {
+    lazy val getMessageDocs: OBPEndpointFuture = {
       case "message-docs" :: connector :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -491,10 +491,10 @@ trait APIMethods220 {
       Some(List(canCreateBank))
     )
 
-    lazy val createBank: OBPEndpoint = {
+    lazy val createBank: OBPEndpointFuture = {
       case "banks" :: Nil JsonPost json -> _ => {
         cc =>
-          for {
+          val result = for {
             bank <- tryo{ json.extract[BankJSONV220] } ?~! ErrorMessages.InvalidJsonFormat
             _ <- Helper.booleanToBox(
               bank.id.length > 5,s"$InvalidJsonFormat Min length of BANK_ID should be 5 characters.")
@@ -538,9 +538,9 @@ trait APIMethods220 {
                 Full(Entitlement.entitlement.vend.addEntitlement(bank.id, u.userId, CanReadDynamicResourceDocsAtOneBank.toString()))
             }
           } yield {
-            val json = JSONFactory220.createBankJSON(success)
-            createdJsonResponse(Extraction.decompose(json))
+            JSONFactory220.createBankJSON(success)
           }
+          Future{(result, HttpCode.`201`(cc.callContext))}
       }
     }
 
@@ -576,7 +576,7 @@ trait APIMethods220 {
       Some(List(canCreateBranch,canCreateBranchAtAnyBank))
     )
 
-    lazy val createBranch: OBPEndpoint = {
+    lazy val createBranch: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "branches" ::  Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -627,7 +627,7 @@ trait APIMethods220 {
 
 
 
-    lazy val createAtm: OBPEndpoint = {
+    lazy val createAtm: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" ::  Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -678,7 +678,7 @@ trait APIMethods220 {
 
 
 
-    lazy val createProduct: OBPEndpoint = {
+    lazy val createProduct: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" ::  Nil JsonPut json -> _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -755,7 +755,7 @@ trait APIMethods220 {
 
 
 
-    lazy val createFx: OBPEndpoint = {
+    lazy val createFx: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "fx" ::  Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -836,7 +836,7 @@ trait APIMethods220 {
     )
 
 
-    lazy val createAccount : OBPEndpoint = {
+    lazy val createAccount : OBPEndpointFuture = {
       // Create a new account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: Nil JsonPut json -> _ => {
         cc =>{
@@ -930,7 +930,7 @@ trait APIMethods220 {
       apiTagApi  :: Nil,
       Some(List(canGetConfig)))
 
-    lazy val config: OBPEndpoint = {
+    lazy val config: OBPEndpointFuture = {
       case "config" :: Nil JsonGet _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -988,7 +988,7 @@ trait APIMethods220 {
       List(apiTagMetric, apiTagApi),
       Some(List(canGetConnectorMetrics)))
 
-    lazy val getConnectorMetrics : OBPEndpoint = {
+    lazy val getConnectorMetrics : OBPEndpointFuture = {
       case "management" :: "connector" :: "metrics" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1050,10 +1050,10 @@ trait APIMethods220 {
       Some(List(canCreateConsumer)))
 
 
-    lazy val createConsumer: OBPEndpoint = {
+    lazy val createConsumer: OBPEndpointFuture = {
       case "management" :: "consumers" :: Nil JsonPost json -> _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~! UserNotLoggedIn
             _ <- NewStyle.function.ownEntitlement("", u.userId, ApiRole.canCreateConsumer, cc.callContext)
               postedJson <- tryo {json.extract[ConsumerPostJSON]} ?~! InvalidJsonFormat
@@ -1071,11 +1071,9 @@ trait APIMethods220 {
                                                                 None,
                                                                )
           } yield {
-            // Format the data as json
-            val json = JSONFactory220.createConsumerJSON(consumer)
-            // Return
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory220.createConsumerJSON(consumer)
           }
+          Future{(result, HttpCode.`201`(cc.callContext))}
       }
     }
   
@@ -1180,7 +1178,7 @@ trait APIMethods220 {
       List(apiTagCounterparty, apiTagAccount))
   
   
-    lazy val createCounterparty: OBPEndpoint = {
+    lazy val createCounterparty: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1295,7 +1293,7 @@ trait APIMethods220 {
       List(apiTagAccount, apiTagCustomer, apiTagView)
     )
 
-    lazy val getCustomerViewsForAccount : OBPEndpoint = {
+    lazy val getCustomerViewsForAccount : OBPEndpointFuture = {
       //get account by id
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "customer-views" :: Nil JsonGet req => {
         cc =>
@@ -1319,7 +1317,7 @@ trait APIMethods220 {
 
 
 /*
-    lazy val getCustomerViewsForAccount : OBPEndpoint = {
+    lazy val getCustomerViewsForAccount : OBPEndpointFuture = {
       case "management" :: "connector" :: "metrics" :: Nil JsonGet _ => {
         cc =>{
           for {

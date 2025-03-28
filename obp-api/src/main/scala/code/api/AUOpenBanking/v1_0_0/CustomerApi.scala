@@ -77,7 +77,7 @@ object APIMethods_CustomerApi extends RestHelper {
        ApiTag("Common") ::ApiTag("Customer") :: apiTagMockedData :: Nil
      )
 
-     lazy val getCustomer : OBPEndpoint = {
+     lazy val getCustomer : OBPEndpointFuture = {
        case "common":: "customer" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -148,7 +148,7 @@ object APIMethods_CustomerApi extends RestHelper {
        ApiTag("Common") ::ApiTag("Customer") :: apiTagMockedData :: Nil
      )
 
-     lazy val getCustomerDetail : OBPEndpoint = {
+     lazy val getCustomerDetail : OBPEndpointFuture = {
        case "common":: "customer":: "detail" :: Nil JsonGet _ => {
          cc =>
            for {

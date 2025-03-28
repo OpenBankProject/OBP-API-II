@@ -155,7 +155,7 @@ object APIMethods_InternationalStandingOrdersApi extends RestHelper {
        ApiTag("International Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val createInternationalStandingOrderConsents : OBPEndpoint = {
+     lazy val createInternationalStandingOrderConsents : OBPEndpointFuture = {
        case "international-standing-order-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -391,7 +391,7 @@ object APIMethods_InternationalStandingOrdersApi extends RestHelper {
        ApiTag("International Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val createInternationalStandingOrders : OBPEndpoint = {
+     lazy val createInternationalStandingOrders : OBPEndpointFuture = {
        case "international-standing-orders" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -627,7 +627,7 @@ object APIMethods_InternationalStandingOrdersApi extends RestHelper {
        ApiTag("International Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalStandingOrderConsentsConsentId : OBPEndpoint = {
+     lazy val getInternationalStandingOrderConsentsConsentId : OBPEndpointFuture = {
        case "international-standing-order-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -863,7 +863,7 @@ object APIMethods_InternationalStandingOrdersApi extends RestHelper {
        ApiTag("International Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalStandingOrdersInternationalStandingOrderPaymentId : OBPEndpoint = {
+     lazy val getInternationalStandingOrdersInternationalStandingOrderPaymentId : OBPEndpointFuture = {
        case "international-standing-orders" :: internationalstandingorderpaymentid :: Nil JsonGet _ => {
          cc =>
            for {

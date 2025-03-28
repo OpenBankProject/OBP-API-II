@@ -151,7 +151,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetDatabaseInfo)))
 
 
-    lazy val getMapperDatabaseInfo: OBPEndpoint = {
+    lazy val getMapperDatabaseInfo: OBPEndpointFuture = {
       case "database" :: "info" :: Nil JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -178,7 +178,7 @@ trait APIMethods400 extends MdcLoggable {
       List($UserNotLoggedIn, UnknownError),
       List(apiTagUser))
 
-    lazy val getLogoutLink: OBPEndpoint = {
+    lazy val getLogoutLink: OBPEndpointFuture = {
       case "users" :: "current" :: "logout-link" :: Nil JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -226,7 +226,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagConsumer, apiTagRateLimits),
       Some(List(canSetCallLimits)))
 
-    lazy val callsLimit : OBPEndpoint = {
+    lazy val callsLimit : OBPEndpointFuture = {
       case "management" :: "consumers" :: consumerId :: "consumer" :: "call-limits" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -278,7 +278,7 @@ trait APIMethods400 extends MdcLoggable {
       apiTagBank :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
     )
 
-    lazy val getBanks: OBPEndpoint = {
+    lazy val getBanks: OBPEndpointFuture = {
       case "banks" :: Nil JsonGet _ => {
         cc => 
           implicit val ec = EndpointContext(Some(cc))
@@ -311,7 +311,7 @@ trait APIMethods400 extends MdcLoggable {
       apiTagBank :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
     )
 
-    lazy val getBank : OBPEndpoint = {
+    lazy val getBank : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -339,7 +339,7 @@ trait APIMethods400 extends MdcLoggable {
       apiTagAccount  :: Nil
     )
 
-    lazy val ibanChecker: OBPEndpoint = {
+    lazy val ibanChecker: OBPEndpointFuture = {
       case "account" :: "check" :: "scheme" :: "iban" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the ${prettyRender(Extraction.decompose(ibanCheckerPostJsonV400))}"
@@ -387,7 +387,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetDoubleEntryTransactionAtAnyBank, canGetDoubleEntryTransactionAtOneBank))
     )
 
-    lazy val getDoubleEntryTransaction : OBPEndpoint = {
+    lazy val getDoubleEntryTransaction : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "double-entry-transaction" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -423,7 +423,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List())
     )
 
-    lazy val getBalancingTransaction : OBPEndpoint = {
+    lazy val getBalancingTransaction : OBPEndpointFuture = {
       case "transactions" :: TransactionId(transactionId) :: "balancing-transaction" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -480,7 +480,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateSettlementAccountAtOneBank))
     )
 
-    lazy val createSettlementAccount: OBPEndpoint = {
+    lazy val createSettlementAccount: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "settlement-accounts" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the ${prettyRender(Extraction.decompose(settlementAccountRequestJson))}"
@@ -581,7 +581,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetSettlementAccountAtOneBank))
     )
 
-    lazy val getSettlementAccounts: OBPEndpoint = {
+    lazy val getSettlementAccounts: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "settlement-accounts" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -910,7 +910,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransactionRequest, apiTagPSD2PIS, apiTagPsd2)
     )
 
-    lazy val createTransactionRequestAgentCashWithDrawal: OBPEndpoint = {
+    lazy val createTransactionRequestAgentCashWithDrawal: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "AGENT_CASH_WITHDRAWAL" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc =>
@@ -919,7 +919,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId, transactionRequestType, json)
     }
     
-    lazy val createTransactionRequestAccount: OBPEndpoint = {
+    lazy val createTransactionRequestAccount: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "ACCOUNT" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -927,7 +927,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId , transactionRequestType, json)
     }
 
-    lazy val createTransactionRequestAccountOtp: OBPEndpoint = {
+    lazy val createTransactionRequestAccountOtp: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "ACCOUNT_OTP" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -935,7 +935,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId , transactionRequestType, json)
     }
     
-    lazy val createTransactionRequestSepa: OBPEndpoint = {
+    lazy val createTransactionRequestSepa: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "SEPA" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -943,7 +943,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId , transactionRequestType, json)
     }
     
-    lazy val createTransactionRequestCounterparty: OBPEndpoint = {
+    lazy val createTransactionRequestCounterparty: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "COUNTERPARTY" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -951,7 +951,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId , transactionRequestType, json)
     }
 
-    lazy val createTransactionRequestRefund: OBPEndpoint = {
+    lazy val createTransactionRequestRefund: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "REFUND" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -959,7 +959,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId , transactionRequestType, json)
     }
 
-    lazy val createTransactionRequestFreeForm: OBPEndpoint = {
+    lazy val createTransactionRequestFreeForm: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "FREE_FORM" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -967,7 +967,7 @@ trait APIMethods400 extends MdcLoggable {
           createTransactionRequest(bankId, accountId, viewId , transactionRequestType, json)
     }
 
-    lazy val createTransactionRequestSimple: OBPEndpoint = {
+    lazy val createTransactionRequestSimple: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         "SIMPLE" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1014,7 +1014,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransactionRequest, apiTagPSD2PIS, apiTagPsd2)
     )
     
-    lazy val createTransactionRequestCard: OBPEndpoint = {
+    lazy val createTransactionRequestCard: OBPEndpointFuture = {
       case "transaction-request-types" :: "CARD" :: "transaction-requests" :: Nil JsonPost json -> _ =>
         cc => implicit val ec = EndpointContext(Some(cc))
           val transactionRequestType = TransactionRequestType("CARD")
@@ -1088,7 +1088,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagTransactionRequest, apiTagPSD2PIS, apiTagPsd2))
 
-    lazy val answerTransactionRequestChallenge: OBPEndpoint = {
+    lazy val answerTransactionRequestChallenge: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         TransactionRequestType(transactionRequestType) :: "transaction-requests" :: TransactionRequestId(transReqId) :: "challenge" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1243,7 +1243,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateTransactionRequestAttributeAtOneBank))
     )
 
-    lazy val createTransactionRequestAttribute : OBPEndpoint = {
+    lazy val createTransactionRequestAttribute : OBPEndpointFuture = {
       case "banks" ::  BankId(bankId) :: "accounts" :: AccountId(accountId) :: "transaction-requests" :: TransactionRequestId(transactionRequestId) :: "attribute" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $transactionRequestAttributeJsonV400 "
@@ -1298,7 +1298,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetTransactionRequestAttributeAtOneBank))
     )
 
-    lazy val getTransactionRequestAttributeById : OBPEndpoint = {
+    lazy val getTransactionRequestAttributeById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) ::  "transaction-requests" :: TransactionRequestId(transactionRequestId) :: "attributes" :: transactionRequestAttributeId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1339,7 +1339,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetTransactionRequestAttributesAtOneBank))
     )
 
-    lazy val getTransactionRequestAttributes : OBPEndpoint = {
+    lazy val getTransactionRequestAttributes : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "transaction-requests" :: TransactionRequestId(transactionRequestId) :: "attributes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1381,7 +1381,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateTransactionRequestAttributeAtOneBank))
     )
 
-    lazy val updateTransactionRequestAttribute : OBPEndpoint = {
+    lazy val updateTransactionRequestAttribute : OBPEndpointFuture = {
       case "banks" ::  BankId(bankId) :: "accounts" :: AccountId(accountId) :: "transaction-requests" :: TransactionRequestId(transactionRequestId) :: "attributes" :: transactionRequestAttributeId :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $TransactionRequestAttributeJsonV400"
@@ -1439,7 +1439,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransactionRequest),
       Some(List(canCreateTransactionRequestAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateTransactionRequestAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateTransactionRequestAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "transaction-request" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -1497,7 +1497,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransactionRequest),
       Some(List(canGetTransactionRequestAttributeDefinitionAtOneBank)))
 
-    lazy val getTransactionRequestAttributeDefinition : OBPEndpoint = {
+    lazy val getTransactionRequestAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "transaction-request" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1534,7 +1534,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransactionRequest),
       Some(List(canDeleteTransactionRequestAttributeDefinitionAtOneBank)))
 
-    lazy val deleteTransactionRequestAttributeDefinition : OBPEndpoint = {
+    lazy val deleteTransactionRequestAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: attributeDefinitionId :: "transaction-request" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1572,7 +1572,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetSystemLevelDynamicEntities))
     )
 
-    lazy val getSystemDynamicEntities: OBPEndpoint = {
+    lazy val getSystemDynamicEntities: OBPEndpointFuture = {
       case "management" :: "system-dynamic-entities" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1608,7 +1608,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetBankLevelDynamicEntities))
     )
 
-    lazy val getBankLevelDynamicEntities: OBPEndpoint = {
+    lazy val getBankLevelDynamicEntities: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-entities" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1676,7 +1676,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEntity, apiTagApi),
       Some(List(canCreateSystemLevelDynamicEntity)))
 
-    lazy val createSystemDynamicEntity: OBPEndpoint = {
+    lazy val createSystemDynamicEntity: OBPEndpointFuture = {
       case "management" :: "system-dynamic-entities" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val dynamicEntity = DynamicEntityCommons(json.asInstanceOf[JObject], None, cc.userId, None)
@@ -1720,7 +1720,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagManageDynamicEntity, apiTagApi),
       Some(List(canCreateBankLevelDynamicEntity)))
-    lazy val createBankLevelDynamicEntity: OBPEndpoint = {
+    lazy val createBankLevelDynamicEntity: OBPEndpointFuture = {
       case "management" ::"banks" :: BankId(bankId) :: "dynamic-entities" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val dynamicEntity = DynamicEntityCommons(json.asInstanceOf[JObject], None, cc.userId, Some(bankId.value))
@@ -1785,7 +1785,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagManageDynamicEntity, apiTagApi),
       Some(List(canUpdateSystemDynamicEntity)))
-    lazy val updateSystemDynamicEntity: OBPEndpoint = {
+    lazy val updateSystemDynamicEntity: OBPEndpointFuture = {
       case "management" :: "system-dynamic-entities" :: dynamicEntityId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           updateDynamicEntityMethod(None, dynamicEntityId, json, cc)
@@ -1828,7 +1828,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagManageDynamicEntity, apiTagApi),
       Some(List(canUpdateBankLevelDynamicEntity)))
-    lazy val updateBankLevelDynamicEntity: OBPEndpoint = {
+    lazy val updateBankLevelDynamicEntity: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-entities" :: dynamicEntityId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           updateDynamicEntityMethod(Some(bankId),dynamicEntityId, json, cc)
@@ -1854,7 +1854,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagManageDynamicEntity, apiTagApi),
       Some(List(canDeleteSystemLevelDynamicEntity)))
-    lazy val deleteSystemDynamicEntity: OBPEndpoint = {
+    lazy val deleteSystemDynamicEntity: OBPEndpointFuture = {
       case "management" :: "system-dynamic-entities" :: dynamicEntityId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           deleteDynamicEntityMethod(None, dynamicEntityId, cc)
@@ -1896,7 +1896,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagManageDynamicEntity, apiTagApi),
       Some(List(canDeleteBankLevelDynamicEntity)))
-    lazy val deleteBankLevelDynamicEntity: OBPEndpoint = {
+    lazy val deleteBankLevelDynamicEntity: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-entities" :: dynamicEntityId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           deleteDynamicEntityMethod(Some(bankId), dynamicEntityId, cc)
@@ -1923,7 +1923,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEntity, apiTagApi)
     )
 
-    lazy val getMyDynamicEntities: OBPEndpoint = {
+    lazy val getMyDynamicEntities: OBPEndpointFuture = {
       case "my" :: "dynamic-entities" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1972,7 +1972,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEntity, apiTagApi)
     )
 
-    lazy val updateMyDynamicEntity: OBPEndpoint = {
+    lazy val updateMyDynamicEntity: OBPEndpointFuture = {
       case "my" :: "dynamic-entities" :: dynamicEntityId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2016,7 +2016,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEntity, apiTagApi)
     )
 
-    lazy val deleteMyDynamicEntity: OBPEndpoint = {
+    lazy val deleteMyDynamicEntity: OBPEndpointFuture = {
       case "my" :: "dynamic-entities" :: dynamicEntityId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2072,7 +2072,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser),
       Some(List(canCreateResetPasswordUrl)))
 
-    lazy val resetPasswordUrl : OBPEndpoint = {
+    lazy val resetPasswordUrl : OBPEndpointFuture = {
       case "management" :: "user" :: "reset-password-url" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2126,7 +2126,7 @@ trait APIMethods400 extends MdcLoggable {
     ).disableAutoValidateRoles()  // this means disabled auto roles validation, will manually do the roles validation .
 
 
-    lazy val addAccount : OBPEndpoint = {
+    lazy val addAccount : OBPEndpointFuture = {
       // Create a new account
       case "banks" :: BankId(bankId) :: "accounts" :: Nil JsonPost json -> _ => {
         cc => {
@@ -2222,7 +2222,7 @@ trait APIMethods400 extends MdcLoggable {
       List(UnknownError, "no connector set"),
       apiTagApi  :: Nil)
 
-    lazy val root: OBPEndpoint = {
+    lazy val root: OBPEndpointFuture = {
       case (Nil | "root" :: Nil) JsonGet _ => {
         cc => 
           implicit val ec = EndpointContext(Some(cc))
@@ -2251,7 +2251,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApi),
       Some(List(canGetCallContext)))
 
-    lazy val getCallContext: OBPEndpoint = {
+    lazy val getCallContext: OBPEndpointFuture = {
       case "development" :: "call_context" :: Nil JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -2279,7 +2279,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApi),
       Some(Nil))
 
-    lazy val verifyRequestSignResponse: OBPEndpoint = {
+    lazy val verifyRequestSignResponse: OBPEndpointFuture = {
       case "development" :: "echo":: "jws-verified-request-jws-signed-response" :: Nil JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -2311,7 +2311,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount)
     )
 
-    lazy val updateAccountLabel : OBPEndpoint = {
+    lazy val updateAccountLabel : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2357,7 +2357,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser),
       Some(List(canLockUser)))
 
-    lazy val lockUser : OBPEndpoint = {
+    lazy val lockUser : OBPEndpointFuture = {
       case "users" :: username ::  "locks" :: Nil JsonPost req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2419,7 +2419,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagRole, apiTagEntitlement, apiTagUser, apiTagDAuth))
 
-    lazy val createUserWithRoles: OBPEndpoint = {
+    lazy val createUserWithRoles: OBPEndpointFuture = {
       case "user-entitlements" :: Nil JsonPost json -> _ =>  {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2482,7 +2482,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetEntitlementsForAnyUserAtAnyBank)))
 
 
-    lazy val getEntitlements: OBPEndpoint = {
+    lazy val getEntitlements: OBPEndpointFuture = {
       case "users" :: userId :: "entitlements" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2521,7 +2521,7 @@ trait APIMethods400 extends MdcLoggable {
     val allowedEntitlements = canGetEntitlementsForOneBank:: canGetEntitlementsForAnyBank :: Nil
     val allowedEntitlementsTxt = allowedEntitlements.mkString(" or ")
 
-    lazy val getEntitlementsForBank: OBPEndpoint = {
+    lazy val getEntitlementsForBank: OBPEndpointFuture = {
       case "banks" :: bankId :: "entitlements" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2558,7 +2558,7 @@ trait APIMethods400 extends MdcLoggable {
         UnknownError),
       List(apiTagAccountMetadata, apiTagAccount))
 
-    lazy val addTagForViewOnAccount : OBPEndpoint = {
+    lazy val addTagForViewOnAccount : OBPEndpointFuture = {
       //add a tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2602,7 +2602,7 @@ trait APIMethods400 extends MdcLoggable {
         UnknownError),
       List(apiTagAccountMetadata, apiTagAccount))
 
-    lazy val deleteTagForViewOnAccount : OBPEndpoint = {
+    lazy val deleteTagForViewOnAccount : OBPEndpointFuture = {
       //delete a tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "metadata" :: "tags" :: tagId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2644,7 +2644,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagAccountMetadata, apiTagAccount))
 
-    lazy val getTagsForViewOnAccount : OBPEndpoint = {
+    lazy val getTagsForViewOnAccount : OBPEndpointFuture = {
       //get tags
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "metadata" :: "tags" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2691,7 +2691,7 @@ trait APIMethods400 extends MdcLoggable {
       List($UserNotLoggedIn, $BankAccountNotFound,UnknownError),
       apiTagAccount :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
     )
-    lazy val getCoreAccountById : OBPEndpoint = {
+    lazy val getCoreAccountById : OBPEndpointFuture = {
       //get account by id (assume owner view requested)
       case "my" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "account" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2740,7 +2740,7 @@ trait APIMethods400 extends MdcLoggable {
         UnknownError),
       apiTagAccount  :: Nil
     )
-    lazy val getPrivateAccountByIdFull : OBPEndpoint = {
+    lazy val getPrivateAccountByIdFull : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "account" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2785,7 +2785,7 @@ trait APIMethods400 extends MdcLoggable {
         UnknownError),
       List(apiTagAccount),
     )
-    lazy val getAccountByAccountRouting : OBPEndpoint = {
+    lazy val getAccountByAccountRouting : OBPEndpointFuture = {
       case "management" :: "accounts" :: "account-routing-query" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $accountRoutingJsonV121"
@@ -2857,7 +2857,7 @@ trait APIMethods400 extends MdcLoggable {
         UnknownError),
       List(apiTagAccount),
     )
-    lazy val getAccountsByAccountRoutingRegex : OBPEndpoint = {
+    lazy val getAccountsByAccountRoutingRegex : OBPEndpointFuture = {
       case "management" :: "accounts" :: "account-routing-regex-query" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $accountRoutingJsonV121"
@@ -2908,7 +2908,7 @@ trait APIMethods400 extends MdcLoggable {
       apiTagAccount :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
     )
 
-    lazy val getBankAccountsBalancesForCurrentUser : OBPEndpoint = {
+    lazy val getBankAccountsBalancesForCurrentUser : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "balances" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2935,7 +2935,7 @@ trait APIMethods400 extends MdcLoggable {
       apiTagAccount :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
     )
 
-    lazy val getBankAccountBalancesForCurrentUser : OBPEndpoint = {
+    lazy val getBankAccountBalancesForCurrentUser : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "balances" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2990,7 +2990,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUseAccountFirehoseAtAnyBank, ApiRole.canUseAccountFirehose))
     )
 
-    lazy val getFirehoseAccountsAtOneBank : OBPEndpoint = {
+    lazy val getFirehoseAccountsAtOneBank : OBPEndpointFuture = {
       //get private accounts for all banks
       case "banks" :: BankId(bankId):: "firehose" :: "accounts"  :: "views" :: ViewId(viewId):: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3072,7 +3072,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUseAccountFirehoseAtAnyBank, ApiRole.canUseAccountFirehose))
     )
 
-    lazy val getFastFirehoseAccountsAtOneBank : OBPEndpoint = {
+    lazy val getFastFirehoseAccountsAtOneBank : OBPEndpointFuture = {
       //get private accounts for all banks
       case "management":: "banks" :: BankId(bankId):: "fast-firehose" :: "accounts"  :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3118,7 +3118,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetCustomer))
     )
 
-    lazy val getCustomersByCustomerPhoneNumber : OBPEndpoint = {
+    lazy val getCustomersByCustomerPhoneNumber : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "search"  :: "customers" :: "mobile-phone-number" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostCustomerPhoneNumberJsonV400 "
@@ -3149,7 +3149,7 @@ trait APIMethods400 extends MdcLoggable {
       List(UserNotLoggedIn, UnknownError),
       List(apiTagUser))
 
-    lazy val getCurrentUserId: OBPEndpoint = {
+    lazy val getCurrentUserId: OBPEndpointFuture = {
       case "users" :: "current" :: "user_id" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -3182,7 +3182,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetAnyUser)))
 
 
-    lazy val getUserByUserId: OBPEndpoint = {
+    lazy val getUserByUserId: OBPEndpointFuture = {
       case "users" :: "user_id" :: userId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3222,7 +3222,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetAnyUser)))
 
 
-    lazy val getUserByUsername: OBPEndpoint = {
+    lazy val getUserByUsername: OBPEndpointFuture = {
       case "users" :: "username" :: username :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3258,7 +3258,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetAnyUser)))
 
 
-    lazy val getUsersByEmail: OBPEndpoint = {
+    lazy val getUsersByEmail: OBPEndpointFuture = {
       case "users" :: "email" :: email :: "terminator" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3296,7 +3296,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser),
       Some(List(canGetAnyUser)))
 
-    lazy val getUsers: OBPEndpoint = {
+    lazy val getUsers: OBPEndpointFuture = {
       case "users" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3349,7 +3349,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(canCreateUserInvitation :: Nil)
     )
 
-    lazy val createUserInvitation : OBPEndpoint = {
+    lazy val createUserInvitation : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user-invitation" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           logger.debug(s"Hello from the endpoint {$createUserInvitation}")
@@ -3428,7 +3428,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUserInvitation, apiTagKyc)
     )
 
-    lazy val getUserInvitationAnonymous : OBPEndpoint = {
+    lazy val getUserInvitationAnonymous : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user-invitations" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostUserInvitationAnonymousJsonV400 "
@@ -3476,7 +3476,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetUserInvitation))
     )
 
-    lazy val getUserInvitation : OBPEndpoint = {
+    lazy val getUserInvitation : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user-invitations" :: secretLink :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3511,7 +3511,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetUserInvitation))
     )
 
-    lazy val getUserInvitations : OBPEndpoint = {
+    lazy val getUserInvitations : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user-invitations" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3546,7 +3546,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser),
       Some(List(canDeleteUser)))
 
-    lazy val deleteUser : OBPEndpoint = {
+    lazy val deleteUser : OBPEndpointFuture = {
       case "users" :: userId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3591,7 +3591,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateBank))
     )
 
-    lazy val createBank: OBPEndpoint = {
+    lazy val createBank: OBPEndpointFuture = {
       case "banks" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $BankJson400 "
@@ -3683,7 +3683,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagDirectDebit, apiTagAccount))
 
-    lazy val createDirectDebit : OBPEndpoint = {
+    lazy val createDirectDebit : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "direct-debit" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3743,7 +3743,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateDirectDebitAtOneBank))
     )
 
-    lazy val createDirectDebitManagement : OBPEndpoint = {
+    lazy val createDirectDebitManagement : OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "direct-debit" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostDirectDebitJsonV400 "
@@ -3802,7 +3802,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagStandingOrder, apiTagAccount))
 
-    lazy val createStandingOrder : OBPEndpoint = {
+    lazy val createStandingOrder : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "standing-order" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -3877,7 +3877,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateStandingOrderAtOneBank))
     )
 
-    lazy val createStandingOrderManagement : OBPEndpoint = {
+    lazy val createStandingOrderManagement : OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "standing-order" ::  Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostStandingOrderJsonV400 "
@@ -3944,7 +3944,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagAccountAccess, apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired))
 
-    lazy val grantUserAccessToView : OBPEndpoint = {
+    lazy val grantUserAccessToView : OBPEndpointFuture = {
       //add access for specific user to a specific system view
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "account-access" :: "grant" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -4003,7 +4003,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagAccountAccess, apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired, apiTagDAuth))
 
-    lazy val createUserWithAccountAccess : OBPEndpoint = {
+    lazy val createUserWithAccountAccess : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "user-account-access" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostCreateUserAccountAccessJsonV400 "
@@ -4058,7 +4058,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagAccountAccess, apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired))
 
-    lazy val revokeUserAccessToView : OBPEndpoint = {
+    lazy val revokeUserAccessToView : OBPEndpointFuture = {
       //add access for specific user to a specific system view
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "account-access" :: "revoke" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -4115,7 +4115,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagAccountAccess, apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired))
 
-    lazy val revokeGrantUserAccessToViews : OBPEndpoint = {
+    lazy val revokeGrantUserAccessToViews : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "account-access" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostAccountAccessJsonV400 "
@@ -4167,7 +4167,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canCreateCustomerAttributeAtOneBank, canCreateCustomerAttributeAtAnyBank)))
 
-    lazy val createCustomerAttribute : OBPEndpoint = {
+    lazy val createCustomerAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "customers" :: customerId :: "attribute" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $CustomerAttributeJsonV400 "
@@ -4222,7 +4222,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateCustomerAttributeAtOneBank, canUpdateCustomerAttributeAtAnyBank))
     )
 
-    lazy val updateCustomerAttribute : OBPEndpoint = {
+    lazy val updateCustomerAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "customers" :: customerId :: "attributes" :: customerAttributeId :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $CustomerAttributeJsonV400"
@@ -4280,7 +4280,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetCustomerAttributesAtOneBank, canGetCustomerAttributesAtAnyBank))
     )
 
-    lazy val getCustomerAttributes : OBPEndpoint = {
+    lazy val getCustomerAttributes : OBPEndpointFuture = {
       case "banks" :: bankId :: "customers" :: customerId :: "attributes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4321,7 +4321,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetCustomerAttributeAtOneBank, canGetCustomerAttributeAtAnyBank))
     )
 
-    lazy val getCustomerAttributeById : OBPEndpoint = {
+    lazy val getCustomerAttributeById : OBPEndpointFuture = {
       case "banks" :: bankId :: "customers" :: customerId :: "attributes" :: customerAttributeId ::Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4366,7 +4366,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetCustomer))
     )
 
-    lazy val getCustomersByAttributes : OBPEndpoint = {
+    lazy val getCustomersByAttributes : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" ::  Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4417,7 +4417,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransaction),
       Some(List(canCreateTransactionAttributeAtOneBank)))
 
-    lazy val createTransactionAttribute : OBPEndpoint = {
+    lazy val createTransactionAttribute : OBPEndpointFuture = {
       case "banks" ::  BankId(bankId) :: "accounts" :: AccountId(accountId) :: "transactions" :: TransactionId(transactionId) :: "attribute" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $TransactionAttributeJsonV400 "
@@ -4472,7 +4472,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateTransactionAttributeAtOneBank))
     )
 
-    lazy val updateTransactionAttribute : OBPEndpoint = {
+    lazy val updateTransactionAttribute : OBPEndpointFuture = {
       case "banks" ::  BankId(bankId) :: "accounts" :: AccountId(accountId) :: "transactions" :: TransactionId(transactionId) :: "attributes" :: transactionAttributeId :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $TransactionAttributeJsonV400"
@@ -4527,7 +4527,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetTransactionAttributesAtOneBank))
     )
 
-    lazy val getTransactionAttributes : OBPEndpoint = {
+    lazy val getTransactionAttributes : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "transactions" :: TransactionId(transactionId) :: "attributes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4568,7 +4568,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetTransactionAttributeAtOneBank))
     )
 
-    lazy val getTransactionAttributeById : OBPEndpoint = {
+    lazy val getTransactionAttributeById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) ::  "transactions" :: TransactionId(transactionId) :: "attributes" :: transactionAttributeId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4629,7 +4629,7 @@ trait APIMethods400 extends MdcLoggable {
     )
 
 
-    lazy val createHistoricalTransactionAtBank : OBPEndpoint =  {
+    lazy val createHistoricalTransactionAtBank : OBPEndpointFuture =  {
       case "banks" :: BankId(bankId) :: "management"  :: "historical" :: "transactions" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4731,7 +4731,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagTransactionRequest, apiTagPSD2PIS, apiTagPsd2))
 
-    lazy val getTransactionRequest: OBPEndpoint = {
+    lazy val getTransactionRequest: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-requests" :: TransactionRequestId(requestId) :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4776,7 +4776,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount, apiTagPrivateData, apiTagPublicData)
     )
 
-    lazy val getPrivateAccountsAtOneBank: OBPEndpoint = {
+    lazy val getPrivateAccountsAtOneBank: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4837,7 +4837,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateConsumer)))
 
 
-    lazy val createConsumer: OBPEndpoint = {
+    lazy val createConsumer: OBPEndpointFuture = {
       case "management" :: "consumers" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -4897,7 +4897,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer, apiTagUser),
       Some(List(canGetCustomersAtAnyBank))
     )
-    lazy val getCustomersAtAnyBank : OBPEndpoint = {
+    lazy val getCustomersAtAnyBank : OBPEndpointFuture = {
       case "customers" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -4934,7 +4934,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer, apiTagUser),
       Some(List(canGetCustomersMinimalAtAnyBank))
     )
-    lazy val getCustomersMinimalAtAnyBank : OBPEndpoint = {
+    lazy val getCustomersMinimalAtAnyBank : OBPEndpointFuture = {
       case "customers-minimal" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -4967,7 +4967,7 @@ trait APIMethods400 extends MdcLoggable {
       List(UserNotLoggedIn, EntitlementNotFound, ConsumerNotFoundByConsumerId, UnknownError),
       List(apiTagScope, apiTagConsumer))
 
-    lazy val getScopes: OBPEndpoint = {
+    lazy val getScopes: OBPEndpointFuture = {
       case "consumers" :: uuidOfConsumer :: "scopes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5015,7 +5015,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagScope, apiTagConsumer),
       Some(List(canCreateScopeAtAnyBank, canCreateScopeAtOneBank)))
 
-    lazy val addScope : OBPEndpoint = {
+    lazy val addScope : OBPEndpointFuture = {
       case "consumers" :: consumerId :: "scopes" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5082,7 +5082,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canDeleteCustomerAttributeAtOneBank, canDeleteCustomerAttributeAtAnyBank)))
 
-    lazy val deleteCustomerAttribute : OBPEndpoint = {
+    lazy val deleteCustomerAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "customers" :: "attributes" :: customerAttributeId ::  Nil JsonDelete _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5123,7 +5123,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canCreateDynamicEndpoint)))
 
-    lazy val createDynamicEndpoint: OBPEndpoint = {
+    lazy val createDynamicEndpoint: OBPEndpointFuture = {
       case "management" :: "dynamic-endpoints" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           createDynamicEndpointMethod(None, json, cc)
@@ -5161,7 +5161,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canCreateBankLevelDynamicEndpoint, canCreateDynamicEndpoint)))
 
-    lazy val createBankLevelDynamicEndpoint: OBPEndpoint = {
+    lazy val createBankLevelDynamicEndpoint: OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) ::"dynamic-endpoints" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           createDynamicEndpointMethod(Some(bankId.value), json, cc)
@@ -5190,7 +5190,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canUpdateDynamicEndpoint)))
 
-    lazy val updateDynamicEndpointHost: OBPEndpoint = {
+    lazy val updateDynamicEndpointHost: OBPEndpointFuture = {
       case "management" :: "dynamic-endpoints" :: dynamicEndpointId :: "host" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           updateDynamicEndpointHostMethod(None, dynamicEndpointId, json, cc)
@@ -5233,7 +5233,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canUpdateBankLevelDynamicEndpoint, canUpdateDynamicEndpoint)))
 
-    lazy val updateBankLevelDynamicEndpointHost: OBPEndpoint = {
+    lazy val updateBankLevelDynamicEndpointHost: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-endpoints" :: dynamicEndpointId :: "host" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           updateDynamicEndpointHostMethod(Some(bankId), dynamicEndpointId, json, cc)
@@ -5265,7 +5265,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canGetDynamicEndpoint)))
 
-    lazy val getDynamicEndpoint: OBPEndpoint = {
+    lazy val getDynamicEndpoint: OBPEndpointFuture = {
       case "management" :: "dynamic-endpoints" :: dynamicEndpointId :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getDynamicEndpointMethod(None, dynamicEndpointId, cc)
@@ -5298,7 +5298,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canGetDynamicEndpoints)))
 
-    lazy val getDynamicEndpoints: OBPEndpoint = {
+    lazy val getDynamicEndpoints: OBPEndpointFuture = {
       case "management" :: "dynamic-endpoints" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getDynamicEndpointsMethod(None, cc)
@@ -5339,7 +5339,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canGetBankLevelDynamicEndpoint, canGetDynamicEndpoint)))
 
-    lazy val getBankLevelDynamicEndpoint: OBPEndpoint = {
+    lazy val getBankLevelDynamicEndpoint: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-endpoints" :: dynamicEndpointId :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getDynamicEndpointMethod(Some(bankId), dynamicEndpointId, cc)
@@ -5383,7 +5383,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canGetBankLevelDynamicEndpoints, canGetDynamicEndpoints)))
 
-    lazy val getBankLevelDynamicEndpoints: OBPEndpoint = {
+    lazy val getBankLevelDynamicEndpoints: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-endpoints" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getDynamicEndpointsMethod(Some(bankId), cc)
@@ -5416,7 +5416,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canDeleteDynamicEndpoint)))
 
-    lazy val deleteDynamicEndpoint : OBPEndpoint = {
+    lazy val deleteDynamicEndpoint : OBPEndpointFuture = {
       case "management" :: "dynamic-endpoints" :: dynamicEndpointId ::  Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           deleteDynamicEndpointMethod(None, dynamicEndpointId, cc)
@@ -5442,7 +5442,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
       Some(List(canDeleteBankLevelDynamicEndpoint ,canDeleteDynamicEndpoint)))
 
-    lazy val deleteBankLevelDynamicEndpoint : OBPEndpoint = {
+    lazy val deleteBankLevelDynamicEndpoint : OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-endpoints" :: dynamicEndpointId ::  Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           deleteDynamicEndpointMethod(Some(bankId), dynamicEndpointId, cc)
@@ -5470,7 +5470,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi)
     )
 
-    lazy val getMyDynamicEndpoints: OBPEndpoint = {
+    lazy val getMyDynamicEndpoints: OBPEndpointFuture = {
       case "my" :: "dynamic-endpoints" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5503,7 +5503,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagManageDynamicEndpoint, apiTagApi),
     )
 
-    lazy val deleteMyDynamicEndpoint : OBPEndpoint = {
+    lazy val deleteMyDynamicEndpoint : OBPEndpointFuture = {
       case "my" :: "dynamic-endpoints" :: dynamicEndpointId ::  Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5546,7 +5546,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canCreateCustomerAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateCustomerAttributeAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateCustomerAttributeAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "customer" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -5610,7 +5610,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount),
       Some(List(canCreateAccountAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateAccountAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateAccountAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "account" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -5673,7 +5673,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canCreateProductAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateProductAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateProductAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "product" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -5760,7 +5760,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateProductAttribute))
     )
 
-    lazy val createProductAttribute : OBPEndpoint = {
+    lazy val createProductAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "attribute" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5820,7 +5820,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateProductAttribute))
     )
 
-    lazy val updateProductAttribute : OBPEndpoint = {
+    lazy val updateProductAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "attributes" :: productAttributeId :: Nil JsonPut json -> _ =>{
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5879,7 +5879,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateProductAttribute))
       )
 
-    lazy val getProductAttribute : OBPEndpoint = {
+    lazy val getProductAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "attributes" :: productAttributeId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5918,7 +5918,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateProductFee))
     )
 
-    lazy val createProductFee : OBPEndpoint = {
+    lazy val createProductFee : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "fee" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -5970,7 +5970,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canUpdateProductFee)))
 
-    lazy val updateProductFee : OBPEndpoint = {
+    lazy val updateProductFee : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "fees" :: productFeeId :: Nil JsonPut json -> _ =>{
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6021,7 +6021,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct)
     )
 
-    lazy val getProductFee : OBPEndpoint = {
+    lazy val getProductFee : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "fees" :: productFeeId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6057,7 +6057,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct)
     )
 
-    lazy val getProductFees : OBPEndpoint = {
+    lazy val getProductFees : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "fees" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6096,7 +6096,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canDeleteProductFee)))
 
-    lazy val deleteProductFee : OBPEndpoint = {
+    lazy val deleteProductFee : OBPEndpointFuture = {
       case "banks" :: bankId :: "products" :: productCode:: "fees" :: productFeeId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6135,7 +6135,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagBank),
       Some(List(canCreateBankAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateBankAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateBankAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "bank" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -6210,7 +6210,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateBankAttribute))
     )
 
-    lazy val createBankAttribute : OBPEndpoint = {
+    lazy val createBankAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "attribute" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6264,7 +6264,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetBankAttribute))
     )
 
-    lazy val getBankAttributes : OBPEndpoint = {
+    lazy val getBankAttributes : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attributes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6299,7 +6299,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetBankAttribute))
     )
 
-    lazy val getBankAttribute : OBPEndpoint = {
+    lazy val getBankAttribute : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attributes" :: bankAttributeId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6333,7 +6333,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagBank))
 
-    lazy val updateBankAttribute : OBPEndpoint = {
+    lazy val updateBankAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "attributes" :: bankAttributeId :: Nil JsonPut json -> _ =>{
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6389,7 +6389,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagBank))
 
-    lazy val deleteBankAttribute : OBPEndpoint = {
+    lazy val deleteBankAttribute : OBPEndpointFuture = {
       case "banks" :: bankId :: "attributes" :: bankAttributeId ::  Nil JsonDelete _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6431,7 +6431,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransaction),
       Some(List(canCreateTransactionAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateTransactionAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateTransactionAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "transaction" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -6495,7 +6495,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCard),
       Some(List(canCreateCardAttributeDefinitionAtOneBank)))
 
-    lazy val createOrUpdateCardAttributeDefinition : OBPEndpoint = {
+    lazy val createOrUpdateCardAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "card" :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $AttributeDefinitionJsonV400 "
@@ -6554,7 +6554,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransaction),
       Some(List(canDeleteTransactionAttributeDefinitionAtOneBank)))
 
-    lazy val deleteTransactionAttributeDefinition : OBPEndpoint = {
+    lazy val deleteTransactionAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: attributeDefinitionId :: "transaction" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6592,7 +6592,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canDeleteCustomerAttributeDefinitionAtOneBank)))
 
-    lazy val deleteCustomerAttributeDefinition : OBPEndpoint = {
+    lazy val deleteCustomerAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: attributeDefinitionId :: "customer" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6630,7 +6630,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount),
       Some(List(canDeleteAccountAttributeDefinitionAtOneBank)))
 
-    lazy val deleteAccountAttributeDefinition : OBPEndpoint = {
+    lazy val deleteAccountAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: attributeDefinitionId :: "account" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6668,7 +6668,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canDeleteProductAttributeDefinitionAtOneBank)))
 
-    lazy val deleteProductAttributeDefinition : OBPEndpoint = {
+    lazy val deleteProductAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: attributeDefinitionId :: "product" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6706,7 +6706,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCard),
       Some(List(canDeleteCardAttributeDefinitionAtOneBank)))
 
-    lazy val deleteCardAttributeDefinition : OBPEndpoint = {
+    lazy val deleteCardAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: attributeDefinitionId :: "card" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6744,7 +6744,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canGetProductAttributeDefinitionAtOneBank)))
 
-    lazy val getProductAttributeDefinition : OBPEndpoint = {
+    lazy val getProductAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "product" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6781,7 +6781,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canGetCustomerAttributeDefinitionAtOneBank)))
 
-    lazy val getCustomerAttributeDefinition : OBPEndpoint = {
+    lazy val getCustomerAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "customer" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6818,7 +6818,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount),
       Some(List(canGetAccountAttributeDefinitionAtOneBank)))
 
-    lazy val getAccountAttributeDefinition : OBPEndpoint = {
+    lazy val getAccountAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "account" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6855,7 +6855,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransaction),
       Some(List(canGetTransactionAttributeDefinitionAtOneBank)))
 
-    lazy val getTransactionAttributeDefinition : OBPEndpoint = {
+    lazy val getTransactionAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "transaction" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6893,7 +6893,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCard),
       Some(List(canGetCardAttributeDefinitionAtOneBank)))
 
-    lazy val getCardAttributeDefinition : OBPEndpoint = {
+    lazy val getCardAttributeDefinition : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "attribute-definitions" :: "card" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6931,7 +6931,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canDeleteUserCustomerLink)))
 
-    lazy val deleteUserCustomerLink : OBPEndpoint = {
+    lazy val deleteUserCustomerLink : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user_customer_links" :: userCustomerLinkId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -6968,7 +6968,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canGetUserCustomerLink)))
 
-    lazy val getUserCustomerLinksByUserId : OBPEndpoint = {
+    lazy val getUserCustomerLinksByUserId : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user_customer_links" :: "users" :: userId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7010,7 +7010,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer, apiTagUser),
       Some(List(canCreateUserCustomerLinkAtAnyBank, canCreateUserCustomerLink)))
 
-    lazy val createUserCustomerLinks : OBPEndpoint = {
+    lazy val createUserCustomerLinks : OBPEndpointFuture = {
       case "banks" :: BankId(bankId):: "user_customer_links" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7067,7 +7067,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canGetUserCustomerLink)))
 
-    lazy val getUserCustomerLinksByCustomerId : OBPEndpoint = {
+    lazy val getUserCustomerLinksByCustomerId : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "user_customer_links" :: "customers" :: customerId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7100,7 +7100,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canGetCorrelatedUsersInfoAtAnyBank, canGetCorrelatedUsersInfo)))
 
-    lazy val getCorrelatedUsersInfoByCustomerId : OBPEndpoint = {
+    lazy val getCorrelatedUsersInfoByCustomerId : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: customerId :: "correlated-users" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7144,7 +7144,7 @@ trait APIMethods400 extends MdcLoggable {
       (customer, users, attributes, callContext)
     }
     
-    lazy val getMyCorrelatedEntities : OBPEndpoint = {
+    lazy val getMyCorrelatedEntities : OBPEndpointFuture = {
       case "my" :: "correlated-entities" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7196,7 +7196,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer, apiTagPerson),
       Some(List(canCreateCustomer,canCreateCustomerAtAnyBank))
     )
-    lazy val createCustomer : OBPEndpoint = {
+    lazy val createCustomer : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7256,7 +7256,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount),
       Some(List(canGetAccountsMinimalForCustomerAtAnyBank)))
 
-    lazy val getAccountsMinimalByCustomerId : OBPEndpoint = {
+    lazy val getAccountsMinimalByCustomerId : OBPEndpointFuture = {
       case "customers" :: customerId :: "accounts-minimal" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7295,7 +7295,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagTransaction),
       Some(List(canDeleteTransactionCascade)))
 
-    lazy val deleteTransactionCascade : OBPEndpoint = {
+    lazy val deleteTransactionCascade : OBPEndpointFuture = {
       case "management" :: "cascading" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: 
         "transactions" :: TransactionId(transactionId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -7333,7 +7333,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagAccount),
       Some(List(canDeleteAccountCascade)))
 
-    lazy val deleteAccountCascade : OBPEndpoint = {
+    lazy val deleteAccountCascade : OBPEndpointFuture = {
       case "management" :: "cascading" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7371,7 +7371,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagBank),
       Some(List(canDeleteBankCascade)))
 
-    lazy val deleteBankCascade : OBPEndpoint = {
+    lazy val deleteBankCascade : OBPEndpointFuture = {
       case "management" :: "cascading" :: "banks" :: BankId(bankId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7407,7 +7407,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canDeleteProductCascade)))
 
-    lazy val deleteProductCascade : OBPEndpoint = {
+    lazy val deleteProductCascade : OBPEndpointFuture = {
       case "management" :: "cascading" :: "banks" :: BankId(bankId) :: "products" :: ProductCode(code) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7445,7 +7445,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCustomer),
       Some(List(canDeleteCustomerCascade)))
 
-    lazy val deleteCustomerCascade : OBPEndpoint = {
+    lazy val deleteCustomerCascade : OBPEndpointFuture = {
       case "management" :: "cascading" :: "banks" :: BankId(bankId) :: "customers" :: CustomerId(customerId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7489,7 +7489,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCounterparty, apiTagAccount))
 
 
-    lazy val createExplicitCounterparty: OBPEndpoint = {
+    lazy val createExplicitCounterparty: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7609,7 +7609,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCounterparty, apiTagAccount)
     )
 
-    lazy val deleteExplicitCounterparty: OBPEndpoint = {
+    lazy val deleteExplicitCounterparty: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: CounterpartyId(counterpartyId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7658,7 +7658,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCounterparty, apiTagAccount),
       Some(List(canDeleteCounterparty, canDeleteCounterpartyAtAnyBank)))
 
-    lazy val deleteCounterpartyForAnyAccount: OBPEndpoint = {
+    lazy val deleteCounterpartyForAnyAccount: OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: CounterpartyId(counterpartyId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7711,7 +7711,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateCounterparty, canCreateCounterpartyAtAnyBank)))
 
 
-    lazy val createCounterpartyForAnyAccount: OBPEndpoint = {
+    lazy val createCounterpartyForAnyAccount: OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId):: "counterparties" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7820,7 +7820,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagCounterparty, apiTagPSD2PIS, apiTagPsd2, apiTagAccount))
 
-    lazy val getExplicitCounterpartiesForAccount : OBPEndpoint = {
+    lazy val getExplicitCounterpartiesForAccount : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7875,7 +7875,7 @@ trait APIMethods400 extends MdcLoggable {
     Some(List(canGetCounterparties, canGetCounterpartiesAtAnyBank))
     )
 
-    lazy val getCounterpartiesForAnyAccount : OBPEndpoint = {
+    lazy val getCounterpartiesForAnyAccount : OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7921,7 +7921,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCounterparty, apiTagPSD2PIS, apiTagPsd2, apiTagCounterpartyMetaData)
     )
 
-    lazy val getExplicitCounterpartyById : OBPEndpoint = {
+    lazy val getExplicitCounterpartyById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "counterparties" :: CounterpartyId(counterpartyId) :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -7967,7 +7967,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCounterparty, apiTagAccount),
       Some(List(canGetCounterpartyAtAnyBank, canGetCounterparty)))
 
-    lazy val getCounterpartyByNameForAnyAccount: OBPEndpoint = {
+    lazy val getCounterpartyByNameForAnyAccount: OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId):: "counterparty-names" :: counterpartyName :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8019,7 +8019,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagCounterparty, apiTagAccount),
       Some(List(canGetCounterpartyAtAnyBank, canGetCounterparty)))
 
-    lazy val getCounterpartyByIdForAnyAccount: OBPEndpoint = {
+    lazy val getCounterpartyByIdForAnyAccount: OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId):: "counterparties" :: CounterpartyId(counterpartyId) :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8067,7 +8067,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       apiTagConsent :: apiTagPSD2AIS  :: Nil)
 
-    lazy val addConsentUser : OBPEndpoint = {
+    lazy val addConsentUser : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "consents"  :: consentId :: "user-update-request" :: Nil JsonPut json -> _  => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8124,7 +8124,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       apiTagConsent :: apiTagPSD2AIS  :: Nil)
 
-    lazy val updateConsentStatus : OBPEndpoint = {
+    lazy val updateConsentStatus : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "consents"  :: consentId :: Nil JsonPut json -> _  => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8175,7 +8175,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagConsent, apiTagPSD2AIS, apiTagPsd2))
 
-    lazy val getConsents: OBPEndpoint = {
+    lazy val getConsents: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "my" :: "consents" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8211,7 +8211,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagConsent, apiTagPSD2AIS, apiTagPsd2))
 
-    lazy val getConsentInfos: OBPEndpoint = {
+    lazy val getConsentInfos: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "my" :: "consent-infos" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8245,7 +8245,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser)
     )
 
-    lazy val getMyPersonalUserAttributes: OBPEndpoint = {
+    lazy val getMyPersonalUserAttributes: OBPEndpointFuture = {
       case "my" ::  "user" :: "attributes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8278,7 +8278,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(canGetUsersWithAttributes :: Nil)
     )
 
-    lazy val getUserWithAttributes: OBPEndpoint = {
+    lazy val getUserWithAttributes: OBPEndpointFuture = {
       case "users" :: userId :: "attributes" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8315,7 +8315,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser),
       Some(List()))
 
-    lazy val createMyPersonalUserAttribute : OBPEndpoint = {
+    lazy val createMyPersonalUserAttribute : OBPEndpointFuture = {
       case "my" ::  "user" :: "attributes" :: Nil JsonPost json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $UserAttributeJsonV400 "
@@ -8367,7 +8367,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagUser),
       Some(List()))
 
-    lazy val updateMyPersonalUserAttribute : OBPEndpoint = {
+    lazy val updateMyPersonalUserAttribute : OBPEndpointFuture = {
       case "my" ::  "user" :: "attributes" :: userAttributeId :: Nil JsonPut json -> _=> {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8420,7 +8420,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(Nil)
     )
 
-    lazy val getScannedApiVersions: OBPEndpoint = {
+    lazy val getScannedApiVersions: OBPEndpointFuture = {
       case "api" :: "versions" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           Future {
@@ -8452,7 +8452,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val createMyApiCollection: OBPEndpoint = {
+    lazy val createMyApiCollection: OBPEndpointFuture = {
       case "my" :: "api-collections" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8497,7 +8497,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getMyApiCollectionByName: OBPEndpoint = {
+    lazy val getMyApiCollectionByName: OBPEndpointFuture = {
       case "my" :: "api-collections" :: "name" ::apiCollectionName :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8529,7 +8529,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getMyApiCollectionById: OBPEndpoint = {
+    lazy val getMyApiCollectionById: OBPEndpointFuture = {
       case "my" :: "api-collections" :: apiCollectionId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8558,7 +8558,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getSharableApiCollectionById: OBPEndpoint = {
+    lazy val getSharableApiCollectionById: OBPEndpointFuture = {
       case "api-collections" :: "sharable" :: apiCollectionId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8593,7 +8593,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(canGetApiCollectionsForUser :: Nil)
     )
 
-    lazy val getApiCollectionsForUser: OBPEndpoint = {
+    lazy val getApiCollectionsForUser: OBPEndpointFuture = {
       case "users" :: userId :: "api-collections" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8624,7 +8624,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getFeaturedApiCollections: OBPEndpoint = {
+    lazy val getFeaturedApiCollections: OBPEndpointFuture = {
       case "api-collections" :: "featured" ::  Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8657,7 +8657,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getMyApiCollections: OBPEndpoint = {
+    lazy val getMyApiCollections: OBPEndpointFuture = {
       case "my" :: "api-collections" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8694,7 +8694,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val deleteMyApiCollection : OBPEndpoint = {
+    lazy val deleteMyApiCollection : OBPEndpointFuture = {
       case "my" :: "api-collections" :: apiCollectionId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8731,7 +8731,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val createMyApiCollectionEndpoint: OBPEndpoint = {
+    lazy val createMyApiCollectionEndpoint: OBPEndpointFuture = {
       case "my" :: "api-collections" :: apiCollectionName :: "api-collection-endpoints" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8780,7 +8780,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val createMyApiCollectionEndpointById: OBPEndpoint = {
+    lazy val createMyApiCollectionEndpointById: OBPEndpointFuture = {
       case "my" :: "api-collection-ids" :: apiCollectionId :: "api-collection-endpoints" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8827,7 +8827,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
     
-    lazy val getMyApiCollectionEndpoint: OBPEndpoint = {
+    lazy val getMyApiCollectionEndpoint: OBPEndpointFuture = {
       case "my" :: "api-collections" :: apiCollectionName :: "api-collection-endpoints" :: operationId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8863,7 +8863,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getApiCollectionEndpoints: OBPEndpoint = {
+    lazy val getApiCollectionEndpoints: OBPEndpointFuture = {
       case "api-collections" :: apiCollectionId :: "api-collection-endpoints" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8895,7 +8895,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getMyApiCollectionEndpoints: OBPEndpoint = {
+    lazy val getMyApiCollectionEndpoints: OBPEndpointFuture = {
       case "my" :: "api-collections" :: apiCollectionName :: "api-collection-endpoints":: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8928,7 +8928,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val getMyApiCollectionEndpointsById: OBPEndpoint = {
+    lazy val getMyApiCollectionEndpointsById: OBPEndpointFuture = {
       case "my" :: "api-collection-ids" :: apiCollectionId :: "api-collection-endpoints":: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -8965,7 +8965,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val deleteMyApiCollectionEndpoint : OBPEndpoint = {
+    lazy val deleteMyApiCollectionEndpoint : OBPEndpointFuture = {
       case "my" :: "api-collections" :: apiCollectionName :: "api-collection-endpoints" :: operationId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9002,7 +9002,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val deleteMyApiCollectionEndpointByOperationId : OBPEndpoint = {
+    lazy val deleteMyApiCollectionEndpointByOperationId : OBPEndpointFuture = {
       case "my" :: "api-collection-ids" :: apiCollectionId :: "api-collection-endpoints" :: operationId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9039,7 +9039,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagApiCollection)
     )
 
-    lazy val deleteMyApiCollectionEndpointById : OBPEndpoint = {
+    lazy val deleteMyApiCollectionEndpointById : OBPEndpointFuture = {
       case "my" :: "api-collection-ids" :: apiCollectionId :: "api-collection-endpoint-ids" :: apiCollectionEndpointId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9080,7 +9080,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateJsonSchemaValidation)))
 
 
-    lazy val createJsonSchemaValidation: OBPEndpoint = {
+    lazy val createJsonSchemaValidation: OBPEndpointFuture = {
       case "management" :: "json-schema-validations" :: operationId :: Nil JsonPost _ -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val httpBody: String = cc.httpBody.getOrElse("")
@@ -9130,7 +9130,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateJsonSchemaValidation)))
 
 
-    lazy val updateJsonSchemaValidation: OBPEndpoint = {
+    lazy val updateJsonSchemaValidation: OBPEndpointFuture = {
       case "management" :: "json-schema-validations" :: operationId :: Nil JsonPut _ -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val httpBody: String = cc.httpBody.getOrElse("")
@@ -9175,7 +9175,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canDeleteJsonSchemaValidation)))
 
 
-    lazy val deleteJsonSchemaValidation: OBPEndpoint = {
+    lazy val deleteJsonSchemaValidation: OBPEndpointFuture = {
       case "management" :: "json-schema-validations" :: operationId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9212,7 +9212,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagJsonSchemaValidation),
       Some(List(canGetJsonSchemaValidation)))
 
-    lazy val getJsonSchemaValidation: OBPEndpoint = {
+    lazy val getJsonSchemaValidation: OBPEndpointFuture = {
       case "management" :: "json-schema-validations" :: operationId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9245,7 +9245,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetJsonSchemaValidation)))
 
 
-    lazy val getAllJsonSchemaValidations: OBPEndpoint = {
+    lazy val getAllJsonSchemaValidations: OBPEndpointFuture = {
       case ("management" | "endpoints") :: "json-schema-validations" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9306,7 +9306,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateAuthenticationTypeValidation)))
 
 
-    lazy val createAuthenticationTypeValidation: OBPEndpoint = {
+    lazy val createAuthenticationTypeValidation: OBPEndpointFuture = {
       case "management" :: "authentication-type-validations" :: operationId :: Nil JsonPost jArray -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9350,7 +9350,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canUpdateAuthenticationTypeValidation)))
 
 
-    lazy val updateAuthenticationTypeValidation: OBPEndpoint = {
+    lazy val updateAuthenticationTypeValidation: OBPEndpointFuture = {
       case "management" :: "authentication-type-validations" :: operationId :: Nil JsonPut jArray -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9393,7 +9393,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canDeleteAuthenticationValidation)))
 
 
-    lazy val deleteAuthenticationTypeValidation: OBPEndpoint = {
+    lazy val deleteAuthenticationTypeValidation: OBPEndpointFuture = {
       case "management" :: "authentication-type-validations" :: operationId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9431,7 +9431,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetAuthenticationTypeValidation)))
 
 
-    lazy val getAuthenticationTypeValidation: OBPEndpoint = {
+    lazy val getAuthenticationTypeValidation: OBPEndpointFuture = {
       case "management" :: "authentication-type-validations" :: operationId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9464,7 +9464,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canGetAuthenticationTypeValidation)))
 
 
-    lazy val getAllAuthenticationTypeValidations: OBPEndpoint = {
+    lazy val getAllAuthenticationTypeValidations: OBPEndpointFuture = {
       case ("management" | "endpoints") :: "authentication-type-validations" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9521,7 +9521,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagConnectorMethod),
       Some(List(canCreateConnectorMethod)))
 
-    lazy val createConnectorMethod: OBPEndpoint = {
+    lazy val createConnectorMethod: OBPEndpointFuture = {
       case "management" :: "connector-methods" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9568,7 +9568,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagConnectorMethod),
       Some(List(canUpdateConnectorMethod)))
 
-    lazy val updateConnectorMethod: OBPEndpoint = {
+    lazy val updateConnectorMethod: OBPEndpointFuture = {
       case "management" :: "connector-methods" :: connectorMethodId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9611,7 +9611,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagConnectorMethod),
       Some(List(canGetConnectorMethod)))
 
-    lazy val getConnectorMethod: OBPEndpoint = {
+    lazy val getConnectorMethod: OBPEndpointFuture = {
       case "management" :: "connector-methods" :: connectorMethodId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9642,7 +9642,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagConnectorMethod),
       Some(List(canGetAllConnectorMethods)))
 
-    lazy val getAllConnectorMethods: OBPEndpoint = {
+    lazy val getAllConnectorMethods: OBPEndpointFuture = {
       case "management" :: "connector-methods" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9675,7 +9675,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canCreateDynamicResourceDoc)))
 
-    lazy val createDynamicResourceDoc: OBPEndpoint = {
+    lazy val createDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-resource-docs" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9739,7 +9739,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canUpdateDynamicResourceDoc)))
 
-    lazy val updateDynamicResourceDoc: OBPEndpoint = {
+    lazy val updateDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-resource-docs" :: dynamicResourceDocId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9801,7 +9801,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canDeleteDynamicResourceDoc)))
 
-    lazy val deleteDynamicResourceDoc: OBPEndpoint = {
+    lazy val deleteDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-resource-docs" :: dynamicResourceDocId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9833,7 +9833,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canGetDynamicResourceDoc)))
 
-    lazy val getDynamicResourceDoc: OBPEndpoint = {
+    lazy val getDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-resource-docs" :: dynamicResourceDocId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9864,7 +9864,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canGetAllDynamicResourceDocs)))
 
-    lazy val getAllDynamicResourceDocs: OBPEndpoint = {
+    lazy val getAllDynamicResourceDocs: OBPEndpointFuture = {
       case "management" :: "dynamic-resource-docs" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9898,7 +9898,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canCreateBankLevelDynamicResourceDoc))) 
 
-    lazy val createBankLevelDynamicResourceDoc: OBPEndpoint = {
+    lazy val createBankLevelDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-resource-docs" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -9970,7 +9970,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canUpdateBankLevelDynamicResourceDoc)))
 
-    lazy val updateBankLevelDynamicResourceDoc: OBPEndpoint = {
+    lazy val updateBankLevelDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-resource-docs" :: dynamicResourceDocId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10040,7 +10040,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canDeleteBankLevelDynamicResourceDoc)))
 
-    lazy val deleteBankLevelDynamicResourceDoc: OBPEndpoint = {
+    lazy val deleteBankLevelDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-resource-docs" :: dynamicResourceDocId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10073,7 +10073,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canGetBankLevelDynamicResourceDoc)))
 
-    lazy val getBankLevelDynamicResourceDoc: OBPEndpoint = {
+    lazy val getBankLevelDynamicResourceDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-resource-docs" :: dynamicResourceDocId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10105,7 +10105,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       Some(List(canGetAllBankLevelDynamicResourceDocs)))
 
-    lazy val getAllBankLevelDynamicResourceDocs: OBPEndpoint = {
+    lazy val getAllBankLevelDynamicResourceDocs: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-resource-docs" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10138,7 +10138,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicResourceDoc),
       None)
 
-    lazy val buildDynamicEndpointTemplate: OBPEndpoint = {
+    lazy val buildDynamicEndpointTemplate: OBPEndpointFuture = {
       case "management" :: "dynamic-resource-docs" :: "endpoint-code" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10187,7 +10187,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canCreateDynamicMessageDoc)))
 
-    lazy val createDynamicMessageDoc: OBPEndpoint = {
+    lazy val createDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-message-docs" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10232,7 +10232,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canCreateBankLevelDynamicMessageDoc)))
 
-    lazy val createBankLevelDynamicMessageDoc: OBPEndpoint = {
+    lazy val createBankLevelDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId ::"dynamic-message-docs" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10276,7 +10276,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canUpdateDynamicMessageDoc)))
 
-    lazy val updateDynamicMessageDoc: OBPEndpoint = {
+    lazy val updateDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-message-docs" :: dynamicMessageDocId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10317,7 +10317,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canGetDynamicMessageDoc)))
 
-    lazy val getDynamicMessageDoc: OBPEndpoint = {
+    lazy val getDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-message-docs" :: dynamicMessageDocId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10348,7 +10348,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canGetAllDynamicMessageDocs)))
 
-    lazy val getAllDynamicMessageDocs: OBPEndpoint = {
+    lazy val getAllDynamicMessageDocs: OBPEndpointFuture = {
       case "management" :: "dynamic-message-docs" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10379,7 +10379,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canDeleteDynamicMessageDoc)))
 
-    lazy val deleteDynamicMessageDoc: OBPEndpoint = {
+    lazy val deleteDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "dynamic-message-docs" :: dynamicMessageDocId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10412,7 +10412,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canUpdateDynamicMessageDoc)))
 
-    lazy val updateBankLevelDynamicMessageDoc: OBPEndpoint = {
+    lazy val updateBankLevelDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId::"dynamic-message-docs" :: dynamicMessageDocId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10454,7 +10454,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canGetBankLevelDynamicMessageDoc)))
 
-    lazy val getBankLevelDynamicMessageDoc: OBPEndpoint = {
+    lazy val getBankLevelDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-message-docs" :: dynamicMessageDocId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10486,7 +10486,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canGetAllDynamicMessageDocs)))
 
-    lazy val getAllBankLevelDynamicMessageDocs: OBPEndpoint = {
+    lazy val getAllBankLevelDynamicMessageDocs: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-message-docs" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10518,7 +10518,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagDynamicMessageDoc),
       Some(List(canDeleteBankLevelDynamicMessageDoc)))
 
-    lazy val deleteBankLevelDynamicMessageDoc: OBPEndpoint = {
+    lazy val deleteBankLevelDynamicMessageDoc: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "dynamic-message-docs" :: dynamicMessageDocId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10552,7 +10552,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canCreateEndpointMapping)))
 
-    lazy val createEndpointMapping: OBPEndpoint = {
+    lazy val createEndpointMapping: OBPEndpointFuture = {
       case "management" :: "endpoint-mappings" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           createEndpointMappingMethod(None, json, cc)
@@ -10593,7 +10593,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canUpdateEndpointMapping)))
 
-    lazy val updateEndpointMapping: OBPEndpoint = {
+    lazy val updateEndpointMapping: OBPEndpointFuture = {
       case "management" :: "endpoint-mappings" :: endpointMappingId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           updateEndpointMappingMethod(None, endpointMappingId, json, cc)
@@ -10639,7 +10639,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canGetEndpointMapping)))
 
-    lazy val getEndpointMapping: OBPEndpoint = {
+    lazy val getEndpointMapping: OBPEndpointFuture = {
       case "management" :: "endpoint-mappings" :: endpointMappingId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getEndpointMappingMethod(None, endpointMappingId, cc)
@@ -10675,7 +10675,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canGetAllEndpointMappings)))
 
-    lazy val getAllEndpointMappings: OBPEndpoint = {
+    lazy val getAllEndpointMappings: OBPEndpointFuture = {
       case "management" :: "endpoint-mappings" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getEndpointMappingsMethod(None, cc)
@@ -10711,7 +10711,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canDeleteEndpointMapping)))
 
-    lazy val deleteEndpointMapping: OBPEndpoint = {
+    lazy val deleteEndpointMapping: OBPEndpointFuture = {
       case "management" :: "endpoint-mappings" :: endpointMappingId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           deleteEndpointMappingMethod(None, endpointMappingId, cc)
@@ -10749,7 +10749,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canCreateBankLevelEndpointMapping, canCreateEndpointMapping)))
 
-    lazy val createBankLevelEndpointMapping: OBPEndpoint = {
+    lazy val createBankLevelEndpointMapping: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "endpoint-mappings" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           createEndpointMappingMethod(Some(bankId), json, cc)
@@ -10777,7 +10777,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canUpdateBankLevelEndpointMapping, canUpdateEndpointMapping)))
 
-    lazy val updateBankLevelEndpointMapping: OBPEndpoint = {
+    lazy val updateBankLevelEndpointMapping: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "endpoint-mappings" :: endpointMappingId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           updateEndpointMappingMethod(Some(bankId), endpointMappingId, json, cc)
@@ -10805,7 +10805,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canGetBankLevelEndpointMapping, canGetEndpointMapping)))
 
-    lazy val getBankLevelEndpointMapping: OBPEndpoint = {
+    lazy val getBankLevelEndpointMapping: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "endpoint-mappings" :: endpointMappingId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getEndpointMappingMethod(Some(bankId), endpointMappingId, cc)
@@ -10833,7 +10833,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canGetAllBankLevelEndpointMappings, canGetAllEndpointMappings)))
 
-    lazy val getAllBankLevelEndpointMappings: OBPEndpoint = {
+    lazy val getAllBankLevelEndpointMappings: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "endpoint-mappings" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           getEndpointMappingsMethod(Some(bankId), cc)
@@ -10861,7 +10861,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagEndpointMapping),
       Some(List(canDeleteBankLevelEndpointMapping, canDeleteEndpointMapping)))
 
-    lazy val deleteBankLevelEndpointMapping: OBPEndpoint = {
+    lazy val deleteBankLevelEndpointMapping: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "endpoint-mappings" :: endpointMappingId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           deleteEndpointMappingMethod(Some(bankId), endpointMappingId, cc)
@@ -10887,7 +10887,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM)
     )
     
-    lazy val updateAtmSupportedCurrencies : OBPEndpoint = {
+    lazy val updateAtmSupportedCurrencies : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: "supported-currencies" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10921,7 +10921,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM)
     )
     
-    lazy val updateAtmSupportedLanguages : OBPEndpoint = {
+    lazy val updateAtmSupportedLanguages : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: "supported-languages" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10955,7 +10955,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM)
     )
     
-    lazy val updateAtmAccessibilityFeatures : OBPEndpoint = {
+    lazy val updateAtmAccessibilityFeatures : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: "accessibility-features" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -10989,7 +10989,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM)
     )
     
-    lazy val updateAtmServices : OBPEndpoint = {
+    lazy val updateAtmServices : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: "services" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11023,7 +11023,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM)
     )
     
-    lazy val updateAtmNotes : OBPEndpoint = {
+    lazy val updateAtmNotes : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: "notes" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11057,7 +11057,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM)
     )
     
-    lazy val updateAtmLocationCategories : OBPEndpoint = {
+    lazy val updateAtmLocationCategories : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: "location-categories" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11090,7 +11090,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM),
       Some(List(canCreateAtm,canCreateAtmAtAnyBank))
     )
-    lazy val createAtm : OBPEndpoint = {
+    lazy val createAtm : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11129,7 +11129,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM),
       Some(List(canUpdateAtm, canUpdateAtmAtAnyBank))
     )
-    lazy val updateAtm : OBPEndpoint = {
+    lazy val updateAtm : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11165,7 +11165,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagATM),
       Some(List(canDeleteAtmAtAnyBank, canDeleteAtm))
     )
-    lazy val deleteAtm : OBPEndpoint = {
+    lazy val deleteAtm : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11205,7 +11205,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagATM)
     )
-    lazy val getAtms : OBPEndpoint = {
+    lazy val getAtms : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val limit = ObpS.param("limit")
@@ -11257,7 +11257,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagATM)
     )
-    lazy val getAtm : OBPEndpoint = {
+    lazy val getAtm : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11294,7 +11294,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canCreateSystemLevelEndpointTag)))
-    lazy val createSystemLevelEndpointTag: OBPEndpoint = {
+    lazy val createSystemLevelEndpointTag: OBPEndpointFuture = {
       case "management" :: "endpoints" :: operationId :: "tags" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11339,7 +11339,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canUpdateSystemLevelEndpointTag)))
-    lazy val updateSystemLevelEndpointTag: OBPEndpoint = {
+    lazy val updateSystemLevelEndpointTag: OBPEndpointFuture = {
       case "management" :: "endpoints" :: operationId :: "tags" :: endpointTagId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11379,7 +11379,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canGetSystemLevelEndpointTag)))
-    lazy val getSystemLevelEndpointTags: OBPEndpoint = {
+    lazy val getSystemLevelEndpointTags: OBPEndpointFuture = {
       case "management" :: "endpoints" :: operationId :: "tags" ::  Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11411,7 +11411,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canDeleteSystemLevelEndpointTag)))
-    lazy val deleteSystemLevelEndpointTag: OBPEndpoint = {
+    lazy val deleteSystemLevelEndpointTag: OBPEndpointFuture = {
       case "management" :: "endpoints" :: operationId :: "tags" :: endpointTagId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11448,7 +11448,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canCreateBankLevelEndpointTag)))
-    lazy val createBankLevelEndpointTag: OBPEndpoint = {
+    lazy val createBankLevelEndpointTag: OBPEndpointFuture = {
       case "management" :: "banks" :: bankId :: "endpoints" :: operationId :: "tags" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11495,7 +11495,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canUpdateBankLevelEndpointTag)))
-    lazy val updateBankLevelEndpointTag: OBPEndpoint = {
+    lazy val updateBankLevelEndpointTag: OBPEndpointFuture = {
       case "management":: "banks" :: bankId :: "endpoints" :: operationId :: "tags" :: endpointTagId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11537,7 +11537,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canGetBankLevelEndpointTag)))
-    lazy val getBankLevelEndpointTags: OBPEndpoint = {
+    lazy val getBankLevelEndpointTags: OBPEndpointFuture = {
       case "management":: "banks" :: bankId :: "endpoints" :: operationId :: "tags" ::  Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11571,7 +11571,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagApi),
       Some(List(canDeleteBankLevelEndpointTag)))
-    lazy val deleteBankLevelEndpointTag: OBPEndpoint = {
+    lazy val deleteBankLevelEndpointTag: OBPEndpointFuture = {
       case "management":: "banks" :: bankId :: "endpoints" :: operationId :: "tags" :: endpointTagId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11600,7 +11600,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagUser)
     )
-    lazy val getMySpaces: OBPEndpoint = {
+    lazy val getMySpaces: OBPEndpointFuture = {
       case "my" :: "spaces" ::  Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11648,7 +11648,7 @@ trait APIMethods400 extends MdcLoggable {
       ),
       List(apiTagProduct)
     )
-    lazy val getProducts : OBPEndpoint = {
+    lazy val getProducts : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: Nil JsonGet req => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -11703,7 +11703,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct),
       Some(List(canCreateProduct, canCreateProductAtAnyBank))
     )
-    lazy val createProduct: OBPEndpoint = {
+    lazy val createProduct: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: ProductCode(productCode) :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11773,7 +11773,7 @@ trait APIMethods400 extends MdcLoggable {
       List(apiTagProduct)
     )
 
-    lazy val getProduct: OBPEndpoint = {
+    lazy val getProduct: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: ProductCode(productCode) :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -11816,7 +11816,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateCustomerMessage))
     )
 
-    lazy val createCustomerMessage : OBPEndpoint = {
+    lazy val createCustomerMessage : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: customerId :: "messages" :: Nil JsonPost json -> _ => {
         cc =>{
           implicit val ec = EndpointContext(Some(cc))
@@ -11863,7 +11863,7 @@ trait APIMethods400 extends MdcLoggable {
      Some(List(canGetCustomerMessages)) 
     )
 
-    lazy val getCustomerMessages: OBPEndpoint = {
+    lazy val getCustomerMessages: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: customerId :: "messages" :: Nil JsonGet _ => {
         cc =>{
           implicit val ec = EndpointContext(Some(cc))
@@ -11939,7 +11939,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateSystemAccountNotificationWebhook))
     )
 
-    lazy val createSystemAccountNotificationWebhook : OBPEndpoint = {
+    lazy val createSystemAccountNotificationWebhook : OBPEndpointFuture = {
       case "web-hooks" ::"account" ::"notifications" ::"on-create-transaction" :: Nil JsonPost json -> _  => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -11996,7 +11996,7 @@ trait APIMethods400 extends MdcLoggable {
       Some(List(canCreateAccountNotificationWebhookAtOneBank))
     )
 
-    lazy val createBankAccountNotificationWebhook : OBPEndpoint = {
+    lazy val createBankAccountNotificationWebhook : OBPEndpointFuture = {
       case  "banks" :: BankId(bankId) :: "web-hooks" ::"account" ::"notifications" ::"on-create-transaction" :: Nil JsonPost json -> _  => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {

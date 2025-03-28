@@ -416,7 +416,7 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
     def resourceDocsRequireRole = APIUtil.getPropsAsBoolValue("resource_docs_requires_role", false)
     // Provides resource documents so that API Explorer (or other apps) can display API documentation
     // Note: description uses html markup because original markdown doesn't easily support "_" and there are multiple versions of markdown.
-    lazy val getResourceDocsObp : OBPEndpoint = {
+    lazy val getResourceDocsObp : OBPEndpointFuture = {
       case "resource-docs" :: requestedApiVersionString :: "obp" :: Nil JsonGet _ => {
         val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
         cc =>
@@ -440,16 +440,16 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
       Some(List(canReadResourceDoc))
     )
     
-    lazy val getResourceDocsObpV400Future : OBPEndpointFuture = {
-      case "resource-docs" :: requestedApiVersionString :: "obp-future" :: Nil JsonGet _ => {
-        val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
-        cc =>
-          implicit val ec = EndpointContext(Some(cc))
-          getApiLevelResourceDocs(cc,requestedApiVersionString, tags, partialFunctions, locale, contentParam, apiCollectionIdParam,true).map(_._1)
-      }
-    }
+//    lazy val getResourceDocsObpV400Future : OBPEndpointFutureFuture = {
+//      case "resource-docs" :: requestedApiVersionString :: "obp-future" :: Nil JsonGet _ => {
+//        val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
+//        cc =>
+//          implicit val ec = EndpointContext(Some(cc))
+//          getApiLevelResourceDocs(cc,requestedApiVersionString, tags, partialFunctions, locale, contentParam, apiCollectionIdParam,true).map(_._1)
+//      }
+//    }
     
-    lazy val getResourceDocsObpV400 : OBPEndpoint = {
+    lazy val getResourceDocsObpV400 : OBPEndpointFuture = {
       case "resource-docs" :: requestedApiVersionString :: "obp" :: Nil JsonGet _ => {
         val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
         cc =>
@@ -581,7 +581,7 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
 
     // Provides resource documents so that API Explorer (or other apps) can display API documentation
     // Note: description uses html markup because original markdown doesn't easily support "_" and there are multiple versions of markdown.
-    def getBankLevelDynamicResourceDocsObp : OBPEndpoint = {
+    def getBankLevelDynamicResourceDocsObp : OBPEndpointFuture = {
       case "banks" :: bankId :: "resource-docs" :: requestedApiVersionString :: "obp" :: Nil JsonGet _ => {
         val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
         cc =>
@@ -671,7 +671,7 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
     )
 
 
-    def getResourceDocsSwagger : OBPEndpoint = {
+    def getResourceDocsSwagger : OBPEndpointFuture = {
       case "resource-docs" :: requestedApiVersionString :: "swagger" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))

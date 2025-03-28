@@ -175,7 +175,7 @@ object APIMethods_AtmsApi extends RestHelper {
        ApiTag("ATM") :: apiTagMXOpenFinance :: Nil
      )
     
-     lazy val getMxAtms : OBPEndpoint = {
+     lazy val getMxAtms : OBPEndpointFuture = {
        case "atms" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -207,7 +207,7 @@ object APIMethods_AtmsApi extends RestHelper {
        ApiTag("ATM") :: apiTagMXOpenFinance :: Nil
      )
 
-     lazy val headMxAtms : OBPEndpoint = {
+     lazy val headMxAtms : OBPEndpointFuture = {
        case "atms" :: Nil JsonHead _ => {
          cc =>
            for {

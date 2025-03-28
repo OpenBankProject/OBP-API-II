@@ -128,7 +128,7 @@ trait APIMethods121 {
       List(UnknownError, "no connector set"),
       apiTagApi :: Nil)
 
-    lazy val root : OBPEndpoint = {
+    lazy val root : OBPEndpointFuture = {
       case (Nil | "root" :: Nil) JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -160,7 +160,7 @@ trait APIMethods121 {
       List(UnknownError),
       apiTagBank :: apiTagPsd2 :: apiTagOldStyle :: Nil)
 
-    lazy val getBanks : OBPEndpoint = {
+    lazy val getBanks : OBPEndpointFuture = {
       //get banks
       case "banks" :: Nil JsonGet req => {
         cc =>
@@ -171,10 +171,14 @@ trait APIMethods121 {
             val banks = new BanksJSON(banksJSON)
             Extraction.decompose(banks)
           }
-          for((banks, callContext)<- Connector.connector.vend.getBanksLegacy(Some(cc)))
-            yield(successJsonResponse(banksToJson(banks)))
-      }
-    }
+          val result = 
+            for((banks, callContext) 
+                  <- Connector.connector.vend.getBanksLegacy(Some(cc)))
+            yield {
+              banksToJson(banks)
+            }
+          Future{(result, HttpCode.`200`(cc.callContext))}
+      }}
 
 
     resourceDocs += ResourceDoc(
@@ -196,7 +200,7 @@ trait APIMethods121 {
       apiTagBank :: apiTagPsd2 :: apiTagOldStyle :: Nil)
 
 
-    lazy val bankById : OBPEndpoint = {
+    lazy val bankById : OBPEndpointFuture = {
       //get bank by id
       case "banks" :: BankId(bankId) :: Nil JsonGet req => {
         cc =>
@@ -204,8 +208,9 @@ trait APIMethods121 {
             val bankJSON = JSONFactory.createBankJSON(bank)
             Extraction.decompose(bankJSON)
           }
-          for((bank, callContext)<- BankX(bankId, Some(cc)) ?~! BankNotFound)
-          yield successJsonResponse(bankToJson(bank))
+          val result = for((bank, callContext)<- BankX(bankId, Some(cc)) ?~! BankNotFound)
+          yield bankToJson(bank)
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -228,17 +233,18 @@ trait APIMethods121 {
       apiTagAccount :: apiTagPsd2 :: apiTagOldStyle :: Nil)
 
     //TODO double check with `lazy val privateAccountsAllBanks :`, they are the same now.
-    lazy val getPrivateAccountsAllBanks : OBPEndpoint = {
+    lazy val getPrivateAccountsAllBanks : OBPEndpointFuture = {
       //get accounts for all banks (private + public)
       case "accounts" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~  UserNotLoggedIn
             (privateViewsUserCanAccess, privateAccountAccess) <- Full(Views.views.vend.privateViewsUserCanAccess(u))
             availablePrivateAccounts <- Full(BankAccountX.privateAccounts(privateAccountAccess))
           } yield {
-            successJsonResponse(privateBankAccountsListToJson(availablePrivateAccounts, privateViewsUserCanAccess))
+            privateBankAccountsListToJson(availablePrivateAccounts, privateViewsUserCanAccess)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -260,19 +266,21 @@ trait APIMethods121 {
       List(UserNotLoggedIn, UnknownError),
       apiTagAccount :: apiTagPsd2 :: apiTagOldStyle :: Nil)
 
-    lazy val privateAccountsAllBanks : OBPEndpoint = {
+    lazy val privateAccountsAllBanks : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: "private" :: Nil JsonGet req => {
         cc =>
-          for {
-            u <- cc.user ?~  UserNotLoggedIn
+          val result = for {
+            u <- cc.user ?~ UserNotLoggedIn
             (privateViewsUserCanAccess, privateAccountAccess) <- Full(Views.views.vend.privateViewsUserCanAccess(u))
             privateAccounts <- Full(BankAccountX.privateAccounts(privateAccountAccess))
           } yield {
-            successJsonResponse(privateBankAccountsListToJson(privateAccounts, privateViewsUserCanAccess))
+            privateBankAccountsListToJson(privateAccounts, privateViewsUserCanAccess)
           }
-      }
-    }
+          Future {
+            (result, HttpCode.`200`(cc.callContext))
+          }
+      }}
 
     resourceDocs += ResourceDoc(
       publicAccountsAllBanks,
@@ -292,17 +300,18 @@ trait APIMethods121 {
       List(UnknownError),
       apiTagAccount :: apiTagOldStyle :: Nil)
 
-    lazy val publicAccountsAllBanks : OBPEndpoint = {
+    lazy val publicAccountsAllBanks : OBPEndpointFuture = {
       //get public accounts for all banks
       case "accounts" :: "public" :: Nil JsonGet req => {
         cc =>
-          for{
+          val result = for{
             (publicViews, publicAccountAccess) <- Full(Views.views.vend.publicViews)
             publicAccounts <- Full(BankAccountX.publicAccounts(publicAccountAccess))
             publicAccountsJson <- Full(publicBankAccountsListToJson(publicAccounts, publicViews))
           } yield{
-            successJsonResponse(publicAccountsJson)
+            publicAccountsJson
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -324,18 +333,19 @@ trait APIMethods121 {
       List(UserNotLoggedIn, UnknownError, BankNotFound),
       apiTagAccount :: apiTagOldStyle :: Nil)
 
-    lazy val getPrivateAccountsAtOneBank : OBPEndpoint = {
+    lazy val getPrivateAccountsAtOneBank : OBPEndpointFuture = {
       //get accounts for a single bank (private + public)
       case "banks" :: BankId(bankId) :: "accounts" :: Nil JsonGet req => {
         cc =>
-          for{
+          val result = for{
             u <- cc.user ?~! ErrorMessages.UserNotLoggedIn
             (bank, callContext) <- BankX(bankId, Some(cc)) ?~! BankNotFound
           } yield {
             val (privateViewsUserCanAccessAtOneBank, privateAccountAccess) = Views.views.vend.privateViewsUserCanAccessAtBank(u, bankId)
             val availablePrivateAccounts = bank.privateAccounts(privateAccountAccess)
-            successJsonResponse(privateBankAccountsListToJson(availablePrivateAccounts, privateViewsUserCanAccessAtOneBank))
+            privateBankAccountsListToJson(availablePrivateAccounts, privateViewsUserCanAccessAtOneBank)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -357,18 +367,19 @@ trait APIMethods121 {
       List(UserNotLoggedIn, UnknownError, BankNotFound),
       List(apiTagAccount, apiTagPsd2, apiTagOldStyle))
 
-    lazy val privateAccountsAtOneBank : OBPEndpoint = {
+    lazy val privateAccountsAtOneBank : OBPEndpointFuture = {
       //get private accounts for a single bank
       case "banks" :: BankId(bankId) :: "accounts" :: "private" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~  UserNotLoggedIn
             (bank, callContext) <- BankX(bankId, Some(cc)) ?~! BankNotFound
           } yield {
             val (privateViewsUserCanAccessAtOneBank, privateAccountAccess) = Views.views.vend.privateViewsUserCanAccessAtBank(u, bankId)
             val availablePrivateAccounts = bank.privateAccounts(privateAccountAccess)
-            successJsonResponse(privateBankAccountsListToJson(availablePrivateAccounts, privateViewsUserCanAccessAtOneBank))
+            privateBankAccountsListToJson(availablePrivateAccounts, privateViewsUserCanAccessAtOneBank)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -389,18 +400,18 @@ trait APIMethods121 {
       List(UserNotLoggedIn, UnknownError, BankNotFound),
       apiTagAccountPublic :: apiTagAccount :: apiTagPublicData ::  apiTagOldStyle :: Nil)
 
-    lazy val publicAccountsAtOneBank : OBPEndpoint = {
+    lazy val publicAccountsAtOneBank : OBPEndpointFuture = {
       //get public accounts for a single bank
       case "banks" :: BankId(bankId) :: "accounts" :: "public" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             (bank, callContext) <- BankX(bankId, Some(cc)) ?~! BankNotFound
             (publicViewsForBank, publicAccountAccess) <- Full(Views.views.vend.publicViewsForBank(bank.bankId))
             publicAccounts<- Full(bank.publicAccounts(publicAccountAccess))
           } yield {
-            val publicAccountsJson = publicBankAccountsListToJson(publicAccounts, publicViewsForBank)
-            successJsonResponse(publicAccountsJson)
+            publicBankAccountsListToJson(publicAccounts, publicViewsForBank)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -432,11 +443,11 @@ trait APIMethods121 {
       List(UserNotLoggedIn, UnknownError, BankAccountNotFound),
       apiTagAccount ::  apiTagOldStyle :: Nil)
 
-    lazy val accountById : OBPEndpoint = {
+    lazy val accountById : OBPEndpointFuture = {
       //get account by id
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "account" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~  UserNotLoggedIn
             (account, callContext) <- BankAccountX(bankId, accountId, Some(cc)) ?~! BankAccountNotFound
             availableviews <- Full(Views.views.vend.privateViewsUserCanAccessForAccount(u, BankIdAccountId(account.bankId, account.accountId)))
@@ -444,9 +455,9 @@ trait APIMethods121 {
             moderatedAccount <- account.moderatedBankAccount(view, BankIdAccountId(bankId, accountId), cc.user, callContext)
           } yield {
             val viewsAvailable = availableviews.map(JSONFactory.createViewJSON)
-            val moderatedAccountJson = JSONFactory.createBankAccountJSON(moderatedAccount, viewsAvailable)
-            successJsonResponse(Extraction.decompose(moderatedAccountJson))
+            JSONFactory.createBankAccountJSON(moderatedAccount, viewsAvailable)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -469,7 +480,7 @@ trait APIMethods121 {
       List(apiTagAccount)
     )
 
-    lazy val updateAccountLabel : OBPEndpoint = {
+    lazy val updateAccountLabel : OBPEndpointFuture = {
       //change account label
       // TODO Remove BANK_ID AND ACCOUNT_ID from the body? (duplicated in URL)
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: Nil JsonPost json -> _ => {
@@ -533,11 +544,11 @@ trait APIMethods121 {
       List(UserNotLoggedIn, BankAccountNotFound, UnknownError, "user does not have owner access"),
       List(apiTagView, apiTagAccount, apiTagOldStyle))
 
-    lazy val getViewsForBankAccount : OBPEndpoint = {
+    lazy val getViewsForBankAccount : OBPEndpointFuture = {
       //get the available views on an bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "views" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~  UserNotLoggedIn
             bankAccount <- BankAccountX(bankId, accountId) ?~! BankAccountNotFound
             permission <- Views.views.vend.permission(BankIdAccountId(bankAccount.bankId, bankAccount.accountId), u)
@@ -548,9 +559,9 @@ trait APIMethods121 {
             )
             views <- Full(Views.views.vend.availableViewsForAccount(BankIdAccountId(bankAccount.bankId, bankAccount.accountId)))
           } yield {
-            val viewsJSON = JSONFactory.createViewsJSON(views)
-            successJsonResponse(Extraction.decompose(viewsJSON))
+            JSONFactory.createViewsJSON(views)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -586,11 +597,11 @@ trait APIMethods121 {
       List(apiTagAccount, apiTagView, apiTagOldStyle)
     )
 
-    lazy val createViewForBankAccount : OBPEndpoint = {
+    lazy val createViewForBankAccount : OBPEndpointFuture = {
       //creates a view on an bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "views" :: Nil JsonPost json -> _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~  UserNotLoggedIn
             createViewJsonV121 <- tryo{json.extract[CreateViewJsonV121]} ?~ InvalidJsonFormat
             //customer views are started ith `_`,eg _life, _work, and System views startWith letter, eg: owner
@@ -613,9 +624,9 @@ trait APIMethods121 {
             )
             view <- Views.views.vend.createCustomView(BankIdAccountId(bankId,accountId), createViewJson)?~ CreateCustomViewError
           } yield {
-            val viewJSON = JSONFactory.createViewJSON(view)
-            successJsonResponse(Extraction.decompose(viewJSON), 201)
+            JSONFactory.createViewJSON(view)
           }
+          Future{(result, HttpCode.`201`(cc.callContext))}
       }
     }
 
@@ -646,12 +657,12 @@ trait APIMethods121 {
     )
     
     //TODO. remove and replace it with V510.
-    lazy val updateViewForBankAccount: OBPEndpoint = {
+    lazy val updateViewForBankAccount: OBPEndpointFuture = {
       //updates a view on a bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId
       ) :: "views" :: ViewId(viewId) :: Nil JsonPut json -> _ => {
         cc =>
-          for {
+          val result = for {
             updateJsonV121 <- tryo{ json.extract[UpdateViewJsonV121] } ?~ InvalidJsonFormat
             account <- BankAccountX(bankId, accountId) ?~! BankAccountNotFound
             u <- cc.user ?~  UserNotLoggedIn
@@ -675,9 +686,9 @@ trait APIMethods121 {
             )
             updatedView <- Views.views.vend.updateCustomView(BankIdAccountId(bankId, accountId),viewId,  updateViewJson) ?~ CreateCustomViewError
           } yield {
-            val viewJSON = JSONFactory.createViewJSON(updatedView)
-            successJsonResponse(Extraction.decompose(viewJSON), 200)
+           JSONFactory.createViewJSON(updatedView)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
   
@@ -700,7 +711,7 @@ trait APIMethods121 {
       List(apiTagView, apiTagAccount)
     )
   
-    lazy val deleteViewForBankAccount: OBPEndpoint = {
+    lazy val deleteViewForBankAccount: OBPEndpointFuture = {
       //deletes a view on an bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId
       ) :: "views" :: ViewId(viewId) :: Nil JsonDelete req => {
@@ -745,11 +756,11 @@ trait APIMethods121 {
       List(apiTagView, apiTagAccount, apiTagEntitlement, apiTagOldStyle)
     )
   
-    lazy val getPermissionsForBankAccount: OBPEndpoint = {
+    lazy val getPermissionsForBankAccount: OBPEndpointFuture = {
       //get access
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "permissions" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~  UserNotLoggedIn
             account <- BankAccountX(bankId, accountId) ?~! BankAccountNotFound
             anyViewContainsCanSeeViewsWithPermissionsForAllUsersPermission = Views.views.vend.permission(BankIdAccountId(account.bankId, account.accountId), u)
@@ -760,9 +771,9 @@ trait APIMethods121 {
             )
             permissions = Views.views.vend.permissions(BankIdAccountId(bankId, accountId))
           } yield {
-            val permissionsJSON = JSONFactory.createPermissionsJSON(permissions)
-            successJsonResponse(Extraction.decompose(permissionsJSON))
+            JSONFactory.createPermissionsJSON(permissions)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
   
@@ -789,11 +800,11 @@ trait APIMethods121 {
     )
   
   
-    lazy val getPermissionForUserForBankAccount: OBPEndpoint = {
+    lazy val getPermissionForUserForBankAccount: OBPEndpointFuture = {
       //get access for specific user
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "permissions" :: provider :: providerId :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             loggedInUser <- cc.user ?~  UserNotLoggedIn
             account <- BankAccountX(bankId, accountId) ?~! BankAccountNotFound
             loggedInUserPermissionBox = Views.views.vend.permission(BankIdAccountId(bankId, accountId), loggedInUser)
@@ -806,9 +817,9 @@ trait APIMethods121 {
             userFromURL <- UserX.findByProviderId(provider, providerId) ?~! UserNotFoundByProviderAndProvideId
             permission <- Views.views.vend.permission(BankIdAccountId(bankId, accountId), userFromURL)
           } yield {
-            val views = JSONFactory.createViewsJSON(permission.views)
-            successJsonResponse(Extraction.decompose(views))
+            JSONFactory.createViewsJSON(permission.views)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
   
@@ -838,7 +849,7 @@ trait APIMethods121 {
       ),
       List(apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired))
 
-    lazy val addPermissionForUserForBankAccountForMultipleViews : OBPEndpoint = {
+    lazy val addPermissionForUserForBankAccountForMultipleViews : OBPEndpointFuture = {
       //add access for specific user to a list of views
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "permissions" :: provider :: providerId :: "views" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -887,7 +898,7 @@ trait APIMethods121 {
         ),
       List(apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired))
 
-    lazy val addPermissionForUserForBankAccountForOneView : OBPEndpoint = {
+    lazy val addPermissionForUserForBankAccountForOneView : OBPEndpointFuture = {
       //add access for specific user to a specific view
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "permissions" :: provider :: providerId :: "views" :: ViewId(viewId) :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -947,7 +958,7 @@ trait APIMethods121 {
       ),
       List(apiTagView, apiTagAccount, apiTagUser, apiTagEntitlement, apiTagOwnerRequired))
 
-    lazy val removePermissionForUserForBankAccountForOneView : OBPEndpoint = {
+    lazy val removePermissionForUserForBankAccountForOneView : OBPEndpointFuture = {
       //delete access for specific user to one view
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "permissions" :: provider :: providerId :: "views" :: ViewId(viewId) :: Nil JsonDelete req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -984,7 +995,7 @@ trait APIMethods121 {
         ),
       List(apiTagView, apiTagAccount, apiTagUser, apiTagOwnerRequired))
 
-    lazy val removePermissionForUserForBankAccountForAllViews : OBPEndpoint = {
+    lazy val removePermissionForUserForBankAccountForAllViews : OBPEndpointFuture = {
       //delete access for specific user to all the views
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "permissions" :: provider :: providerId :: "views" :: Nil JsonDelete req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1017,7 +1028,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterparty, apiTagAccount, apiTagPsd2, apiTagOldStyle))
 
-    lazy val getOtherAccountsForBankAccount : OBPEndpoint = {
+    lazy val getOtherAccountsForBankAccount : OBPEndpointFuture = {
       //get other accounts for one account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1046,7 +1057,7 @@ trait APIMethods121 {
       List(BankAccountNotFound, UnknownError),
       List(apiTagCounterparty, apiTagAccount))
 
-    lazy val getOtherAccountByIdForBankAccount : OBPEndpoint = {
+    lazy val getOtherAccountByIdForBankAccount : OBPEndpointFuture = {
       //get one other account by id
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1078,7 +1089,7 @@ trait APIMethods121 {
       List(UserNotLoggedIn, UnknownError, "the view does not allow metadata access"),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val getOtherAccountMetadata : OBPEndpoint = {
+    lazy val getOtherAccountMetadata : OBPEndpointFuture = {
       //get metadata of one other account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1117,7 +1128,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val getCounterpartyPublicAlias : OBPEndpoint = {
+    lazy val getCounterpartyPublicAlias : OBPEndpointFuture = {
       //get public alias of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1168,7 +1179,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addCounterpartyPublicAlias : OBPEndpoint = {
+    lazy val addCounterpartyPublicAlias : OBPEndpointFuture = {
       //add public alias to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1221,7 +1232,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyPublicAlias : OBPEndpoint = {
+    lazy val updateCounterpartyPublicAlias : OBPEndpointFuture = {
       //update public alias of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1272,7 +1283,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyPublicAlias : OBPEndpoint = {
+    lazy val deleteCounterpartyPublicAlias : OBPEndpointFuture = {
       //delete public alias of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "public_alias" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1320,7 +1331,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val getOtherAccountPrivateAlias : OBPEndpoint = {
+    lazy val getOtherAccountPrivateAlias : OBPEndpointFuture = {
       //get private alias of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1365,7 +1376,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addOtherAccountPrivateAlias : OBPEndpoint = {
+    lazy val addOtherAccountPrivateAlias : OBPEndpointFuture = {
       //add private alias to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1417,7 +1428,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyPrivateAlias : OBPEndpoint = {
+    lazy val updateCounterpartyPrivateAlias : OBPEndpointFuture = {
       //update private alias of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1468,7 +1479,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyPrivateAlias : OBPEndpoint = {
+    lazy val deleteCounterpartyPrivateAlias : OBPEndpointFuture = {
       //delete private alias of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "private_alias" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1517,7 +1528,7 @@ trait APIMethods121 {
       ),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addCounterpartyMoreInfo : OBPEndpoint = {
+    lazy val addCounterpartyMoreInfo : OBPEndpointFuture = {
       //add more info to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "more_info" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1566,7 +1577,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyMoreInfo : OBPEndpoint = {
+    lazy val updateCounterpartyMoreInfo : OBPEndpointFuture = {
       //update more info of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "more_info" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1614,7 +1625,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyMoreInfo : OBPEndpoint = {
+    lazy val deleteCounterpartyMoreInfo : OBPEndpointFuture = {
       //delete more info of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "more_info" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1663,7 +1674,7 @@ trait APIMethods121 {
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
 
-    lazy val addCounterpartyUrl : OBPEndpoint = {
+    lazy val addCounterpartyUrl : OBPEndpointFuture = {
       //add url to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "url" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1712,7 +1723,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyUrl : OBPEndpoint = {
+    lazy val updateCounterpartyUrl : OBPEndpointFuture = {
       //update url of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "url" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1760,7 +1771,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyUrl : OBPEndpoint = {
+    lazy val deleteCounterpartyUrl : OBPEndpointFuture = {
       //delete url of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "url" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1808,7 +1819,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addCounterpartyImageUrl : OBPEndpoint = {
+    lazy val addCounterpartyImageUrl : OBPEndpointFuture = {
       //add image url to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "image_url" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1856,7 +1867,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyImageUrl : OBPEndpoint = {
+    lazy val updateCounterpartyImageUrl : OBPEndpointFuture = {
       //update image url of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "image_url" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1898,7 +1909,7 @@ trait APIMethods121 {
       List(UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty)) // Tag general then specific for consistent sorting
 
-    lazy val deleteCounterpartyImageUrl : OBPEndpoint = {
+    lazy val deleteCounterpartyImageUrl : OBPEndpointFuture = {
       //delete image url of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "image_url" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1945,7 +1956,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addCounterpartyOpenCorporatesUrl : OBPEndpoint = {
+    lazy val addCounterpartyOpenCorporatesUrl : OBPEndpointFuture = {
       //add open corporate url to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "open_corporates_url" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1994,7 +2005,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyOpenCorporatesUrl : OBPEndpoint = {
+    lazy val updateCounterpartyOpenCorporatesUrl : OBPEndpointFuture = {
       //update open corporate url of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "open_corporates_url" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2042,7 +2053,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyOpenCorporatesUrl : OBPEndpoint = {
+    lazy val deleteCounterpartyOpenCorporatesUrl : OBPEndpointFuture = {
       //delete open corporate url of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "open_corporates_url" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2090,7 +2101,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addCounterpartyCorporateLocation : OBPEndpoint = {
+    lazy val addCounterpartyCorporateLocation : OBPEndpointFuture = {
       //add corporate location to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts" :: other_account_id :: "metadata" :: "corporate_location" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2145,7 +2156,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyCorporateLocation : OBPEndpoint = {
+    lazy val updateCounterpartyCorporateLocation : OBPEndpointFuture = {
       //update corporate location of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "corporate_location" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2196,7 +2207,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyCorporateLocation : OBPEndpoint = {
+    lazy val deleteCounterpartyCorporateLocation : OBPEndpointFuture = {
       //delete corporate location of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "corporate_location" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2247,7 +2258,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val addCounterpartyPhysicalLocation : OBPEndpoint = {
+    lazy val addCounterpartyPhysicalLocation : OBPEndpointFuture = {
       //add physical location to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts" :: other_account_id :: "metadata" :: "physical_location" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2302,7 +2313,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val updateCounterpartyPhysicalLocation : OBPEndpoint = {
+    lazy val updateCounterpartyPhysicalLocation : OBPEndpointFuture = {
       //update physical location to other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "physical_location" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2353,7 +2364,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagCounterpartyMetaData, apiTagCounterparty))
 
-    lazy val deleteCounterpartyPhysicalLocation : OBPEndpoint = {
+    lazy val deleteCounterpartyPhysicalLocation : OBPEndpointFuture = {
       //delete physical location of other bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "other_accounts":: other_account_id :: "metadata" :: "physical_location" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2433,17 +2444,19 @@ trait APIMethods121 {
       }
     }
   
-    lazy val getTransactionsForBankAccount : OBPEndpoint =  {
+    lazy val getTransactionsForBankAccount : OBPEndpointFuture =  {
       //get transactions
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: Nil JsonGet req => {
         val paramsBox: Box[List[OBPQueryParam]] = createQueriesByHttpParams(req.request.headers)
-        cc => getTransactionsForBankAccountCached(
+        cc => 
+          val result = getTransactionsForBankAccountCached(
           paramsBox:  Box[List[OBPQueryParam]],
           cc.user: Box[User],
           accountId: AccountId,
           bankId: BankId,
           viewId : ViewId
         )
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -2466,18 +2479,18 @@ trait APIMethods121 {
       List(BankAccountNotFound, UnknownError),
       List(apiTagTransaction, apiTagPsd2, apiTagOldStyle))
 
-    lazy val getTransactionByIdForBankAccount : OBPEndpoint = {
+    lazy val getTransactionByIdForBankAccount : OBPEndpointFuture = {
       //get transaction by id
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "transaction" :: Nil JsonGet req => {
         cc =>
-          for {
+          val result = for {
             (account, callContext) <- BankAccountX(bankId, accountId, Some(cc)) ?~! BankAccountNotFound
             view <- APIUtil.checkViewAccessAndReturnView(viewId, BankIdAccountId(account.bankId, account.accountId), cc.user, None)
             (moderatedTransaction, callContext) <- account.moderatedTransaction(transactionId, view, BankIdAccountId(bankId,accountId), cc.user, Some(cc))
           } yield {
-            val json = JSONFactory.createTransactionJSON(moderatedTransaction)
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory.createTransactionJSON(moderatedTransaction)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -2500,7 +2513,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val getTransactionNarrative : OBPEndpoint = {
+    lazy val getTransactionNarrative : OBPEndpointFuture = {
       //get narrative
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "narrative" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2542,7 +2555,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val addTransactionNarrative : OBPEndpoint = {
+    lazy val addTransactionNarrative : OBPEndpointFuture = {
       //add narrative
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "narrative" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2580,7 +2593,7 @@ trait APIMethods121 {
            UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val updateTransactionNarrative : OBPEndpoint = {
+    lazy val updateTransactionNarrative : OBPEndpointFuture = {
       //update narrative
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "narrative" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2618,7 +2631,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val deleteTransactionNarrative : OBPEndpoint = {
+    lazy val deleteTransactionNarrative : OBPEndpointFuture = {
       //delete narrative
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "narrative" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2656,7 +2669,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val getCommentsForViewOnTransaction : OBPEndpoint = {
+    lazy val getCommentsForViewOnTransaction : OBPEndpointFuture = {
       //get comments
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "comments" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2696,7 +2709,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val addCommentForViewOnTransaction : OBPEndpoint = {
+    lazy val addCommentForViewOnTransaction : OBPEndpointFuture = {
       //add comment
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "comments" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2739,7 +2752,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val deleteCommentForViewOnTransaction : OBPEndpoint = {
+    lazy val deleteCommentForViewOnTransaction : OBPEndpointFuture = {
       //delete comment
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "comments":: commentId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2777,7 +2790,7 @@ trait APIMethods121 {
       ),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val getTagsForViewOnTransaction : OBPEndpoint = {
+    lazy val getTagsForViewOnTransaction : OBPEndpointFuture = {
       //get tags
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "tags" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2817,7 +2830,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val addTagForViewOnTransaction : OBPEndpoint = {
+    lazy val addTagForViewOnTransaction : OBPEndpointFuture = {
       //add a tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "tags" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2858,7 +2871,7 @@ trait APIMethods121 {
            UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val deleteTagForViewOnTransaction : OBPEndpoint = {
+    lazy val deleteTagForViewOnTransaction : OBPEndpointFuture = {
       //delete a tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "tags" :: tagId :: Nil JsonDelete _ => {
 
@@ -2897,7 +2910,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val getImagesForViewOnTransaction : OBPEndpoint = {
+    lazy val getImagesForViewOnTransaction : OBPEndpointFuture = {
       //get images
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "images" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2938,7 +2951,7 @@ trait APIMethods121 {
       List(apiTagTransactionMetaData, apiTagTransaction)
     )
 
-    lazy val addImageForViewOnTransaction : OBPEndpoint = {
+    lazy val addImageForViewOnTransaction : OBPEndpointFuture = {
       //add an image
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "images" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2983,7 +2996,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val deleteImageForViewOnTransaction : OBPEndpoint = {
+    lazy val deleteImageForViewOnTransaction : OBPEndpointFuture = {
       //delete an image
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "images" :: imageId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3021,7 +3034,7 @@ trait APIMethods121 {
            UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val getWhereTagForViewOnTransaction : OBPEndpoint = {
+    lazy val getWhereTagForViewOnTransaction : OBPEndpointFuture = {
       //get where tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "where" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3063,7 +3076,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val addWhereTagForViewOnTransaction : OBPEndpoint = {
+    lazy val addWhereTagForViewOnTransaction : OBPEndpointFuture = {
       //add where tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "where" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3109,7 +3122,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val updateWhereTagForViewOnTransaction : OBPEndpoint = {
+    lazy val updateWhereTagForViewOnTransaction : OBPEndpointFuture = {
       //update where tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "where" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3156,7 +3169,7 @@ trait APIMethods121 {
         UnknownError),
       List(apiTagTransactionMetaData, apiTagTransaction))
 
-    lazy val deleteWhereTagForViewOnTransaction : OBPEndpoint = {
+    lazy val deleteWhereTagForViewOnTransaction : OBPEndpointFuture = {
       //delete where tag
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions" :: TransactionId(transactionId) :: "metadata" :: "where" :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -3190,7 +3203,7 @@ trait APIMethods121 {
       List(BankAccountNotFound, UnknownError),
       List(apiTagTransaction, apiTagCounterparty))
 
-    lazy val getOtherAccountForTransaction : OBPEndpoint = {
+    lazy val getOtherAccountForTransaction : OBPEndpointFuture = {
       //get other account of a transaction
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transactions":: TransactionId(transactionId) :: "other_account" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))

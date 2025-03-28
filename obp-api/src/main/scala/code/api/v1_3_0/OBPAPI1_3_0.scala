@@ -1,7 +1,7 @@
 //package code.api.v1_3_0
 //
 //import code.api.OBPRestHelper
-//import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+//import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 //import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 //import code.api.util.VersionedOBPApis
 //import code.api.v1_2_1.APIMethods121
@@ -102,7 +102,7 @@
 //      Implementations1_2_1.resourceDocs
 //
 //  // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-//  val routes : List[OBPEndpoint] =
+//  val routes : List[OBPEndpointFuture] =
 //      getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs) :::
 //      getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs)
 //

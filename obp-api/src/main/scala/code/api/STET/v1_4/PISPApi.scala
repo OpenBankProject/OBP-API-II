@@ -69,7 +69,7 @@ In REDIRECT and DECOUPLED approach, this confirmation is not a prerequisite to t
        ApiTag("PISP") :: apiTagMockedData :: Nil
      )
 
-     lazy val paymentRequestConfirmationPost : OBPEndpoint = {
+     lazy val paymentRequestConfirmationPost : OBPEndpointFuture = {
        case "payment-requests" :: paymentrequestresourceid:: "confirmation" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -219,7 +219,7 @@ Since the modification request needs a PSU authentication before committing, the
        ApiTag("PISP") :: apiTagMockedData :: Nil
      )
 
-     lazy val paymentRequestPut : OBPEndpoint = {
+     lazy val paymentRequestPut : OBPEndpointFuture = {
        case "payment-requests" :: paymentrequestresourceid :: Nil JsonPut _ => {
          cc =>
            for {
@@ -284,7 +284,7 @@ The status information must be available during at least 30 calendar days after 
        ApiTag("PISP") :: apiTagMockedData :: Nil
      )
 
-     lazy val paymentRequestsGet : OBPEndpoint = {
+     lazy val paymentRequestsGet : OBPEndpointFuture = {
        case "payment-requests" :: paymentrequestresourceid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -526,7 +526,7 @@ When the chosen authentication approach within the ASPSP answers is set to "EMBE
        ApiTag("PISP") :: apiTagMockedData :: Nil
      )
 
-     lazy val paymentRequestsPost : OBPEndpoint = {
+     lazy val paymentRequestsPost : OBPEndpointFuture = {
        case "payment-requests" :: Nil JsonPost _ => {
          cc =>
            for {

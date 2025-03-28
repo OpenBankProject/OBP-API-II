@@ -63,7 +63,7 @@ object APIMethods_DomesticPaymentsConsentsApi extends RestHelper {
        ApiTag("Domestic Payments Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticPaymentConsentsConsentIdFundsConfirmationGet : OBPEndpoint = {
+     lazy val domesticPaymentConsentsConsentIdFundsConfirmationGet : OBPEndpointFuture = {
        case "domestic-payment-consents" :: consentId:: "funds-confirmation" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -202,7 +202,7 @@ object APIMethods_DomesticPaymentsConsentsApi extends RestHelper {
        ApiTag("Domestic Payments Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticPaymentConsentsConsentIdGet : OBPEndpoint = {
+     lazy val domesticPaymentConsentsConsentIdGet : OBPEndpointFuture = {
        case "domestic-payment-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -472,7 +472,7 @@ object APIMethods_DomesticPaymentsConsentsApi extends RestHelper {
        ApiTag("Domestic Payments Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticPaymentConsentsPost : OBPEndpoint = {
+     lazy val domesticPaymentConsentsPost : OBPEndpointFuture = {
        case "domestic-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {

@@ -97,7 +97,7 @@ object APIMethods_ScheduledPaymentsApi extends RestHelper {
        ApiTag("Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccountsAccountIdScheduledPayments : OBPEndpoint = {
+     lazy val getAccountsAccountIdScheduledPayments : OBPEndpointFuture = {
        case "accounts" :: accountid:: "scheduled-payments" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -233,7 +233,7 @@ object APIMethods_ScheduledPaymentsApi extends RestHelper {
        ApiTag("Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getScheduledPayments : OBPEndpoint = {
+     lazy val getScheduledPayments : OBPEndpointFuture = {
        case "scheduled-payments" :: Nil JsonGet _ => {
          cc =>
            for {

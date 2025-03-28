@@ -136,7 +136,7 @@ As a last option, an ASPSP might in addition accept a command with access rights
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val createConsent : OBPEndpoint = {
+     lazy val createConsent : OBPEndpointFuture = {
        case "consents" :: Nil JsonPost json -> _  =>  {
          cc =>
            for {
@@ -226,7 +226,7 @@ As a last option, an ASPSP might in addition accept a command with access rights
        ApiTag("Account Information Service (AIS)")   :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val deleteConsent : OBPEndpoint = {
+     lazy val deleteConsent : OBPEndpointFuture = {
        case "consents" :: consentId :: Nil JsonDelete _ => {
          cc =>
            for {
@@ -304,7 +304,7 @@ of the PSU at this ASPSP.
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getAccountList : OBPEndpoint = {
+     lazy val getAccountList : OBPEndpointFuture = {
        case "accounts" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -362,7 +362,7 @@ The account-id is constant at least throughout the lifecycle of a given consent.
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getBalances : OBPEndpoint = {
+     lazy val getBalances : OBPEndpointFuture = {
        case "accounts" :: AccountId(accountId):: "balances" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -416,7 +416,7 @@ respectively the OAuth2 access token.
        ApiTag("Account Information Service (AIS)")  :: apiTagMockedData :: Nil
      )
 
-     lazy val getCardAccounts : OBPEndpoint = {
+     lazy val getCardAccounts : OBPEndpointFuture = {
        case "card-accounts" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -477,7 +477,7 @@ This account-id then can be retrieved by the
        ApiTag("Account Information Service (AIS)")  :: Nil
      )
 
-     lazy val getCardAccountBalances : OBPEndpoint = {
+     lazy val getCardAccountBalances : OBPEndpointFuture = {
        case "card-accounts" :: accountId :: "balances" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -564,7 +564,7 @@ Reads account data from a given card account addressed by "account-id".
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM ::Nil
      )
 
-     lazy val getCardAccountTransactionList : OBPEndpoint = {
+     lazy val getCardAccountTransactionList : OBPEndpointFuture = {
        case "card-accounts" :: AccountId(accountId):: "transactions" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -610,7 +610,7 @@ This function returns an array of hyperlinks to all generated authorisation sub-
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getConsentAuthorisation : OBPEndpoint = {
+     lazy val getConsentAuthorisation : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -668,7 +668,7 @@ where the consent was directly managed between ASPSP and PSU e.g. in a re-direct
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getConsentInformation : OBPEndpoint = {
+     lazy val getConsentInformation : OBPEndpointFuture = {
        case "consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -714,7 +714,7 @@ This method returns the SCA status of a consent initiation's authorisation sub-r
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getConsentScaStatus : OBPEndpoint = {
+     lazy val getConsentScaStatus : OBPEndpointFuture = {
        case "consents" :: consentId:: "authorisations" :: authorisationId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -749,7 +749,7 @@ This method returns the SCA status of a consent initiation's authorisation sub-r
        ApiTag("Account Information Service (AIS)")   :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getConsentStatus : OBPEndpoint = {
+     lazy val getConsentStatus : OBPEndpointFuture = {
        case "consents" :: consentId:: "status" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -808,7 +808,7 @@ of the "Read Transaction List" call within the _links subfield.
        ApiTag("Account Information Service (AIS)")  :: Nil
      )
 
-     lazy val getTransactionDetails : OBPEndpoint = {
+     lazy val getTransactionDetails : OBPEndpointFuture = {
        case "accounts" :: accountId :: "transactions" :: transactionId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -900,7 +900,7 @@ The ASPSP might add balance information, if transaction lists without balances a
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getTransactionList : OBPEndpoint = {
+     lazy val getTransactionList : OBPEndpointFuture = {
        case "accounts" :: AccountId(accountId):: "transactions" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -965,7 +965,7 @@ Give detailed information about the addressed account together with balance info
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val readAccountDetails : OBPEndpoint = {
+     lazy val readAccountDetails : OBPEndpointFuture = {
        case "accounts" :: accountId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -1019,7 +1019,7 @@ respectively the OAuth2 access token.
        ApiTag("Account Information Service (AIS)") :: Nil
      )
 
-     lazy val readCardAccount : OBPEndpoint = {
+     lazy val readCardAccount : OBPEndpointFuture = {
        case "card-accounts" :: accountId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -1085,7 +1085,7 @@ using the extended forms as indicated above.
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val startConsentAuthorisationTransactionAuthorisation : OBPEndpoint = {
+     lazy val startConsentAuthorisationTransactionAuthorisation : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: Nil JsonPost json -> _ if checkTransactionAuthorisation(json)=> {
          cc =>
            for {
@@ -1140,7 +1140,7 @@ using the extended forms as indicated above.
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val startConsentAuthorisationUpdatePsuAuthentication : OBPEndpoint = {
+     lazy val startConsentAuthorisationUpdatePsuAuthentication : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: Nil JsonPost json -> _ if checkUpdatePsuAuthentication(json)=> {
          cc =>
            for {
@@ -1182,7 +1182,7 @@ using the extended forms as indicated above.
        ApiTag("Account Information Service (AIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val startConsentAuthorisationSelectPsuAuthenticationMethod : OBPEndpoint = {
+     lazy val startConsentAuthorisationSelectPsuAuthenticationMethod : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: Nil JsonPost json -> _ if checkSelectPsuAuthenticationMethod(json)=> {
          cc =>
            for {
@@ -1248,7 +1248,7 @@ Maybe in a later version the access path will change.
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updateConsentsPsuDataTransactionAuthorisation : OBPEndpoint = {
+     lazy val updateConsentsPsuDataTransactionAuthorisation : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: authorisationId :: Nil JsonPut jsonPut -> _ if checkTransactionAuthorisation(jsonPut) => {
          cc =>
            for {
@@ -1317,7 +1317,7 @@ Maybe in a later version the access path will change.
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updateConsentsPsuDataUpdatePsuAuthentication : OBPEndpoint = {
+     lazy val updateConsentsPsuDataUpdatePsuAuthentication : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: authorisationId :: Nil JsonPut jsonPut -> _ if checkUpdatePsuAuthentication(jsonPut) => {
          cc =>
            for {
@@ -1362,7 +1362,7 @@ Maybe in a later version the access path will change.
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod : OBPEndpoint = {
+     lazy val updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: authorisationId :: Nil JsonPut jsonPut -> _ if checkSelectPsuAuthenticationMethod(jsonPut) => {
          cc =>
            for {
@@ -1405,7 +1405,7 @@ Maybe in a later version the access path will change.
        ApiTag("Account Information Service (AIS)")  :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updateConsentsPsuDataUpdateAuthorisationConfirmation : OBPEndpoint = {
+     lazy val updateConsentsPsuDataUpdateAuthorisationConfirmation : OBPEndpointFuture = {
        case "consents" :: consentId :: "authorisations" :: authorisationId :: Nil JsonPut jsonPut -> _ if checkAuthorisationConfirmation(jsonPut) => {
          cc =>
            for {

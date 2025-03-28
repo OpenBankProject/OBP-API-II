@@ -1,10 +1,10 @@
 package code.bankconnectors
 
 import code.api.APIFailureNewStyle
-import code.api.util.APIUtil.{OBPEndpoint, _}
+import code.api.util.APIUtil.{OBPEndpointFuture, _}
 import code.api.util.NewStyle.HttpCode
 import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle, OBPQueryParam}
-import code.api.v3_1_0.OBPAPI3_1_0.oauthServe
+
 import code.bankconnectors.ConnectorEndpoints.getMethod
 import code.bankconnectors.rest.RestConnector_vMar2019
 import code.util.Helper
@@ -28,9 +28,9 @@ import scala.reflect.runtime.{universe => ru}
 
 object ConnectorEndpoints extends RestHelper{
 
-  def registerConnectorEndpoints = {
-    oauthServe(connectorEndpoints)
-  }
+//  def registerConnectorEndpoints = {
+//    oauthServe(connectorEndpoints)
+//  }
 
   /**
    * extract request body, no matter GET, POST, PUT or DELETE method
@@ -42,7 +42,7 @@ object ConnectorEndpoints extends RestHelper{
       else None
   }
 
-  lazy val connectorEndpoints: OBPEndpoint = {
+  lazy val connectorEndpoints: OBPEndpointFuture = {
     case "connector" :: methodName :: Nil JsonAny json -> req if(hashMethod(methodName, json))  => {
       cc => {
         for {

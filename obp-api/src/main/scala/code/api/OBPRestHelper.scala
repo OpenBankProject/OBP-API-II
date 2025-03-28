@@ -224,12 +224,12 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
   val versionStatus : String // TODO this should be property of ApiVersion
   //def vDottedVersion = vDottedApiVersion(version)
 
-  def apiPrefix: OBPEndpoint => OBPEndpoint = version match {
-    case ScannedApiVersion(urlPrefix, _, _) =>
-      (urlPrefix / version.vDottedApiVersion).oPrefix(_)
-    case _ =>
-      (ApiPathZero / version.vDottedApiVersion).oPrefix(_)
-  }
+//  def apiPrefix: OBPEndpointFuture => OBPEndpointFuture = version match {
+//    case ScannedApiVersion(urlPrefix, _, _) =>
+//      (urlPrefix / version.vDottedApiVersion).oPrefix(_)
+//    case _ =>
+//      (ApiPathZero / version.vDottedApiVersion).oPrefix(_)
+//  }
 
   /*
   An implicit function to convert magically between a Boxed JsonResponse and a JsonResponse
@@ -286,18 +286,18 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
 
 
    */
-  def failIfBadJSON(r: Req, h: (OBPEndpoint)): CallContext => Box[JsonResponse] = {
-    // Check if the content-type is text/json or application/json
-    r.json_? match {
-      case true =>
-        //logger.debug("failIfBadJSON says: Cool, content-type is json")
-        r.json match {
-          case Failure(msg, _, _) => (x: CallContext) => Full(errorJsonResponse(ErrorMessages.InvalidJsonFormat + s"$msg"))
-          case _ => h(r)
-        }
-      case false => h(r)
-    }
-  }
+//  def failIfBadJSON(r: Req, h: (OBPEndpointFuture)): CallContext => Box[JsonResponse] = {
+//    // Check if the content-type is text/json or application/json
+//    r.json_? match {
+//      case true =>
+//        //logger.debug("failIfBadJSON says: Cool, content-type is json")
+//        r.json match {
+//          case Failure(msg, _, _) => (x: CallContext) => Full(errorJsonResponse(ErrorMessages.InvalidJsonFormat + s"$msg"))
+//          case _ => h(r, None)
+//        }
+//      case false => h(r)
+//    }
+//  }
 
 
   /**
@@ -507,40 +507,40 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
     }
   }
 
-  class RichStringList(list: List[String]) {
-    val listLen = list.length
-
+//  class RichStringList(list: List[String]) {
+//    val listLen = list.length
+//
     /**
      * Normally we would use ListServeMagic's prefix function, but it works with PartialFunction[Req, () => Box[LiftResponse]]
      * instead of the PartialFunction[Req, Box[User] => Box[JsonResponse]] that we need. This function does the same thing, really.
      */
-    def oPrefix(pf: OBPEndpoint): OBPEndpoint =
-      new OBPEndpoint {
-        def isDefinedAt(req: Req): Boolean =
-          req.path.partPath.startsWith(list) && {
-            pf.isDefinedAt(req.withNewPath(req.path.drop(listLen)))
-          }
-
-        def apply(req: Req): CallContext => Box[JsonResponse] = {
-          val function: CallContext => Box[JsonResponse] = pf.apply(req.withNewPath(req.path.drop(listLen)))
-
-          callContext: CallContext => {
-            // set endpoint apiVersion
-            ApiVersionHolder.setApiVersion(version)
-            val value = function(callContext)
-            ApiVersionHolder.removeApiVersion()
-            value match {
-              case Failure(_, Full(JsonResponseException(jsonResponse)), _) =>
-                Full(jsonResponse)
-              case v => v
-            }
-          }
-        }
-      }
-  }
+//    def oPrefix(pf: OBPEndpointFuture): OBPEndpointFuture =
+//      new OBPEndpointFuture {
+//        def isDefinedAt(req: Req): Boolean =
+//          req.path.partPath.startsWith(list) && {
+//            pf.isDefinedAt(req.withNewPath(req.path.drop(listLen)))
+//          }
+//
+//        def apply(req: Req): CallContext => Box[JsonResponse] = {
+//          val function: CallContext => Box[JsonResponse] = pf.apply(req.withNewPath(req.path.drop(listLen)))
+//
+//          callContext: CallContext => {
+//            // set endpoint apiVersion
+//            ApiVersionHolder.setApiVersion(version)
+//            val value = function(callContext)
+//            ApiVersionHolder.removeApiVersion()
+//            value match {
+//              case Failure(_, Full(JsonResponseException(jsonResponse)), _) =>
+//                Full(jsonResponse)
+//              case v => v
+//            }
+//          }
+//        }
+//      }
+//  }
 
   //Give all lists of strings in OBPRestHelpers the oPrefix method
-  implicit def stringListToRichStringList(list : List[String]) : RichStringList = new RichStringList(list)
+//  implicit def stringListToRichStringList(list : List[String]) : RichStringList = new RichStringList(list)
 
   /*
   oauthServe wraps many get calls and probably all calls that post (and put and delete) json data.
@@ -553,39 +553,39 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
   TODO: should this be moved to def serve() further down?
    */
 
-  def oauthServe(handler: PartialFunction[Req, CallContext => Box[JsonResponse]], rd: Option[ResourceDoc] = None): Unit = {
-    val obpHandler : PartialFunction[Req, () => Box[LiftResponse]] = {
-      new PartialFunction[Req, () => Box[LiftResponse]] {
-        def apply(r : Req): () => Box[LiftResponse] = {
-          //check (in that order):
-          //if request is correct json
-          //if request matches PartialFunction cases for each defined url
-          //if request has correct oauth headers
-          val startTime = Helpers.now
-          val response = failIfBadAuthorizationHeader(rd) {
-            failIfBadJSON(r, handler)
-          }
-          val endTime = Helpers.now
-          WriteMetricUtil.writeEndpointMetric(startTime, endTime.getTime - startTime.getTime, rd)
-          response
-        }
-        def isDefinedAt(r : Req) = {
-          //if the content-type is json and json parsing failed, simply accept call but then fail in apply() before
-          //the url cases don't match because json failed
-          r.json_? match {
-            case true =>
-              //Try to evaluate the json
-              r.json match {
-                case Failure(msg, _, _) => true
-                case _ => handler.isDefinedAt(r)
-              }
-            case false => handler.isDefinedAt(r)
-          }
-        }
-      }
-    }
-    serve(obpHandler)
-  }
+//  def oauthServe(handler: PartialFunction[Req, CallContext => Box[JsonResponse]], rd: Option[ResourceDoc] = None): Unit = {
+//    val obpHandler : PartialFunction[Req, () => Box[LiftResponse]] = {
+//      new PartialFunction[Req, () => Box[LiftResponse]] {
+//        def apply(r : Req): () => Box[LiftResponse] = {
+//          //check (in that order):
+//          //if request is correct json
+//          //if request matches PartialFunction cases for each defined url
+//          //if request has correct oauth headers
+//          val startTime = Helpers.now
+//          val response = failIfBadAuthorizationHeader(rd) {
+//            failIfBadJSON(r, handler)
+//          }
+//          val endTime = Helpers.now
+//          WriteMetricUtil.writeEndpointMetric(startTime, endTime.getTime - startTime.getTime, rd)
+//          response
+//        }
+//        def isDefinedAt(r : Req) = {
+//          //if the content-type is json and json parsing failed, simply accept call but then fail in apply() before
+//          //the url cases don't match because json failed
+//          r.json_? match {
+//            case true =>
+//              //Try to evaluate the json
+//              r.json match {
+//                case Failure(msg, _, _) => true
+//                case _ => handler.isDefinedAt(r)
+//              }
+//            case false => handler.isDefinedAt(r)
+//          }
+//        }
+//      }
+//    }
+//    serve(obpHandler)
+//  }
 
   override protected def serve(handler: PartialFunction[Req, () => Box[LiftResponse]]) : Unit = {
     val obpHandler : PartialFunction[Req, () => Box[LiftResponse]] = {
@@ -610,8 +610,8 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
    * @param obj APIMethodsxxx instance
    * @return all collect endpoints
    */
-  protected def getEndpoints(obj: AnyRef): Set[OBPEndpoint] = {
-    ReflectUtils.getFieldsNameToValue[OBPEndpoint](obj)
+  protected def getEndpoints(obj: AnyRef): Set[OBPEndpointFuture] = {
+    ReflectUtils.getFieldsNameToValue[OBPEndpointFuture](obj)
       .values
       .toSet
   }
@@ -642,34 +642,34 @@ trait OBPRestHelper extends RestHelper with MdcLoggable {
     result
   }
 
-  protected def registerRoutes(routes: List[OBPEndpoint],
-                               allResourceDocs: ArrayBuffer[ResourceDoc],
-                               apiPrefix:OBPEndpoint => OBPEndpoint,
-                               autoValidateAll: Boolean = false): Unit = {
-
-    def isAutoValidate(doc: ResourceDoc): Boolean = {                         //note: only support v5.1.0,  v5.0.0 and v4.0.0 at the moment.
-      doc.isValidateEnabled || (autoValidateAll && !doc.isValidateDisabled && List(OBPAPI5_1_0.version,OBPAPI5_0_0.version,OBPAPI4_0_0.version).contains(doc.implementedInApiVersion))
-    }
-
-    for(route <- routes) {
-      // one endpoint can have multiple ResourceDocs, so here use filter instead of find, e.g APIMethods400.Implementations400.createTransactionRequest
-      val resourceDocs = allResourceDocs.filter(_.partialFunction == route)
-
-      if(resourceDocs.isEmpty) {
-        oauthServe(apiPrefix(route), None)
-      } else {
-        val (autoValidateDocs, other) = resourceDocs.partition(isAutoValidate)
-        // autoValidateAll or doc isAutoValidate, just wrapped to auth check endpoint
-        autoValidateDocs.foreach { doc =>
-          val wrappedEndpoint = doc.wrappedWithAuthCheck(route)
-          oauthServe(apiPrefix(wrappedEndpoint), Some(doc))
-        }
-        //just register once for those not auto validate endpoints .
-        if (other.nonEmpty) {
-          oauthServe(apiPrefix(route), other.headOption)
-        }
-      }
-    }
-
-  }
+//  protected def registerRoutes(routes: List[OBPEndpointFuture],
+//                               allResourceDocs: ArrayBuffer[ResourceDoc],
+//                               apiPrefix:OBPEndpointFuture => OBPEndpointFuture,
+//                               autoValidateAll: Boolean = false): Unit = {
+//
+//    def isAutoValidate(doc: ResourceDoc): Boolean = {                         //note: only support v5.1.0,  v5.0.0 and v4.0.0 at the moment.
+//      doc.isValidateEnabled || (autoValidateAll && !doc.isValidateDisabled && List(OBPAPI5_1_0.version,OBPAPI5_0_0.version,OBPAPI4_0_0.version).contains(doc.implementedInApiVersion))
+//    }
+//
+//    for(route <- routes) {
+//      // one endpoint can have multiple ResourceDocs, so here use filter instead of find, e.g APIMethods400.Implementations400.createTransactionRequest
+//      val resourceDocs = allResourceDocs.filter(_.partialFunction == route)
+//
+//      if(resourceDocs.isEmpty) {
+//        oauthServe(apiPrefix(route), None)
+//      } else {
+//        val (autoValidateDocs, other) = resourceDocs.partition(isAutoValidate)
+//        // autoValidateAll or doc isAutoValidate, just wrapped to auth check endpoint
+//        autoValidateDocs.foreach { doc =>
+//          val wrappedEndpoint = doc.wrappedWithAuthCheck(route)
+//          oauthServe(apiPrefix(wrappedEndpoint), Some(doc))
+//        }
+//        //just register once for those not auto validate endpoints .
+//        if (other.nonEmpty) {
+//          oauthServe(apiPrefix(route), other.headOption)
+//        }
+//      }
+//    }
+//
+//  }
 }

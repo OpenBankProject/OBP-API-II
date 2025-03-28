@@ -27,7 +27,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.v4_0_0
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import code.api.util.{APIUtil, VersionedOBPApis}
 import code.api.v1_3_0.APIMethods130
 import code.api.v1_4_0.APIMethods140
@@ -72,14 +72,14 @@ object OBPAPI4_0_0 extends OBPRestHelper with APIMethods130 with APIMethods140 w
     //TODO exclude two endpoints, after training we need add logic to exclude endpoints
 
   // all endpoints
-  private val endpoints: List[OBPEndpoint] = OBPAPI3_1_0.routes ++ endpointsOf4_0_0
+  private val endpoints: List[OBPEndpointFuture] = OBPAPI3_1_0.routes ++ endpointsOf4_0_0
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  val routes : List[OBPEndpoint] = Implementations4_0_0.root :: // For now we make this mandatory
-      getAllowedEndpoints(endpoints, allResourceDocs)
+//  val routes : List[OBPEndpointFuture] = Implementations4_0_0.root :: // For now we make this mandatory
+//      getAllowedEndpoints(endpoints, allResourceDocs)
 
   // register v4.0.0 apis first, Make them available for use!
-  registerRoutes(routes, allResourceDocs, apiPrefix, true)
+//  registerRoutes(routes, allResourceDocs, apiPrefix, true)
 
   logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
 

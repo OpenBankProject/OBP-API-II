@@ -65,7 +65,7 @@ object APIMethods_BERLIN_GROUP_1 extends RestHelper{
 
 
 
-    lazy val getAccountList : OBPEndpoint = {
+    lazy val getAccountList : OBPEndpointFuture = {
       //get private accounts for one bank
       case "accounts" :: Nil JsonGet _ => {
         cc =>
@@ -107,7 +107,7 @@ object APIMethods_BERLIN_GROUP_1 extends RestHelper{
       List(UserNotLoggedIn, ViewNotFound, UserNoPermissionAccessView, UnknownError),
       List(apiTagBerlinGroup, apiTagAccount, apiTagPrivateData, apiTagPsd2))
   
-    lazy val getAccountBalances : OBPEndpoint = {
+    lazy val getAccountBalances : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: AccountId(accountId) :: "balances" :: Nil JsonGet _ => {
         cc =>
@@ -147,7 +147,7 @@ object APIMethods_BERLIN_GROUP_1 extends RestHelper{
       List(UserNotLoggedIn,UnknownError),
       List(apiTagBerlinGroup, apiTagTransaction, apiTagPrivateData, apiTagPsd2))
   
-    lazy val getTransactionList : OBPEndpoint = {
+    lazy val getTransactionList : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: AccountId(accountId) :: "transactions" :: Nil JsonGet _ => {
         cc =>

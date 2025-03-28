@@ -50,7 +50,7 @@ object APIMethods_UKOpenBanking_200 extends RestHelper{
 
     apiRelations += ApiRelation(getAccountList, getAccountList, "self")
 
-    lazy val getAccountList : OBPEndpoint = {
+    lazy val getAccountList : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: Nil JsonGet _ => {
         cc =>
@@ -82,7 +82,7 @@ object APIMethods_UKOpenBanking_200 extends RestHelper{
       List(UserNotLoggedIn,UnknownError),
       List(apiTagUKOpenBanking, apiTagTransaction, apiTagPrivateData, apiTagPsd2))
   
-    lazy val getAccountTransactions : OBPEndpoint = {
+    lazy val getAccountTransactions : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: AccountId(accountId) :: "transactions" :: Nil JsonGet _ => {
         cc =>
@@ -134,7 +134,7 @@ object APIMethods_UKOpenBanking_200 extends RestHelper{
 
     apiRelations += ApiRelation(getAccount, getAccount, "self")
 
-    lazy val getAccount : OBPEndpoint = {
+    lazy val getAccount : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: AccountId(accountId) :: Nil JsonGet _ => {
         cc =>
@@ -170,7 +170,7 @@ object APIMethods_UKOpenBanking_200 extends RestHelper{
       List(ErrorMessages.UserNotLoggedIn,ErrorMessages.UnknownError),
       List(apiTagUKOpenBanking, apiTagAccount, apiTagPrivateData))
   
-    lazy val getAccountBalances : OBPEndpoint = {
+    lazy val getAccountBalances : OBPEndpointFuture = {
       //get private accounts for all banks
       case "accounts" :: AccountId(accountId) :: "balances" :: Nil JsonGet _ => {
         cc =>
@@ -215,7 +215,7 @@ object APIMethods_UKOpenBanking_200 extends RestHelper{
       List(ErrorMessages.UserNotLoggedIn,ErrorMessages.UnknownError),
       List(apiTagUKOpenBanking, apiTagAccount, apiTagPrivateData))
   
-    lazy val getBalances : OBPEndpoint = {
+    lazy val getBalances : OBPEndpointFuture = {
       //get private accounts for all banks
       case "balances" :: Nil JsonGet _ => {
         cc =>

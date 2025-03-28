@@ -172,7 +172,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createInternationalPaymentConsents : OBPEndpoint = {
+     lazy val createInternationalPaymentConsents : OBPEndpointFuture = {
        case "international-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -441,7 +441,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createInternationalPayments : OBPEndpoint = {
+     lazy val createInternationalPayments : OBPEndpointFuture = {
        case "international-payments" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -710,7 +710,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalPaymentConsentsConsentId : OBPEndpoint = {
+     lazy val getInternationalPaymentConsentsConsentId : OBPEndpointFuture = {
        case "international-payment-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -882,7 +882,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalPaymentConsentsConsentIdFundsConfirmation : OBPEndpoint = {
+     lazy val getInternationalPaymentConsentsConsentIdFundsConfirmation : OBPEndpointFuture = {
        case "international-payment-consents" :: consentid:: "funds-confirmation" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -1043,7 +1043,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getInternationalPaymentsInternationalPaymentId : OBPEndpoint = {
+     lazy val getInternationalPaymentsInternationalPaymentId : OBPEndpointFuture = {
        case "international-payments" :: internationalpaymentid :: Nil JsonGet _ => {
          cc =>
            for {

@@ -59,7 +59,7 @@ Confirming the availability on the payers account of the amount necessary to exe
        ApiTag("CAF") :: apiTagMockedData :: Nil
      )
 
-     lazy val getConfirmationOfFunds : OBPEndpoint = {
+     lazy val getConfirmationOfFunds : OBPEndpointFuture = {
        case "confirmation":: "v2_1_1.1":: "getConfirmationOfFunds" :: Nil JsonPost _ => {
          cc =>
            for {

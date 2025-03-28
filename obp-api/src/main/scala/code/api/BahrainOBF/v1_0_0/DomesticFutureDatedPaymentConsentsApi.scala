@@ -68,7 +68,7 @@ object APIMethods_DomesticFutureDatedPaymentConsentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentCancellationConsentsConsentIdGet : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentCancellationConsentsConsentIdGet : OBPEndpointFuture = {
        case "domestic-future-dated-payment-cancellation-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -148,7 +148,7 @@ object APIMethods_DomesticFutureDatedPaymentConsentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentCancellationConsentsPost : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentCancellationConsentsPost : OBPEndpointFuture = {
        case "domestic-future-dated-payment-cancellation-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -293,7 +293,7 @@ object APIMethods_DomesticFutureDatedPaymentConsentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentConsentsConsentIdGet : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentConsentsConsentIdGet : OBPEndpointFuture = {
        case "domestic-future-dated-payment-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -569,7 +569,7 @@ object APIMethods_DomesticFutureDatedPaymentConsentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payment Consents") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentConsentsPost : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentConsentsPost : OBPEndpointFuture = {
        case "domestic-future-dated-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {

@@ -99,7 +99,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentsFilePaymentIdGet : OBPEndpoint = {
+     lazy val filePaymentsFilePaymentIdGet : OBPEndpointFuture = {
        case "file-payments" :: filePaymentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -215,7 +215,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentsFilePaymentIdPaymentDetailsGet : OBPEndpoint = {
+     lazy val filePaymentsFilePaymentIdPaymentDetailsGet : OBPEndpointFuture = {
        case "file-payments" :: filePaymentId:: "payment-details" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -277,7 +277,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentsFilePaymentIdReportFileGet : OBPEndpoint = {
+     lazy val filePaymentsFilePaymentIdReportFileGet : OBPEndpointFuture = {
        case "file-payments" :: filePaymentId:: "report-file" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -379,7 +379,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val filePaymentsPost : OBPEndpoint = {
+     lazy val filePaymentsPost : OBPEndpointFuture = {
        case "file-payments" :: Nil JsonPost _ => {
          cc =>
            for {

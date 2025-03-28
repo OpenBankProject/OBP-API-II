@@ -81,7 +81,7 @@ object APIMethods_SupplementaryAccountInfoApi extends RestHelper {
        ApiTag("Supplementary Account Info") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdSupplementaryAccountInfoGet : OBPEndpoint = {
+     lazy val accountsAccountIdSupplementaryAccountInfoGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "supplementary-account-info" :: Nil JsonGet _ => {
          cc =>
            for {

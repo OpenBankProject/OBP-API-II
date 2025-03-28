@@ -124,7 +124,7 @@ object APIMethods_DomesticPaymentsApi extends RestHelper {
        ApiTag("Domestic Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticPaymentsDomesticPaymentIdGet : OBPEndpoint = {
+     lazy val domesticPaymentsDomesticPaymentIdGet : OBPEndpointFuture = {
        case "domestic-payments" :: domesticPaymentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -266,7 +266,7 @@ object APIMethods_DomesticPaymentsApi extends RestHelper {
        ApiTag("Domestic Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticPaymentsDomesticPaymentIdPaymentDetailsGet : OBPEndpoint = {
+     lazy val domesticPaymentsDomesticPaymentIdPaymentDetailsGet : OBPEndpointFuture = {
        case "domestic-payments" :: domesticPaymentId:: "payment-details" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -456,7 +456,7 @@ object APIMethods_DomesticPaymentsApi extends RestHelper {
        ApiTag("Domestic Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticPaymentsPost : OBPEndpoint = {
+     lazy val domesticPaymentsPost : OBPEndpointFuture = {
        case "domestic-payments" :: Nil JsonPost _ => {
          cc =>
            for {

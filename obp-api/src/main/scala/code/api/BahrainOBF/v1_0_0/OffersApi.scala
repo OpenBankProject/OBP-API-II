@@ -90,7 +90,7 @@ object APIMethods_OffersApi extends RestHelper {
        ApiTag("Offers") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdOffersGet : OBPEndpoint = {
+     lazy val accountsAccountIdOffersGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "offers" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -211,7 +211,7 @@ object APIMethods_OffersApi extends RestHelper {
        ApiTag("Offers") :: apiTagMockedData :: Nil
      )
 
-     lazy val offersGet : OBPEndpoint = {
+     lazy val offersGet : OBPEndpointFuture = {
        case "offers" :: Nil JsonGet _ => {
          cc =>
            for {

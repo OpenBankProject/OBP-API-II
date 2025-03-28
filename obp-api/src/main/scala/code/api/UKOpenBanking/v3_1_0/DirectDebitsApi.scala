@@ -79,7 +79,7 @@ object APIMethods_DirectDebitsApi extends RestHelper {
        ApiTag("Direct Debits") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccountsAccountIdDirectDebits : OBPEndpoint = {
+     lazy val getAccountsAccountIdDirectDebits : OBPEndpointFuture = {
        case "accounts" :: accountid:: "direct-debits" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -179,7 +179,7 @@ object APIMethods_DirectDebitsApi extends RestHelper {
        ApiTag("Direct Debits") :: apiTagMockedData :: Nil
      )
 
-     lazy val getDirectDebits : OBPEndpoint = {
+     lazy val getDirectDebits : OBPEndpointFuture = {
        case "direct-debits" :: Nil JsonGet _ => {
          cc =>
            for {

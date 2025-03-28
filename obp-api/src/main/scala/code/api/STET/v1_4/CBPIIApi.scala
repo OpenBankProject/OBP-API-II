@@ -65,7 +65,7 @@ The CBPII requests the ASPSP for a payment coverage check against either a bank 
        ApiTag("CBPII") :: apiTagMockedData :: Nil
      )
 
-     lazy val fundsConfirmationsPost : OBPEndpoint = {
+     lazy val fundsConfirmationsPost : OBPEndpointFuture = {
        case "funds-confirmations" :: Nil JsonPost _ => {
          cc =>
            for {

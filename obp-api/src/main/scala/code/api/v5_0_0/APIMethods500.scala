@@ -98,7 +98,7 @@ trait APIMethods500 {
       List(UnknownError, "no connector set"),
       apiTagApi  :: Nil)
 
-    lazy val root: OBPEndpoint = {
+    lazy val root: OBPEndpointFuture = {
       case (Nil | "root" :: Nil) JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -129,7 +129,7 @@ trait APIMethods500 {
       apiTagBank :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
     )
 
-    lazy val getBank : OBPEndpoint = {
+    lazy val getBank : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -171,7 +171,7 @@ trait APIMethods500 {
       Some(List(canCreateBank))
     )
 
-    lazy val createBank: OBPEndpoint = {
+    lazy val createBank: OBPEndpointFuture = {
       case "banks" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostBankJson500 "
@@ -258,7 +258,7 @@ trait APIMethods500 {
       Some(List(canCreateBank))
     )
 
-    lazy val updateBank: OBPEndpoint = {
+    lazy val updateBank: OBPEndpointFuture = {
       case "banks" :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           val failMsg = s"$InvalidJsonFormat The Json body should be the $PostBankJson500 "
@@ -340,7 +340,7 @@ trait APIMethods500 {
     )
 
 
-    lazy val createAccount : OBPEndpoint = {
+    lazy val createAccount : OBPEndpointFuture = {
       // Create a new account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: Nil JsonPut json -> _ => {
         cc =>{
@@ -458,7 +458,7 @@ trait APIMethods500 {
       ),
       List(apiTagUser),
       Some(List(canCreateUserAuthContext)))
-    lazy val createUserAuthContext : OBPEndpoint = {
+    lazy val createUserAuthContext : OBPEndpointFuture = {
       case "users" :: userId ::"auth-context" :: Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -500,7 +500,7 @@ trait APIMethods500 {
       List(apiTagUser),
       Some(canGetUserAuthContext :: Nil)
     )
-    lazy val getUserAuthContexts : OBPEndpoint = {
+    lazy val getUserAuthContexts : OBPEndpointFuture = {
       case "users" :: userId :: "auth-context" ::  Nil  JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -541,7 +541,7 @@ trait APIMethods500 {
       None
     )
 
-    lazy val createUserAuthContextUpdateRequest : OBPEndpoint = {
+    lazy val createUserAuthContextUpdateRequest : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "users" :: "current" ::"auth-context-updates" :: scaMethod :: Nil JsonPost  json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -585,7 +585,7 @@ trait APIMethods500 {
       ),
       apiTagUser  :: Nil)
 
-    lazy val answerUserAuthContextUpdateChallenge : OBPEndpoint = {
+    lazy val answerUserAuthContextUpdateChallenge : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "users" :: "current" ::"auth-context-updates"  :: authContextUpdateId :: "challenge" :: Nil JsonPost json -> _  => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -665,7 +665,7 @@ trait APIMethods500 {
       apiTagConsent :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
       )
   
-    lazy val createConsentRequest : OBPEndpoint = {
+    lazy val createConsentRequest : OBPEndpointFuture = {
       case  "consumer" :: "consent-requests" :: Nil JsonPost json -> _  =>  {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -715,7 +715,7 @@ trait APIMethods500 {
       apiTagConsent :: apiTagPSD2AIS :: apiTagPsd2  :: Nil
       )
 
-    lazy val getConsentRequest : OBPEndpoint = {
+    lazy val getConsentRequest : OBPEndpointFuture = {
       case "consumer" :: "consent-requests" :: consentRequestId ::  Nil  JsonGet _  =>  {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -754,7 +754,7 @@ trait APIMethods500 {
         UnknownError
         ),
       List(apiTagConsent, apiTagPSD2AIS, apiTagPsd2))
-    lazy val getConsentByConsentRequestId: OBPEndpoint = {
+    lazy val getConsentByConsentRequestId: OBPEndpointFuture = {
       case "consumer" :: "consent-requests" :: consentRequestId :: "consents" :: Nil  JsonGet _  => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -909,7 +909,7 @@ trait APIMethods500 {
     lazy val createConsentByConsentRequestIdSms = createConsentByConsentRequestId
     lazy val createConsentByConsentRequestIdImplicit = createConsentByConsentRequestId
     
-    lazy val createConsentByConsentRequestId : OBPEndpoint = {
+    lazy val createConsentByConsentRequestId : OBPEndpointFuture = {
      
       case "consumer" :: "consent-requests":: consentRequestId :: scaMethod :: "consents" :: Nil JsonPost _ -> _  => {
         def sendEmailNotification(callContext: Option[CallContext], consentRequestJson: PostConsentRequestJsonV500, challengeText: String) = {
@@ -1312,7 +1312,7 @@ trait APIMethods500 {
       ),
       List(apiTagATM)
     )
-    lazy val headAtms : OBPEndpoint = {
+    lazy val headAtms : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: Nil JsonHead _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1358,7 +1358,7 @@ trait APIMethods500 {
       List(apiTagCustomer, apiTagPerson),
       Some(List(canCreateCustomer,canCreateCustomerAtAnyBank))
     )
-    lazy val createCustomer : OBPEndpoint = {
+    lazy val createCustomer : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1430,7 +1430,7 @@ trait APIMethods500 {
       Some(List(canGetCustomerOverview))
     )
 
-    lazy val getCustomerOverview : OBPEndpoint = {
+    lazy val getCustomerOverview : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: "customer-number-query" :: "overview" ::  Nil JsonPost  json -> req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1479,7 +1479,7 @@ trait APIMethods500 {
       Some(List(canGetCustomerOverviewFlat))
     )
 
-    lazy val getCustomerOverviewFlat : OBPEndpoint = {
+    lazy val getCustomerOverviewFlat : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: "customer-number-query" :: "overview-flat" ::  Nil JsonPost  json -> req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1524,7 +1524,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer, apiTagUser))
 
-    lazy val getMyCustomersAtAnyBank : OBPEndpoint = {
+    lazy val getMyCustomersAtAnyBank : OBPEndpointFuture = {
       case "my" :: "customers" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1562,7 +1562,7 @@ trait APIMethods500 {
       List(apiTagCustomer)
     )
 
-    lazy val getMyCustomersAtBank : OBPEndpoint = {
+    lazy val getMyCustomersAtBank : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "my" :: "customers" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1607,7 +1607,7 @@ trait APIMethods500 {
       Some(List(canGetCustomers))
     )
 
-    lazy val getCustomersAtOneBank : OBPEndpoint = {
+    lazy val getCustomersAtOneBank : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1642,7 +1642,7 @@ trait APIMethods500 {
       List(apiTagCustomer, apiTagUser),
       Some(List(canGetCustomersMinimal))
     )
-    lazy val getCustomersMinimalAtOneBank : OBPEndpoint = {
+    lazy val getCustomersMinimalAtOneBank : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers-minimal" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1693,7 +1693,7 @@ trait APIMethods500 {
       List(apiTagProduct),
       Some(List(canCreateProduct, canCreateProductAtAnyBank))
     )
-    lazy val createProduct: OBPEndpoint = {
+    lazy val createProduct: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: ProductCode(productCode) :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1755,7 +1755,7 @@ trait APIMethods500 {
       ),
       List(apiTagCard),
       Some(List(canCreateCardsForBank)))
-    lazy val addCardForBank: OBPEndpoint = {
+    lazy val addCardForBank: OBPEndpointFuture = {
       case "management" :: "banks" :: BankId(bankId) :: "cards" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1872,7 +1872,7 @@ trait APIMethods500 {
       ),
       List(apiTagView, apiTagAccount))
 
-    lazy val getViewsForBankAccount : OBPEndpoint = {
+    lazy val getViewsForBankAccount : OBPEndpointFuture = {
       //get the available views on an bank account
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: "views" :: Nil JsonGet req => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -1918,7 +1918,7 @@ trait APIMethods500 {
       Some(List(canDeleteSystemView))
     )
 
-    lazy val deleteSystemView: OBPEndpoint = {
+    lazy val deleteSystemView: OBPEndpointFuture = {
       case "system-views" :: viewId :: Nil JsonDelete req => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2004,7 +2004,7 @@ trait APIMethods500 {
       List(apiTagMetric, apiTagApi),
       Some(List(canGetMetricsAtOneBank)))
 
-    lazy val getMetricsAtBank : OBPEndpoint = {
+    lazy val getMetricsAtBank : OBPEndpointFuture = {
       case "management" :: "metrics" :: "banks" :: bankId :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -2042,7 +2042,7 @@ trait APIMethods500 {
       Some(List(canGetSystemView))
     )
 
-    lazy val getSystemView: OBPEndpoint = {
+    lazy val getSystemView: OBPEndpointFuture = {
       case "system-views" :: viewId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2076,7 +2076,7 @@ trait APIMethods500 {
       Some(List(canGetSystemView))
     )
 
-    lazy val getSystemViewsIds: OBPEndpoint = {
+    lazy val getSystemViewsIds: OBPEndpointFuture = {
       case "system-views-ids" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2123,7 +2123,7 @@ trait APIMethods500 {
       Some(List(canCreateSystemView))
     )
 
-    lazy val createSystemView : OBPEndpoint = {
+    lazy val createSystemView : OBPEndpointFuture = {
       //creates a system view
       case "system-views" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2171,7 +2171,7 @@ trait APIMethods500 {
       Some(List(canUpdateSystemView))
     )
 
-    lazy val updateSystemView : OBPEndpoint = {
+    lazy val updateSystemView : OBPEndpointFuture = {
       //updates a view on a bank account
       case "system-views" :: viewId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -2218,7 +2218,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer, apiTagAccount),
       Some(List(canCreateCustomerAccountLink)))
-    lazy val createCustomerAccountLink : OBPEndpoint = {
+    lazy val createCustomerAccountLink : OBPEndpointFuture = {
       case "banks" :: BankId(bankId):: "customer-account-links" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2269,7 +2269,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer),
       Some(List(canGetCustomerAccountLinks)))
-    lazy val getCustomerAccountLinksByCustomerId : OBPEndpoint = {
+    lazy val getCustomerAccountLinksByCustomerId : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: customerId :: "customer-account-links" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2307,7 +2307,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer),
       Some(List(canGetCustomerAccountLinks)))
-    lazy val getCustomerAccountLinksByBankIdAccountId : OBPEndpoint = {
+    lazy val getCustomerAccountLinksByBankIdAccountId : OBPEndpointFuture = {
       case "banks" :: bankId :: "accounts" :: accountId :: "customer-account-links" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2341,7 +2341,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer),
       Some(List(canGetCustomerAccountLink)))
-    lazy val getCustomerAccountLinkById : OBPEndpoint = {
+    lazy val getCustomerAccountLinkById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customer-account-links" :: customerAccountLinkId :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2375,7 +2375,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer),
       Some(List(canUpdateCustomerAccountLink)))
-    lazy val updateCustomerAccountLinkById : OBPEndpoint = {
+    lazy val updateCustomerAccountLinkById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customer-account-links" :: customerAccountLinkId :: Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2414,7 +2414,7 @@ trait APIMethods500 {
       ),
       List(apiTagCustomer),
       Some(List(canDeleteCustomerAccountLink)))
-    lazy val deleteCustomerAccountLinkById : OBPEndpoint = {
+    lazy val deleteCustomerAccountLinkById : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customer-account-links" :: customerAccountLinkId :: Nil JsonDelete _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -2445,7 +2445,7 @@ trait APIMethods500 {
       List(apiTagApi),
       Some(List(canGetAdapterInfo))
     )
-    lazy val getAdapterInfo: OBPEndpoint = {
+    lazy val getAdapterInfo: OBPEndpointFuture = {
       case "adapter" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {

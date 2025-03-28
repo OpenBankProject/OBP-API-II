@@ -81,7 +81,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(UnknownError, "no connector set"),
       apiTagApi :: Nil)
 
-    lazy val root : OBPEndpoint = {
+    lazy val root : OBPEndpointFuture = {
       case (Nil | "root" :: Nil) JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -108,10 +108,10 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(UserNotLoggedIn, UnknownError),
       List(apiTagCustomer, apiTagOldStyle))
 
-    lazy val getCustomer : OBPEndpoint = {
+    lazy val getCustomer : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customer" :: Nil JsonGet _ => {
         cc => {
-          for {
+          val result = for {
             u <- cc.user ?~! ErrorMessages.UserNotLoggedIn
             (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {ErrorMessages.BankNotFound}
             ucls <- tryo{UserCustomerLink.userCustomerLink.vend.getUserCustomerLinksByUserId(u.userId)} ?~! ErrorMessages.UserCustomerLinksNotFoundForUser
@@ -120,9 +120,9 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
             u <- ucl
             info <- CustomerX.customerProvider.vend.getCustomerByCustomerId(u.customerId) ?~! ErrorMessages.CustomerNotFoundByCustomerId
           } yield {
-            val json = JSONFactory1_4_0.createCustomerJson(info)
-            successJsonResponse(Extraction.decompose(json))
+           JSONFactory1_4_0.createCustomerJson(info)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -143,7 +143,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(UserNotLoggedIn, UnknownError),
       List(apiTagMessage, apiTagCustomer))
 
-    lazy val getCustomersMessages  : OBPEndpoint = {
+    lazy val getCustomersMessages  : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customer" :: "messages" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -178,7 +178,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
 
     // TODO Add Role
 
-    lazy val addCustomerMessage : OBPEndpoint = {
+    lazy val addCustomerMessage : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customer" :: customerId ::  "messages" :: Nil JsonPost json -> _ => {
         cc =>{
           implicit val ec = EndpointContext(Some(cc))
@@ -233,10 +233,10 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(apiTagBranch, apiTagOldStyle)
     )
 
-    lazy val getBranches : OBPEndpoint = {
+    lazy val getBranches : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "branches" :: Nil JsonGet req => {
         cc =>{
-          for {
+          val result = for {
             _ <- if(getBranchesIsPublic)
               Box(Some(1))
             else
@@ -247,10 +247,9 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
             obpQueryParams <- createQueriesByHttpParams(httpParams)
             branches <- Box(Branches.branchesProvider.vend.getBranches(bankId, obpQueryParams)) ~> APIFailure("No branches available. License may not be set.", 204)
           } yield {
-            // Format the data as json
-            val json = JSONFactory1_4_0.createBranchesJson(branches)
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory1_4_0.createBranchesJson(branches)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -285,10 +284,10 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(apiTagBank, apiTagOldStyle)
     )
 
-    lazy val getAtms : OBPEndpoint = {
+    lazy val getAtms : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: Nil JsonGet req => {
         cc =>{
-          for {
+          val result = for {
           // Get atms from the active provider
 
             _ <- if(getAtmsIsPublic)
@@ -301,11 +300,9 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
             obpQueryParams <- createQueriesByHttpParams(httpParams)
             atms <- Box(Atms.atmsProvider.vend.getAtms(bankId, obpQueryParams)) ~> APIFailure("No ATMs available. License may not be set.", 204)
           } yield {
-            // Format the data as json
-            val json = JSONFactory1_4_0.createAtmsJson(atms)
-            // Return
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory1_4_0.createAtmsJson(atms)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -344,10 +341,10 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(apiTagBank, apiTagOldStyle)
     )
 
-    lazy val getProducts : OBPEndpoint = {
+    lazy val getProducts : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: Nil JsonGet _ => {
         cc =>{
-          for {
+          val result = for {
           // Get products from the active provider
             _ <- if(getProductsIsPublic)
               Box(Some(1))
@@ -356,11 +353,9 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
             (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {ErrorMessages.BankNotFound}
             products <- Box(Products.productsProvider.vend.getProducts(bankId)) ~> APIFailure("No products available. License may not be set.", 204)
           } yield {
-            // Format the data as json
-            val json = JSONFactory1_4_0.createProductsJson(products)
-            // Return
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory1_4_0.createProductsJson(products)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -386,7 +381,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
 
     // TODO Require Role
 
-    lazy val getCrmEvents : OBPEndpoint = {
+    lazy val getCrmEvents : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "crm-events" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -443,7 +438,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
         UnknownError),
       List(apiTagTransactionRequest, apiTagPSD2PIS, apiTagPsd2))
 
-    lazy val getTransactionRequestTypes: OBPEndpoint = {
+    lazy val getTransactionRequestTypes: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
           Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -505,11 +500,11 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
       List(apiTagCustomer, apiTagOldStyle),
       Some(List(canCreateCustomer, canCreateUserCustomerLink)))
 
-    lazy val addCustomer : OBPEndpoint = {
+    lazy val addCustomer : OBPEndpointFuture = {
       //updates a view on a bank account
       case "banks" :: BankId(bankId) :: "customer" :: Nil JsonPost json -> _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~! "User must be logged in to post Customer"
             (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {ErrorMessages.BankNotFound}
             postedData <- tryo{json.extract[CreateCustomerJson]} ?~! ErrorMessages.InvalidJsonFormat
@@ -540,9 +535,9 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
             ) ?~! "Could not create customer"
             _ <- UserCustomerLink.userCustomerLink.vend.createUserCustomerLink(user_id, customer.customerId, DateWithMsExampleObject, true) ?~! "Could not create user_customer_links"
           } yield {
-            val successJson = JSONFactory1_4_0.createCustomerJson(customer)
-            successJsonResponse(Extraction.decompose(successJson))
+            JSONFactory1_4_0.createCustomerJson(customer)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -590,7 +585,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
 
 
 
-    lazy val testResourceDoc : OBPEndpoint = {
+    lazy val testResourceDoc : OBPEndpointFuture = {
       case "dummy" :: Nil JsonGet req => {
         cc =>
           val apiDetails: JValue = {
@@ -599,7 +594,7 @@ trait APIMethods140 extends MdcLoggable with APIMethods130 with APIMethods121{
             Extraction.decompose(apiInfoJSON)
           }
 
-          Full(successJsonResponse(apiDetails, 200))
+          Future{(apiDetails, HttpCode.`200`(cc.callContext))}
       }
     }
 

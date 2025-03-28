@@ -58,7 +58,7 @@ object APIMethods_TransactionsApi extends RestHelper {
        ApiTag("Transactions") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdTransactionsGet : OBPEndpoint = {
+     lazy val accountsAccountIdTransactionsGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "transactions" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -115,7 +115,7 @@ object APIMethods_TransactionsApi extends RestHelper {
        ApiTag("Transactions") :: apiTagMockedData :: Nil
      )
 
-     lazy val transactionsGet : OBPEndpoint = {
+     lazy val transactionsGet : OBPEndpointFuture = {
        case "transactions" :: Nil JsonGet _ => {
          cc =>
            for {

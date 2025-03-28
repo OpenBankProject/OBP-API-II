@@ -50,7 +50,7 @@ object APIMethods_PayeesApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Payees") :: apiTagMockedData :: Nil
      )
 
-     lazy val getPayeeDetail : OBPEndpoint = {
+     lazy val getPayeeDetail : OBPEndpointFuture = {
        case "banking":: "payees" :: payeeId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -111,7 +111,7 @@ object APIMethods_PayeesApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Payees") :: apiTagMockedData :: Nil
      )
 
-     lazy val listPayees : OBPEndpoint = {
+     lazy val listPayees : OBPEndpointFuture = {
        case "banking":: "payees" :: Nil JsonGet _ => {
          cc =>
            for {

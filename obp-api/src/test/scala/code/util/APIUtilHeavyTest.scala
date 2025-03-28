@@ -32,7 +32,7 @@
 //import code.api.UKOpenBanking.v3_1_0.{APIMethods_AccountAccessApi, OBP_UKOpenBanking_310}
 //import code.api.berlin.group.v1_3.OBP_BERLIN_GROUP_1_3
 //import code.api.builder.AccountInformationServiceAISApi.APIMethods_AccountInformationServiceAISApi
-//import code.api.util.APIUtil.OBPEndpoint
+//import code.api.util.APIUtil.OBPEndpointFuture
 //import code.api.util._
 //import code.api.v3_1_0.OBPAPI3_1_0
 //import code.api.v4_0_0.OBPAPI4_0_0.Implementations4_0_0
@@ -101,7 +101,7 @@
 //
 //
 //  feature("test APIUtil.getAllowedEndpoints method") {
-//    val obpEndpointsV400: List[OBPEndpoint] = OBPAPI4_0_0.endpointsOf4_0_0.toList
+//    val obpEndpointsV400: List[OBPEndpointFuture] = OBPAPI4_0_0.endpointsOf4_0_0.toList
 //    val obpAllResourceDocsV400 = Implementations4_0_0.resourceDocs
 //
 //    val allowedEndpoints: List[APIUtil.ResourceDoc] = APIUtil.getAllowedResourceDocs(obpEndpointsV400, obpAllResourceDocsV400).toList

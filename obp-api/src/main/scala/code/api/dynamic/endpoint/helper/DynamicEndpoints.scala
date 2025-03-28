@@ -3,7 +3,7 @@ package code.api.dynamic.endpoint.helper
 import code.api.dynamic.endpoint.helper.practise.{DynamicEndpointCodeGenerator, PractiseEndpointGroup}
 import code.api.dynamic.endpoint.helper.practise.PractiseEndpointGroup
 import code.api.util.DynamicUtil.{Sandbox, Validation}
-import code.api.util.APIUtil.{BooleanBody, DoubleBody, EmptyBody, LongBody, OBPEndpoint, PrimaryDataBody, ResourceDoc, StringBody, getDisabledEndpointOperationIds}
+import code.api.util.APIUtil.{BooleanBody, DoubleBody, EmptyBody, LongBody, OBPEndpointFuture, PrimaryDataBody, ResourceDoc, StringBody, getDisabledEndpointOperationIds}
 import code.api.util.{CallContext, DynamicUtil}
 import net.liftweb.common.{Box, Failure, Full}
 import net.liftweb.http.{JsonResponse, Req}
@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils
 import java.net.URLDecoder
 import scala.collection.immutable.List
 import scala.util.control.Breaks.{break, breakable}
+import scala.concurrent.Future
 
 object DynamicEndpoints {
   //TODO, better put all other dynamic endpoints into this list. eg: dynamicEntityEndpoints, dynamicSwaggerDocsEndpoints ....
@@ -32,11 +33,11 @@ object DynamicEndpoints {
    * This will be the OBP Router for all the dynamic endpoints.
    * 
    */
-  private def findEndpoint(req: Req): Option[OBPEndpoint] = {
-    var foundEndpoint: Option[OBPEndpoint] = None
+  private def findEndpoint(req: Req): Option[OBPEndpointFuture] = {
+    var foundEndpoint: Option[OBPEndpointFuture] = None
     breakable{
       endpointGroups.foreach { endpointGroup => {
-        val maybeEndpoint: Option[OBPEndpoint] = endpointGroup.endpoints.find(_.isDefinedAt(req))
+        val maybeEndpoint: Option[OBPEndpointFuture] = endpointGroup.endpoints.find(_.isDefinedAt(req))
         if(maybeEndpoint.isDefined) {
           foundEndpoint = maybeEndpoint
           break
@@ -54,15 +55,15 @@ object DynamicEndpoints {
    * by resourceDocs, then we can create the endpoints object in memory).
    * 
    */
-  val dynamicEndpoint: OBPEndpoint = new OBPEndpoint {
-    override def isDefinedAt(req: Req): Boolean = findEndpoint(req).isDefined
-
-    override def apply(req: Req): CallContext => Box[JsonResponse] = {
-      val Some(endpoint) = findEndpoint(req)
-      endpoint(req)
-    }
-  }
-
+//  val dynamicEndpoint: OBPEndpointFuture = new OBPEndpointFuture {
+//    override def isDefinedAt(req: Req): Boolean = findEndpoint(req).isDefined
+//
+//    override def apply(req: Req): CallContext => Box[JsonResponse] = {
+//      val Some(endpoint) = findEndpoint(req)
+//      endpoint(req)
+//    }
+//  }
+//
   def dynamicResourceDocs: List[ResourceDoc] = endpointGroups.flatMap(_.docs)
 }
 
@@ -86,17 +87,17 @@ trait EndpointGroup {
   /**
    * this method will generate the endpoints from the resourceDocs.
    */
-  def endpoints: List[OBPEndpoint] = docs.map(wrapEndpoint)
+  def endpoints: List[OBPEndpointFuture] = docs.map(wrapEndpoint)
 
   //fill callContext with resourceDoc and operationId
-  private def wrapEndpoint(resourceDoc: ResourceDoc): OBPEndpoint = {
+  private def wrapEndpoint(resourceDoc: ResourceDoc): OBPEndpointFuture = {
 
     val endpointFunction = resourceDoc.wrappedWithAuthCheck(resourceDoc.partialFunction)
 
-    new OBPEndpoint {
+    new OBPEndpointFuture {
       override def isDefinedAt(req: Req): Boolean = req.requestType.method == resourceDoc.requestVerb && endpointFunction.isDefinedAt(req)
 
-      override def apply(req: Req): CallContext => Box[JsonResponse] = {
+      override def apply(req: Req) = {
         (callContext: CallContext) => {
           // fill callContext with resourceDoc and operationId, this will map the resourceDoc to endpoint.
           val newCallContext = callContext.copy(resourceDocument = Some(resourceDoc), operationId = Some(resourceDoc.operationId))
@@ -108,7 +109,7 @@ trait EndpointGroup {
 }
 
 /**
- * This class will generate the ResourceDoc class fields(requestBody: Product, successResponse: Product and partialFunction: OBPEndpoint) 
+ * This class will generate the ResourceDoc class fields(requestBody: Product, successResponse: Product and partialFunction: OBPEndpointFuture) 
  * by parameters: JValues and Strings.
  * successResponseBody: Option[JValue] --> toCaseObject(from JValue --> Scala code --> DynamicUtil.compileScalaCode --> generate the object.
  * methodBody: String --> prepare the template api level scala code --> DynamicUtil.compileScalaCode --> generate the api level code.
@@ -127,7 +128,7 @@ case class CompiledObjects(exampleRequestBody: Option[JValue], successResponseBo
   }
   val successResponse: Product = toCaseObject(successResponseBody)
 
-  private val partialFunction: OBPEndpoint = {
+  private val partialFunction: OBPEndpointFuture = {
 
     //If the requestBody is PrimaryDataBody, return None. otherwise, return the exampleRequestBody:Option[JValue]
     // In side OBP resourceDoc, requestBody and successResponse must be Product type，
@@ -172,7 +173,7 @@ case class CompiledObjects(exampleRequestBody: Option[JValue], successResponseBo
          |
          |$responseBodyCaseClasses
          |
-         |val endpoint: code.api.util.APIUtil.OBPEndpoint = {
+         |val endpoint: code.api.util.APIUtil.OBPEndpointFuture = {
          |  case request => { callContext =>
          |    val Some(pathParams) = callContext.resourceDocument.map(_.getPathParams(request.path.partPath))
          |    $decodedMethodBody
@@ -182,7 +183,7 @@ case class CompiledObjects(exampleRequestBody: Option[JValue], successResponseBo
          |endpoint
          |
          |""".stripMargin
-    val endpointMethod = DynamicUtil.compileScalaCode[OBPEndpoint](code)
+    val endpointMethod = DynamicUtil.compileScalaCode[OBPEndpointFuture](code)
 
     endpointMethod match {
       case Full(func) => func
@@ -204,21 +205,21 @@ case class CompiledObjects(exampleRequestBody: Option[JValue], successResponseBo
    * all the obp partialFunctions will be wrapped into the sandbox which under the permission control.
    * 
    */
-  def sandboxEndpoint(bankId: Option[String]) : OBPEndpoint = {
+  def sandboxEndpoint(bankId: Option[String]): OBPEndpointFuture = {
+    implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
     val sandbox = bankId match {
       case Some(v) if StringUtils.isNotBlank(v) =>
-         Sandbox.sandbox(v)
+        Sandbox.sandbox(v)
       case _ => Sandbox.sandbox("*")
     }
-
-    new OBPEndpoint {
+  
+    new OBPEndpointFuture {
       override def isDefinedAt(req: Req): Boolean = partialFunction.isDefinedAt(req)
-
+  
       // run dynamic code in sandbox
-      override def apply(req: Req): CallContext => Box[JsonResponse] = {cc =>
+      override def apply(req: Req): OBPEndpointFuture = { (req: Req,cc: CallContext) =>
         val fn = partialFunction.apply(req)
-
-        sandbox.runInSandbox(fn(cc))
+        Future{(sandbox.runInSandbox(fn(cc)), cc)}
       }
     }
   }

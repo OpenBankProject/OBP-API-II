@@ -32,7 +32,7 @@
 package code.api.berlin.group.v1_3
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, ResourceDoc, berlinGroupV13AliasPath, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, ResourceDoc, berlinGroupV13AliasPath, getAllowedEndpoints}
 import code.api.util.ScannedApis
 import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.util.{ApiVersionStatus, ScannedApiVersion}
@@ -52,13 +52,13 @@ object OBP_BERLIN_GROUP_1_3_Alias extends OBPRestHelper with MdcLoggable with Sc
   } else ArrayBuffer.empty[ResourceDoc]
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  override val routes: List[OBPEndpoint] = if(berlinGroupV13AliasPath.nonEmpty){
-    getAllowedEndpoints(OBP_BERLIN_GROUP_1_3.endpoints, allResourceDocs)
-  } else List.empty[OBPEndpoint]
+//  override val routes: List[OBPEndpointFuture] = if(berlinGroupV13AliasPath.nonEmpty){
+//    getAllowedEndpoints(OBP_BERLIN_GROUP_1_3.endpoints, allResourceDocs)
+//  } else List.empty[OBPEndpointFuture]
 
   // Make them available for use!
-  if(berlinGroupV13AliasPath.nonEmpty){
-    registerRoutes(routes, allResourceDocs, apiPrefix)
-    logger.info(s"version $apiVersion has been run! There are ${routes.length} routes.")
-  }
+//  if(berlinGroupV13AliasPath.nonEmpty){
+////    registerRoutes(routes, allResourceDocs, apiPrefix)
+//    logger.info(s"version $apiVersion has been run! There are ${routes.length} routes.")
+//  }
 }

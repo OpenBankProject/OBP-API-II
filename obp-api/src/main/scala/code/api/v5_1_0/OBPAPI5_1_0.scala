@@ -27,7 +27,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.v5_1_0
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import code.api.util.{APIUtil, VersionedOBPApis}
 import code.api.v1_3_0.APIMethods130
 import code.api.v1_4_0.APIMethods140
@@ -71,7 +71,7 @@ object OBPAPI5_1_0 extends OBPRestHelper
   // Possible Endpoints from 5.1.0, exclude one endpoint use - method,exclude multiple endpoints use -- method,
   // e.g getEndpoints(Implementations5_0_0) -- List(Implementations5_0_0.genericEndpoint, Implementations5_0_0.root)
   lazy val endpointsOf5_1_0 = getEndpoints(Implementations5_1_0)
-
+//
   lazy val excludeEndpoints = 
     nameOf(Implementations3_0_0.getUserByUsername) ::  // following 4 endpoints miss Provider parameter in the URL, we introduce new ones in V510.
       nameOf(Implementations3_1_0.getBadLoginStatus) ::
@@ -90,33 +90,33 @@ object OBPAPI5_1_0 extends OBPRestHelper
   ).filterNot(it => it.partialFunctionName.matches(excludeEndpoints.mkString("|")))
 
   // all endpoints
-  private val endpoints: List[OBPEndpoint] = OBPAPI5_0_0.routes ++ endpointsOf5_1_0
-
-  // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  val routes : List[OBPEndpoint] = Implementations5_1_0.root :: // For now we make this mandatory 
-    getAllowedEndpoints(endpoints, allResourceDocs)
+  private val endpoints: List[OBPEndpointFuture] = OBPAPI5_0_0.routes ++ endpointsOf5_1_0
+//
+//  // Filter the possible endpoints by the disabled / enabled Props settings and add them together
+//  val routes : List[OBPEndpointFuture] = Implementations5_1_0.root :: // For now we make this mandatory 
+//    getAllowedEndpoints(endpoints, allResourceDocs)
 
   // register v5.1.0 apis first, Make them available for use!
-  registerRoutes(routes, allResourceDocs, apiPrefix, true)
+//  registerRoutes(routes, allResourceDocs, apiPrefix, true)
 
 
-  logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
-
-  // specified response for OPTIONS request.
-  private val corsResponse: Box[LiftResponse] = Full{
-    val corsHeaders = List(
-      "Access-Control-Allow-Origin" -> "*",
-      "Access-Control-Allow-Methods" -> "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-      "Access-Control-Allow-Headers" -> "*",
-      "Access-Control-Allow-Credentials" -> "true",
-      "Access-Control-Max-Age" -> "1728000" //Tell client that this pre-flight info is valid for 20 days
-    )
-    PlainTextResponse("", corsHeaders, HttpStatus.SC_NO_CONTENT)
-  }
-  /*
-   * process OPTIONS http request, just return no content and status is 204
-   */
-  this.serve({
-    case req if req.requestType.method == "OPTIONS" => corsResponse
-  })
+//  logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
+//
+//  // specified response for OPTIONS request.
+//  private val corsResponse: Box[LiftResponse] = Full{
+//    val corsHeaders = List(
+//      "Access-Control-Allow-Origin" -> "*",
+//      "Access-Control-Allow-Methods" -> "GET, POST, OPTIONS, PUT, PATCH, DELETE",
+//      "Access-Control-Allow-Headers" -> "*",
+//      "Access-Control-Allow-Credentials" -> "true",
+//      "Access-Control-Max-Age" -> "1728000" //Tell client that this pre-flight info is valid for 20 days
+//    )
+//    PlainTextResponse("", corsHeaders, HttpStatus.SC_NO_CONTENT)
+//  }
+//  /*
+//   * process OPTIONS http request, just return no content and status is 204
+//   */
+//  this.serve({
+//    case req if req.requestType.method == "OPTIONS" => corsResponse
+//  })
 }

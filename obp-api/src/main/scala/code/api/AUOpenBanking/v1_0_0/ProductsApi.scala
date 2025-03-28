@@ -50,7 +50,7 @@ object APIMethods_ProductsApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Products") :: apiTagMockedData :: Nil
      )
 
-     lazy val getProductDetail : OBPEndpoint = {
+     lazy val getProductDetail : OBPEndpointFuture = {
        case "banking":: "products" :: productId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -179,7 +179,7 @@ In addition, the concept of effective date and time has also been included. This
        ApiTag("Banking") ::ApiTag("Products") :: apiTagMockedData :: Nil
      )
 
-     lazy val listProducts : OBPEndpoint = {
+     lazy val listProducts : OBPEndpointFuture = {
        case "banking":: "products" :: Nil JsonGet _ => {
          cc =>
            for {

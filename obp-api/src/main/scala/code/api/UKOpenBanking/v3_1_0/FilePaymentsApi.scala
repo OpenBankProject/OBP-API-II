@@ -105,7 +105,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createFilePaymentConsents : OBPEndpoint = {
+     lazy val createFilePaymentConsents : OBPEndpointFuture = {
        case "file-payment-consents" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -189,7 +189,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createFilePaymentConsentsConsentIdFile : OBPEndpoint = {
+     lazy val createFilePaymentConsentsConsentIdFile : OBPEndpointFuture = {
        case "file-payment-consents" :: consentid:: "file" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -276,7 +276,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val createFilePayments : OBPEndpoint = {
+     lazy val createFilePayments : OBPEndpointFuture = {
        case "file-payments" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -421,7 +421,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getFilePaymentConsentsConsentId : OBPEndpoint = {
+     lazy val getFilePaymentConsentsConsentId : OBPEndpointFuture = {
        case "file-payment-consents" :: consentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -505,7 +505,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getFilePaymentConsentsConsentIdFile : OBPEndpoint = {
+     lazy val getFilePaymentConsentsConsentIdFile : OBPEndpointFuture = {
        case "file-payment-consents" :: consentid:: "file" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -592,7 +592,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getFilePaymentsFilePaymentId : OBPEndpoint = {
+     lazy val getFilePaymentsFilePaymentId : OBPEndpointFuture = {
        case "file-payments" :: filepaymentid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -679,7 +679,7 @@ object APIMethods_FilePaymentsApi extends RestHelper {
        ApiTag("File Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val getFilePaymentsFilePaymentIdReportFile : OBPEndpoint = {
+     lazy val getFilePaymentsFilePaymentIdReportFile : OBPEndpointFuture = {
        case "file-payments" :: filepaymentid:: "report-file" :: Nil JsonGet _ => {
          cc =>
            for {

@@ -46,7 +46,7 @@ trait APIMethods130 {
 //      List(UnknownError, "no connector set"),
 //      apiTagApi :: Nil)
 //
-//    lazy val root : OBPEndpoint = {
+//    lazy val root : OBPEndpointFuture = {
 //      case (Nil | "root" :: Nil) JsonGet _ => {
 //        cc =>
 //          implicit val ec = EndpointContext(Some(cc))
@@ -71,7 +71,7 @@ trait APIMethods130 {
 //      List(UserNotLoggedIn, UnknownError),
 //      List(apiTagCard))
 //
-//    lazy val getCards : OBPEndpoint = {
+//    lazy val getCards : OBPEndpointFuture = {
 //      case "cards" :: Nil JsonGet _ => {
 //        cc => {
 //          implicit val ec = EndpointContext(Some(cc))
@@ -99,7 +99,7 @@ trait APIMethods130 {
 //      List(UserNotLoggedIn,BankNotFound, UnknownError),
 //      List(apiTagCard))
 //
-//    lazy val getCardsForBank : OBPEndpoint = {
+//    lazy val getCardsForBank : OBPEndpointFuture = {
 //      case "banks" :: BankId(bankId) :: "cards" :: Nil JsonGet _ => {
 //        cc => {
 //          implicit val ec = EndpointContext(Some(cc))

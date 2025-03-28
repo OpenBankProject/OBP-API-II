@@ -27,7 +27,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.v3_1_0
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 import code.api.util.VersionedOBPApis
 import code.api.v1_3_0.APIMethods130
@@ -290,20 +290,20 @@ object OBPAPI3_1_0 extends OBPRestHelper with APIMethods130 with APIMethods140 w
                         Implementations1_2_1.resourceDocs
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  val routes : List[OBPEndpoint] =
-    getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs) :::
-//  getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOf1_4_0, Implementations1_4_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOf2_0_0, Implementations2_0_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOf2_1_0, Implementations2_1_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOf2_2_0, Implementations2_2_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOf3_0_0, Implementations3_0_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOfCustom3_0_0, ImplementationsCustom3_0_0.resourceDocs) :::
-  getAllowedEndpoints(endpointsOf3_1_0, Implementations3_1_0.resourceDocs)
+//  val routes : List[OBPEndpointFuture] =
+//    getAllowedEndpoints(endpointsOf1_2_1, Implementations1_2_1.resourceDocs) :::
+////  getAllowedEndpoints(endpointsOf1_3_0, Implementations1_3_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOf1_4_0, Implementations1_4_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOf2_0_0, Implementations2_0_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOf2_1_0, Implementations2_1_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOf2_2_0, Implementations2_2_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOf3_0_0, Implementations3_0_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOfCustom3_0_0, ImplementationsCustom3_0_0.resourceDocs) :::
+//  getAllowedEndpoints(endpointsOf3_1_0, Implementations3_1_0.resourceDocs)
 
 
   // Make them available for use!
-  registerRoutes(routes, allResourceDocs, apiPrefix)
+//  registerRoutes(routes, allResourceDocs, apiPrefix)
 
   logger.info(s"version $version has been run! There are ${routes.length} routes.")
 

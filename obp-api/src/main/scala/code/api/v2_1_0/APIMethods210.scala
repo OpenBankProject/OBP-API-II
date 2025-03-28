@@ -87,7 +87,7 @@ trait APIMethods210 {
       List(UnknownError, "no connector set"),
       apiTagApi :: Nil)
 
-    lazy val root : OBPEndpoint = {
+    lazy val root : OBPEndpointFuture = {
       case (Nil | "root" :: Nil) JsonGet _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -133,7 +133,7 @@ trait APIMethods210 {
       Some(List(canCreateSandbox)))
 
 
-    lazy val sandboxDataImport: OBPEndpoint = {
+    lazy val sandboxDataImport: OBPEndpointFuture = {
       // Import data into the sandbox
       case "sandbox" :: "data-import" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -175,7 +175,7 @@ trait APIMethods210 {
       List(apiTagTransactionRequest, apiTagBank))
 
 
-    lazy val getTransactionRequestTypesSupportedByBank: OBPEndpoint = {
+    lazy val getTransactionRequestTypesSupportedByBank: OBPEndpointFuture = {
       // Get transaction request types supported by the bank
       case "banks" :: BankId(bankId) :: "transaction-request-types" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -425,7 +425,7 @@ trait APIMethods210 {
     lazy val createTransactionRequestFreeForm = createTransactionRequest
 
     // This handles the above cases
-    lazy val createTransactionRequest: OBPEndpoint = {
+    lazy val createTransactionRequest: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         TransactionRequestType(transactionRequestType) :: "transaction-requests" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -628,7 +628,7 @@ trait APIMethods210 {
       ),
       List(apiTagTransactionRequest, apiTagPSD2PIS, apiTagPsd2))
 
-    lazy val answerTransactionRequestChallenge: OBPEndpoint = {
+    lazy val answerTransactionRequestChallenge: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-request-types" ::
         TransactionRequestType(transactionRequestType) :: "transaction-requests" :: TransactionRequestId(transReqId) :: "challenge" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
@@ -735,11 +735,11 @@ trait APIMethods210 {
       ),
       List(apiTagTransactionRequest, apiTagPsd2, apiTagOldStyle))
 
-    lazy val getTransactionRequests: OBPEndpoint = {
+    lazy val getTransactionRequests: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "accounts" :: AccountId(accountId) :: ViewId(viewId) :: "transaction-requests" :: Nil JsonGet _ => {
         cc =>
           if (APIUtil.getPropsAsBoolValue("transactionRequests_enabled", false)) {
-            for {
+            val result =  for {
               u <- cc.user ?~ UserNotLoggedIn
               (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {BankNotFound}
               (fromAccount, callContext) <- BankAccountX(bankId, accountId, Some(cc)) ?~! {AccountNotFound}
@@ -753,8 +753,9 @@ trait APIMethods210 {
                 val json = JSONFactory210.createTransactionRequestJSONs(transactionRequests)
                 successJsonResponse(Extraction.decompose(json))
               }
+            Future{(result, HttpCode.`200`(cc.callContext))}
           } else {
-            Full(errorJsonResponse(TransactionRequestsNotEnabled))
+            Future{(Full(errorJsonResponse(TransactionRequestsNotEnabled)),HttpCode.`200`(cc.callContext))}
           }
       }
     }
@@ -776,7 +777,7 @@ trait APIMethods210 {
       List(UserNotLoggedIn, UnknownError),
       List(apiTagRole))
 
-    lazy val getRoles: OBPEndpoint = {
+    lazy val getRoles: OBPEndpointFuture = {
       case "roles" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -816,7 +817,7 @@ trait APIMethods210 {
       Some(List(canGetEntitlementsForAnyUserAtOneBank, canGetEntitlementsForAnyUserAtAnyBank)))
 
 
-    lazy val getEntitlementsByBankAndUser: OBPEndpoint = {
+    lazy val getEntitlementsByBankAndUser: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "users" :: userId :: "entitlements" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -868,21 +869,20 @@ trait APIMethods210 {
       Some(List(canGetConsumers)))
 
 
-    lazy val getConsumer: OBPEndpoint = {
+    lazy val getConsumer: OBPEndpointFuture = {
       case "management" :: "consumers" :: consumerId :: Nil JsonGet _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~! UserNotLoggedIn
             _ <- NewStyle.function.ownEntitlement("", u.userId, ApiRole.canGetConsumers, cc.callContext)
 
             consumerIdToLong <- tryo{consumerId.toLong} ?~! InvalidConsumerId
             consumer <- Consumers.consumers.vend.getConsumerByPrimaryId(consumerIdToLong)
           } yield {
-            val json = createConsumerJSON(consumer)
-            // Return
-            successJsonResponse(Extraction.decompose(json))
+            createConsumerJSON(consumer)
           }
-      }
+          Future{(result, HttpCode.`200`(cc.callContext))}
+          }
     }
 
     resourceDocs += ResourceDoc(
@@ -906,10 +906,10 @@ trait APIMethods210 {
       Some(List(canGetConsumers)))
 
 
-    lazy val getConsumers: OBPEndpoint = {
+    lazy val getConsumers: OBPEndpointFuture = {
       case "management" :: "consumers" :: Nil JsonGet _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~! UserNotLoggedIn
             _ <- NewStyle.function.ownEntitlement("", u.userId, ApiRole.canGetConsumers, cc.callContext)
             consumers <- Some(Consumer.findAll())
@@ -919,6 +919,7 @@ trait APIMethods210 {
             // Return
             successJsonResponse(Extraction.decompose(json))
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -943,10 +944,10 @@ trait APIMethods210 {
       Some(List(canEnableConsumers,canDisableConsumers)))
 
 
-    lazy val enableDisableConsumers: OBPEndpoint = {
+    lazy val enableDisableConsumers: OBPEndpointFuture = {
       case "management" :: "consumers" :: consumerId :: Nil JsonPut json -> _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~! UserNotLoggedIn
             putData <- tryo{json.extract[PutEnabledJSON]} ?~! InvalidJsonFormat
             _ <- putData.enabled match {
@@ -961,6 +962,7 @@ trait APIMethods210 {
             // Return
             successJsonResponse(Extraction.decompose(json))
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -989,7 +991,7 @@ trait APIMethods210 {
       Some(List(canCreateCardsForBank)))
 
 
-    lazy val addCardForBank: OBPEndpoint = {
+    lazy val addCardForBank: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "cards" :: Nil JsonPost json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1073,7 +1075,7 @@ trait APIMethods210 {
       Some(List(canGetAnyUser)))
 
 
-    lazy val getUsers: OBPEndpoint = {
+    lazy val getUsers: OBPEndpointFuture = {
       case "users" :: Nil JsonGet _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1122,7 +1124,7 @@ trait APIMethods210 {
 
 
 
-    lazy val createTransactionType: OBPEndpoint = {
+    lazy val createTransactionType: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "transaction-types" ::  Nil JsonPut json -> _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1162,10 +1164,10 @@ trait APIMethods210 {
       List(apiTagATM, apiTagOldStyle)
     )
 
-    lazy val getAtm: OBPEndpoint = {
+    lazy val getAtm: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "atms" :: AtmId(atmId) :: Nil JsonGet _ => {
         cc =>{
-          for {
+          val result = for {
           // Get atm from the active provider
             _ <- if (getAtmsIsPublic)
               Box(Some(1))
@@ -1174,11 +1176,9 @@ trait APIMethods210 {
             (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {BankNotFound}
             atm  <- Box(Atms.atmsProvider.vend.getAtm(bankId, atmId)) ?~! {AtmNotFoundByAtmId}
           } yield {
-            // Format the data as json
-            val json = JSONFactory1_4_0.createAtmJson(atm)
-            // Return
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory1_4_0.createAtmJson(atm)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -1211,10 +1211,10 @@ trait APIMethods210 {
       List(apiTagBranch, apiTagOldStyle)
     )
 
-    lazy val getBranch: OBPEndpoint = {
+    lazy val getBranch: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "branches" :: BranchId(branchId) :: Nil JsonGet _ => {
         cc =>{
-          for {
+          val result = for {
             _ <- if (getBranchesIsPublic)
               Box(Some(1))
             else
@@ -1222,10 +1222,9 @@ trait APIMethods210 {
             (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {BankNotFound}
             branch <- Box(Branches.branchesProvider.vend.getBranch(bankId, branchId)) ?~! BranchNotFoundByBranchId
           } yield {
-            // Format the data as json
-            val json = JSONFactory1_4_0.createBranchJson(branch)
-            successJsonResponse(Extraction.decompose(json))
+            JSONFactory1_4_0.createBranchJson(branch)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -1262,7 +1261,7 @@ trait APIMethods210 {
       List(apiTagProduct)
     )
 
-    lazy val getProduct: OBPEndpoint = {
+    lazy val getProduct: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: ProductCode(productCode) :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1310,7 +1309,7 @@ trait APIMethods210 {
       List(apiTagProduct)
     )
 
-    lazy val getProducts : OBPEndpoint = {
+    lazy val getProducts : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "products" :: Nil  JsonGet req => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1374,10 +1373,10 @@ trait APIMethods210 {
     // Note: Logged in user can no longer create a customer for himself
 
 
-    lazy val createCustomer : OBPEndpoint = {
+    lazy val createCustomer : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: Nil JsonPost json -> _ => {
         cc =>
-          for {
+          val result = for {
             u <- cc.user ?~! UserNotLoggedIn // TODO. CHECK user has role to create a customer / create a customer for another user id.
             _ <- tryo(assert(isValidID(bankId.value)))?~! InvalidBankIdFormat
             (bank, callContext ) <- BankX(bankId, Some(cc)) ?~! {BankNotFound}
@@ -1411,10 +1410,9 @@ trait APIMethods210 {
             _ <- UserCustomerLink.userCustomerLink.vend.createUserCustomerLink(user_id, customer.customerId, new Date(), true) ?~! CreateUserCustomerLinksError
             
           } yield {
-            val json = JSONFactory210.createCustomerJson(customer)
-            val successJson = Extraction.decompose(json)
-            successJsonResponse(successJson, 201)
+            JSONFactory210.createCustomerJson(customer)
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
 
@@ -1437,16 +1435,17 @@ trait APIMethods210 {
       ),
       List(apiTagCustomer, apiTagUser, apiTagOldStyle))
 
-    lazy val getCustomersForUser : OBPEndpoint = {
+    lazy val getCustomersForUser : OBPEndpointFuture = {
       case "users" :: "current" :: "customers" :: Nil JsonGet _ => {
         cc => {
-          for {
+          val result = for {
             u <- cc.user ?~! UserNotLoggedIn
             customers <- tryo{CustomerX.customerProvider.vend.getCustomersByUserId(u.userId)} ?~! UserCustomerLinksNotFoundForUser
           } yield {
             val json = JSONFactory210.createCustomersJson(customers)
             successJsonResponse(Extraction.decompose(json))
           }
+          Future{(result, HttpCode.`200`(cc.callContext))}
         }
       }
     }
@@ -1475,7 +1474,7 @@ trait APIMethods210 {
       List(apiTagCustomer)
     )
 
-    lazy val getCustomersForCurrentUserAtBank : OBPEndpoint = {
+    lazy val getCustomersForCurrentUserAtBank : OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "customers" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))
@@ -1518,7 +1517,7 @@ trait APIMethods210 {
       Some(List(canUpdateBranch)))
 
 
-    lazy val updateBranch: OBPEndpoint = {
+    lazy val updateBranch: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "branches" :: BranchId(branchId)::  Nil JsonPut json -> _ => {
         cc => implicit val ec = EndpointContext(Some(cc))
           for {
@@ -1564,7 +1563,7 @@ trait APIMethods210 {
       List(apiTagBranch, apiTagOpenData),
       Some(List(canCreateBranch, canCreateBranchAtAnyBank)))
 
-    lazy val createBranch: OBPEndpoint = {
+    lazy val createBranch: OBPEndpointFuture = {
       case "banks" :: BankId(bankId) :: "branches" ::  Nil JsonPost json -> _ =>
         {
           cc => implicit val ec = EndpointContext(Some(cc))
@@ -1616,7 +1615,7 @@ trait APIMethods210 {
       Some(List(canUpdateConsumerRedirectUrl))
     )
     
-    lazy val updateConsumerRedirectUrl: OBPEndpoint = {
+    lazy val updateConsumerRedirectUrl: OBPEndpointFuture = {
       case "management" :: "consumers" :: consumerId :: "consumer" :: "redirect_url" :: Nil JsonPut json -> _ => {
         cc =>
           implicit val ec = EndpointContext(Some(cc))
@@ -1725,7 +1724,7 @@ trait APIMethods210 {
       List(apiTagMetric, apiTagApi),
       Some(List(canReadMetrics)))
 
-    lazy val getMetrics : OBPEndpoint = {
+    lazy val getMetrics : OBPEndpointFuture = {
       case "management" :: "metrics" :: Nil JsonGet _ => {
         cc => {
           implicit val ec = EndpointContext(Some(cc))

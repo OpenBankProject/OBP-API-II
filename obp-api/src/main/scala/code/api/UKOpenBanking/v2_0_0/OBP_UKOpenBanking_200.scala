@@ -27,7 +27,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.UKOpenBanking.v2_0_0
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import code.api.util.ScannedApis
 import code.util.Helper.MdcLoggable
 
@@ -57,11 +57,11 @@ object OBP_UKOpenBanking_200 extends OBPRestHelper with MdcLoggable with Scanned
   override val allResourceDocs = resourceDocs
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  override val routes : List[OBPEndpoint] = getAllowedEndpoints(allEndpoints,resourceDocs)
+//  override val routes : List[OBPEndpointFuture] = getAllowedEndpoints(allEndpoints,resourceDocs)
 
 
   // Make them available for use!
-  registerRoutes(routes, allResourceDocs, apiPrefix)
+//  registerRoutes(routes, allResourceDocs, apiPrefix)
 
   logger.info(s"version $version has been run! There are ${routes.length} routes.")
 

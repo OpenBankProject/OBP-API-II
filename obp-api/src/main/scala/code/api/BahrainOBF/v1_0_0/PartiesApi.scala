@@ -133,7 +133,7 @@ object APIMethods_PartiesApi extends RestHelper {
        ApiTag("Parties") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdPartiesGet : OBPEndpoint = {
+     lazy val accountsAccountIdPartiesGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "parties" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -301,7 +301,7 @@ object APIMethods_PartiesApi extends RestHelper {
        ApiTag("Parties") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdPartyGet : OBPEndpoint = {
+     lazy val accountsAccountIdPartyGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "party" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -432,7 +432,7 @@ object APIMethods_PartiesApi extends RestHelper {
        ApiTag("Parties") :: apiTagMockedData :: Nil
      )
 
-     lazy val partyGet : OBPEndpoint = {
+     lazy val partyGet : OBPEndpointFuture = {
        case "party" :: Nil JsonGet _ => {
          cc =>
            for {

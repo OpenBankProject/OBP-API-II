@@ -195,7 +195,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val internationalPaymentsInternationalPaymentIdGet : OBPEndpoint = {
+     lazy val internationalPaymentsInternationalPaymentIdGet : OBPEndpointFuture = {
        case "international-payments" :: internationalPaymentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -408,7 +408,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val internationalPaymentsInternationalPaymentIdPaymentDetailsGet : OBPEndpoint = {
+     lazy val internationalPaymentsInternationalPaymentIdPaymentDetailsGet : OBPEndpointFuture = {
        case "international-payments" :: internationalPaymentId:: "payment-details" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -701,7 +701,7 @@ object APIMethods_InternationalPaymentsApi extends RestHelper {
        ApiTag("International Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val internationalPaymentsPost : OBPEndpoint = {
+     lazy val internationalPaymentsPost : OBPEndpointFuture = {
        case "international-payments" :: Nil JsonPost _ => {
          cc =>
            for {

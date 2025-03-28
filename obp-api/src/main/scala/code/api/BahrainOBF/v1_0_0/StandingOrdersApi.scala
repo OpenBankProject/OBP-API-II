@@ -58,7 +58,7 @@ object APIMethods_StandingOrdersApi extends RestHelper {
        ApiTag("Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val accountsAccountIdStandingOrdersGet : OBPEndpoint = {
+     lazy val accountsAccountIdStandingOrdersGet : OBPEndpointFuture = {
        case "accounts" :: accountId:: "standing-orders" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -115,7 +115,7 @@ object APIMethods_StandingOrdersApi extends RestHelper {
        ApiTag("Standing Orders") :: apiTagMockedData :: Nil
      )
 
-     lazy val standingOrdersGet : OBPEndpoint = {
+     lazy val standingOrdersGet : OBPEndpointFuture = {
        case "standing-orders" :: Nil JsonGet _ => {
          cc =>
            for {

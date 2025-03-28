@@ -110,7 +110,7 @@ or * access method is generally applicable, but further authorisation processes 
        ApiTag("Payment Initiation Service (PIS)") :: Nil
      )
 
-     lazy val cancelPayment : OBPEndpoint = {
+     lazy val cancelPayment : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId :: Nil JsonDelete _ => {
          cc =>
            for {
@@ -186,7 +186,7 @@ This method returns the SCA status of a payment initiation's authorisation sub-r
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getPaymentCancellationScaStatus : OBPEndpoint = {
+     lazy val getPaymentCancellationScaStatus : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: cancellationId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -233,7 +233,7 @@ Returns the content of a payment object""",
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM ::Nil
      )
 
-     lazy val getPaymentInformation : OBPEndpoint = {
+     lazy val getPaymentInformation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId :: Nil JsonGet _ if checkPaymentServiceType(paymentService) => {
          cc =>
            for {
@@ -292,7 +292,7 @@ This function returns an array of hyperlinks to all generated authorisation sub-
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getPaymentInitiationAuthorisation : OBPEndpoint = {
+     lazy val getPaymentInitiationAuthorisation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId :: "authorisations" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -330,7 +330,7 @@ Retrieve a list of all created cancellation authorisation sub-resources.
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getPaymentInitiationCancellationAuthorisationInformation : OBPEndpoint = {
+     lazy val getPaymentInitiationCancellationAuthorisationInformation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId :: "cancellation-authorisations" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -367,7 +367,7 @@ This method returns the SCA status of a payment initiation's authorisation sub-r
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getPaymentInitiationScaStatus : OBPEndpoint = {
+     lazy val getPaymentInitiationScaStatus : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "authorisations" :: authorisationid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -406,7 +406,7 @@ Check the transaction status of a payment initiation.""",
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val getPaymentInitiationStatus : OBPEndpoint = {
+     lazy val getPaymentInitiationStatus : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "status" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -620,7 +620,7 @@ Check the transaction status of a payment initiation.""",
       ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
     )
 
-    lazy val initiatePayments : OBPEndpoint = {
+    lazy val initiatePayments : OBPEndpointFuture = {
      case "payments" ::  paymentProduct :: Nil  JsonPost json -> _ => {
        cc =>
          initiatePaymentImplementation("payments", paymentProduct, json, cc)
@@ -669,7 +669,7 @@ Check the transaction status of a payment initiation.""",
       ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
     )
 
-    lazy val initiatePeriodicPayments : OBPEndpoint = {
+    lazy val initiatePeriodicPayments : OBPEndpointFuture = {
      case "periodic-payments" ::  paymentProduct :: Nil  JsonPost json -> _ => {
        cc =>
          initiatePaymentImplementation("periodic-payments", paymentProduct, json, cc)
@@ -731,7 +731,7 @@ Check the transaction status of a payment initiation.""",
       ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
     )
 
-    lazy val initiateBulkPayments : OBPEndpoint = {
+    lazy val initiateBulkPayments : OBPEndpointFuture = {
      case "bulk-payments" ::  paymentProduct :: Nil  JsonPost json -> _ => {
        cc =>
          initiatePaymentImplementation("bulk-payments", paymentProduct, json, cc)
@@ -803,7 +803,7 @@ This applies in the following scenarios:
      )
 
 
-    lazy val startPaymentAuthorisationUpdatePsuAuthentication : OBPEndpoint = {
+    lazy val startPaymentAuthorisationUpdatePsuAuthentication : OBPEndpointFuture = {
       case paymentService :: paymentProduct :: paymentId :: "authorisations" :: Nil JsonPost json -> _ if checkUpdatePsuAuthentication(json)  => {
       cc =>
         for {
@@ -846,7 +846,7 @@ This applies in the following scenarios:
       ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
     )
 
-    lazy val startPaymentAuthorisationSelectPsuAuthenticationMethod : OBPEndpoint = {
+    lazy val startPaymentAuthorisationSelectPsuAuthenticationMethod : OBPEndpointFuture = {
       case paymentService :: paymentProduct :: paymentId :: "authorisations" :: Nil JsonPost json -> _ if checkSelectPsuAuthenticationMethod(json)  => {
       cc =>
         for {
@@ -891,7 +891,7 @@ This applies in the following scenarios:
     )
 
 
-    lazy val startPaymentAuthorisationTransactionAuthorisation : OBPEndpoint = {
+    lazy val startPaymentAuthorisationTransactionAuthorisation : OBPEndpointFuture = {
       case paymentService :: paymentProduct :: paymentId :: "authorisations" :: Nil JsonPost json -> _ if checkTransactionAuthorisation(json)  => {
         cc =>
           for {
@@ -984,7 +984,7 @@ This applies in the following scenarios:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val startPaymentInitiationCancellationAuthorisationTransactionAuthorisation : OBPEndpoint = {
+     lazy val startPaymentInitiationCancellationAuthorisationTransactionAuthorisation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: Nil JsonPost json -> _ if checkTransactionAuthorisation(json)=> {
          cc =>
            for {
@@ -1052,7 +1052,7 @@ This applies in the following scenarios:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication : OBPEndpoint = {
+     lazy val startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: Nil JsonPost json -> _ if checkUpdatePsuAuthentication(json)=> {
          cc =>
            for {
@@ -1096,7 +1096,7 @@ This applies in the following scenarios:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod : OBPEndpoint = {
+     lazy val startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: Nil JsonPost json -> _ if checkSelectPsuAuthenticationMethod(json)=> {
          cc =>
            for {
@@ -1181,7 +1181,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentCancellationPsuDataTransactionAuthorisation : OBPEndpoint = {
+     lazy val updatePaymentCancellationPsuDataTransactionAuthorisation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: authorisationId :: Nil JsonPut json -> _ if checkTransactionAuthorisation(json) => {
          cc =>
            for {
@@ -1260,7 +1260,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentCancellationPsuDataUpdatePsuAuthentication : OBPEndpoint = {
+     lazy val updatePaymentCancellationPsuDataUpdatePsuAuthentication : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: authorisationId :: Nil JsonPut json -> _ if checkUpdatePsuAuthentication(json)=> {
          cc =>
            for {
@@ -1302,7 +1302,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod : OBPEndpoint = {
+     lazy val updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: authorisationId :: Nil JsonPut json -> _ if checkSelectPsuAuthenticationMethod(json)=> {
          cc =>
            for {
@@ -1344,7 +1344,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentCancellationPsuDataAuthorisationConfirmation : OBPEndpoint = {
+     lazy val updatePaymentCancellationPsuDataAuthorisationConfirmation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "cancellation-authorisations" :: authorisationId :: Nil JsonPut json -> _ if checkAuthorisationConfirmation(json)=> {
          cc =>
            for {
@@ -1428,7 +1428,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentPsuDataTransactionAuthorisation : OBPEndpoint = {
+     lazy val updatePaymentPsuDataTransactionAuthorisation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "authorisations" :: authorisationId :: Nil JsonPut json -> _ if checkTransactionAuthorisation(json) =>  {
          cc =>
            for {
@@ -1503,7 +1503,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentPsuDataUpdatePsuAuthentication : OBPEndpoint = {
+     lazy val updatePaymentPsuDataUpdatePsuAuthentication : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "authorisations" :: authorisationid :: Nil JsonPut json -> _ if checkUpdatePsuAuthentication(json) =>  {
          cc =>
            for {
@@ -1547,7 +1547,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentPsuDataSelectPsuAuthenticationMethod : OBPEndpoint = {
+     lazy val updatePaymentPsuDataSelectPsuAuthenticationMethod : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "authorisations" :: authorisationid :: Nil JsonPut json -> _ if checkSelectPsuAuthenticationMethod(json) =>  {
          cc =>
            for {
@@ -1591,7 +1591,7 @@ There are the following request types on this access path:
        ApiTag("Payment Initiation Service (PIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val updatePaymentPsuDataAuthorisationConfirmation : OBPEndpoint = {
+     lazy val updatePaymentPsuDataAuthorisationConfirmation : OBPEndpointFuture = {
        case paymentService :: paymentProduct :: paymentId:: "authorisations" :: authorisationid :: Nil JsonPut json -> _ if checkAuthorisationConfirmation(json) =>  {
          cc =>
            for {

@@ -52,7 +52,7 @@ Removes consent""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val deleteConsent : OBPEndpoint = {
+     lazy val deleteConsent : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "deleteConsent" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -109,7 +109,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccount : OBPEndpoint = {
+     lazy val getAccount : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getAccount" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -192,7 +192,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccounts : OBPEndpoint = {
+     lazy val getAccounts : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getAccounts" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -254,7 +254,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getHolds : OBPEndpoint = {
+     lazy val getHolds : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getHolds" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -347,7 +347,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionDetail : OBPEndpoint = {
+     lazy val getTransactionDetail : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getTransactionDetail" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -435,7 +435,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionsCancelled : OBPEndpoint = {
+     lazy val getTransactionsCancelled : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getTransactionsCancelled" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -483,7 +483,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionsDone : OBPEndpoint = {
+     lazy val getTransactionsDone : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getTransactionsDone" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -531,7 +531,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionsPending : OBPEndpoint = {
+     lazy val getTransactionsPending : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getTransactionsPending" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -579,7 +579,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionsRejected : OBPEndpoint = {
+     lazy val getTransactionsRejected : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getTransactionsRejected" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -627,7 +627,7 @@ User identification based on access token""",
        ApiTag("AIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionsScheduled : OBPEndpoint = {
+     lazy val getTransactionsScheduled : OBPEndpointFuture = {
        case "accounts":: "v2_1_1.1":: "getTransactionsScheduled" :: Nil JsonPost _ => {
          cc =>
            for {

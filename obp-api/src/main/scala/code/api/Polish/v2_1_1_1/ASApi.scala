@@ -930,7 +930,7 @@ Requests OAuth2 authorization code""",
        ApiTag("AS") :: apiTagMockedData :: Nil
      )
 
-     lazy val authorize : OBPEndpoint = {
+     lazy val authorize : OBPEndpointFuture = {
        case "auth":: "v2_1_1.1":: "authorize" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -1847,7 +1847,7 @@ Requests OAuth2 authorization code based One-time authorization code issued by E
        ApiTag("AS") :: apiTagMockedData :: Nil
      )
 
-     lazy val authorizeExt : OBPEndpoint = {
+     lazy val authorizeExt : OBPEndpointFuture = {
        case "auth":: "v2_1_1.1":: "authorizeExt" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -2823,7 +2823,7 @@ Requests OAuth2 access token value""",
        ApiTag("AS") :: apiTagMockedData :: Nil
      )
 
-     lazy val token : OBPEndpoint = {
+     lazy val token : OBPEndpointFuture = {
        case "auth":: "v2_1_1.1":: "token" :: Nil JsonPost _ => {
          cc =>
            for {

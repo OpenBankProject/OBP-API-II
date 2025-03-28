@@ -1,6 +1,6 @@
 package code.api.util
 
-import code.api.util.APIUtil.{ApiRelation, OBPEndpoint, ResourceDoc}
+import code.api.util.APIUtil.{ApiRelation, OBPEndpointFuture, ResourceDoc}
 import code.util.ClassScanUtils
 import com.openbankproject.commons.util.{ApiVersion, ScannedApiVersion}
 import net.liftweb.http.LiftRules
@@ -14,7 +14,7 @@ trait ScannedApis extends LiftRules.DispatchPF {
   val apiVersion: ScannedApiVersion
   lazy val version: ApiVersion = this.apiVersion
   val allResourceDocs: ArrayBuffer[ResourceDoc]
-  val routes: List[OBPEndpoint]
+  val routes: List[OBPEndpointFuture]
   //  val apiRelations: ArrayBuffer[ApiRelation]
 }
 

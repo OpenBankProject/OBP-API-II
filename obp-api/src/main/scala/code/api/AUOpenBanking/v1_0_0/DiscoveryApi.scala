@@ -62,7 +62,7 @@ object APIMethods_DiscoveryApi extends RestHelper {
        ApiTag("Common") ::ApiTag("Discovery") :: apiTagMockedData :: Nil
      )
 
-     lazy val getOutages : OBPEndpoint = {
+     lazy val getOutages : OBPEndpointFuture = {
        case "discovery":: "outages" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -120,7 +120,7 @@ object APIMethods_DiscoveryApi extends RestHelper {
        ApiTag("Common") ::ApiTag("Discovery") :: apiTagMockedData :: Nil
      )
 
-     lazy val getStatus : OBPEndpoint = {
+     lazy val getStatus : OBPEndpointFuture = {
        case "discovery":: "status" :: Nil JsonGet _ => {
          cc =>
            for {

@@ -126,7 +126,7 @@ object APIMethods_DomesticFutureDatedPaymentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentsDomesticFutureDatedPaymentIdGet : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentsDomesticFutureDatedPaymentIdGet : OBPEndpointFuture = {
        case "domestic-future-dated-payments" :: domesticFutureDatedPaymentId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -320,7 +320,7 @@ object APIMethods_DomesticFutureDatedPaymentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentsDomesticFutureDatedPaymentIdPatch : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentsDomesticFutureDatedPaymentIdPatch : OBPEndpointFuture = {
        case "domestic-future-dated-payments" :: domesticFutureDatedPaymentId :: Nil JsonPatch _ => {
          cc =>
            for {
@@ -463,7 +463,7 @@ object APIMethods_DomesticFutureDatedPaymentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentsDomesticFutureDatedPaymentIdPaymentDetailsGet : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentsDomesticFutureDatedPaymentIdPaymentDetailsGet : OBPEndpointFuture = {
        case "domestic-future-dated-payments" :: domesticFutureDatedPaymentId:: "payment-details" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -655,7 +655,7 @@ object APIMethods_DomesticFutureDatedPaymentsApi extends RestHelper {
        ApiTag("Domestic Future Dated Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val domesticFutureDatedPaymentsPost : OBPEndpoint = {
+     lazy val domesticFutureDatedPaymentsPost : OBPEndpointFuture = {
        case "domestic-future-dated-payments" :: Nil JsonPost _ => {
          cc =>
            for {

@@ -100,7 +100,7 @@ The resource identifications of these transactions are contained in the  payload
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val createSigningBasket : OBPEndpoint = {
+     lazy val createSigningBasket : OBPEndpointFuture = {
        case "signing-baskets" :: Nil JsonPost jsonPost -> _  =>  {
          cc =>
            for {
@@ -149,7 +149,7 @@ Nevertheless, single transactions might be cancelled on an individual basis on t
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val deleteSigningBasket : OBPEndpoint = {
+     lazy val deleteSigningBasket : OBPEndpointFuture = {
        case "signing-baskets" :: basketid :: Nil JsonDelete _ => {
          cc =>
            for {
@@ -185,7 +185,7 @@ Returns the content of an signing basket object.""",
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val getSigningBasket : OBPEndpoint = {
+     lazy val getSigningBasket : OBPEndpointFuture = {
        case "signing-baskets" :: basketid :: Nil JsonGet _ => {
          cc =>
            for {
@@ -222,7 +222,7 @@ This function returns an array of hyperlinks to all generated authorisation sub-
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val getSigningBasketAuthorisation : OBPEndpoint = {
+     lazy val getSigningBasketAuthorisation : OBPEndpointFuture = {
        case "signing-baskets" :: basketid:: "authorisations" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -253,7 +253,7 @@ This method returns the SCA status of a signing basket's authorisation sub-resou
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val getSigningBasketScaStatus : OBPEndpoint = {
+     lazy val getSigningBasketScaStatus : OBPEndpointFuture = {
        case "signing-baskets" :: basketId:: "authorisations" :: authorisationId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -289,7 +289,7 @@ Returns the status of a signing basket object.
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val getSigningBasketStatus : OBPEndpoint = {
+     lazy val getSigningBasketStatus : OBPEndpointFuture = {
        case "signing-baskets" :: basketid:: "status" :: Nil JsonGet _ =>
          cc =>
            for {
@@ -375,7 +375,7 @@ This applies in the following scenarios:
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val startSigningBasketAuthorisation : OBPEndpoint = {
+     lazy val startSigningBasketAuthorisation : OBPEndpointFuture = {
        case "signing-baskets" :: basketId :: "authorisations" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -464,7 +464,7 @@ There are the following request types on this access path:
        apiTagSigningBaskets :: Nil
      )
 
-     lazy val updateSigningBasketPsuData : OBPEndpoint = {
+     lazy val updateSigningBasketPsuData : OBPEndpointFuture = {
        case "signing-baskets" :: basketId:: "authorisations" :: authorisationId :: Nil JsonPut json -> _  =>
          cc =>
            for {

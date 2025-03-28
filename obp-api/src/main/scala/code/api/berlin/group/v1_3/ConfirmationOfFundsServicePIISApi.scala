@@ -60,7 +60,7 @@ in the header. This field is contained but commented out in this specification. 
        ApiTag("Confirmation of Funds Service (PIIS)") :: apiTagBerlinGroupM :: Nil
      )
 
-     lazy val checkAvailabilityOfFunds : OBPEndpoint = {
+     lazy val checkAvailabilityOfFunds : OBPEndpointFuture = {
        case "funds-confirmations" ::  Nil JsonPost json -> _ => {
          cc =>
            for {

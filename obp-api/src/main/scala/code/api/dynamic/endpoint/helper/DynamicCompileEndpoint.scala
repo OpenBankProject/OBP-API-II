@@ -1,6 +1,6 @@
 package code.api.dynamic.endpoint.helper
 
-import code.api.util.APIUtil.{OBPEndpoint, OBPReturnType, futureToBoxedResponse, scalaFutureToLaFuture}
+import code.api.util.APIUtil.{OBPEndpointFuture, OBPReturnType, futureToBoxedResponse, scalaFutureToLaFuture}
 import code.api.util.DynamicUtil.{Sandbox, Validation}
 import code.api.util.{CallContext, CustomJsonFormats, DynamicUtil}
 import net.liftweb.common.Box
@@ -18,7 +18,7 @@ trait DynamicCompileEndpoint {
 
   protected def process(callContext: CallContext, request: Req, pathParams: Map[String, String]): Box[JsonResponse]
 
-  val endpoint: OBPEndpoint = new OBPEndpoint {
+  val endpoint: OBPEndpointFuture = new OBPEndpointFuture {
     override def isDefinedAt(x: Req): Boolean = true
 
     override def apply(request: Req): CallContext => Box[JsonResponse] = { cc =>

@@ -27,7 +27,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.berlin.group.v1
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpoint, getAllowedEndpoints}
+import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import com.openbankproject.commons.util.{ApiVersionStatus, ScannedApiVersion}
 import code.api.util.ScannedApis
 import code.util.Helper.MdcLoggable
@@ -57,11 +57,11 @@ object OBP_BERLIN_GROUP_1 extends OBPRestHelper with MdcLoggable with ScannedApi
   override val allResourceDocs = resourceDocs
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  override val routes : List[OBPEndpoint] = getAllowedEndpoints(allEndpoints,resourceDocs)
+//  override val routes : List[OBPEndpointFuture] = getAllowedEndpoints(allEndpoints,resourceDocs)
 
 
   // Make them available for use!
-  registerRoutes(routes, allResourceDocs, apiPrefix)
+//  registerRoutes(routes, allResourceDocs, apiPrefix)
 
   logger.info(s"version $apiVersion has been run! There are ${routes.length} routes.")
 

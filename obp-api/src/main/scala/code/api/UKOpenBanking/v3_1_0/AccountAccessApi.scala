@@ -82,7 +82,7 @@ object APIMethods_AccountAccessApi extends RestHelper {
        ApiTag("Account Access") :: Nil
      )
 
-     lazy val createAccountAccessConsents : OBPEndpoint = {
+     lazy val createAccountAccessConsents : OBPEndpointFuture = {
        case "account-access-consents" :: Nil JsonPost postJson -> _  => {
          cc =>
            for {
@@ -152,7 +152,7 @@ object APIMethods_AccountAccessApi extends RestHelper {
        ApiTag("Account Access") :: Nil
      )
 
-     lazy val deleteAccountAccessConsentsConsentId : OBPEndpoint = {
+     lazy val deleteAccountAccessConsentsConsentId : OBPEndpointFuture = {
        case "account-access-consents" :: consentId :: Nil JsonDelete _ => {
          cc =>
            for {
@@ -209,7 +209,7 @@ object APIMethods_AccountAccessApi extends RestHelper {
        ApiTag("Account Access") :: Nil
      )
 
-     lazy val getAccountAccessConsentsConsentId : OBPEndpoint = {
+     lazy val getAccountAccessConsentsConsentId : OBPEndpointFuture = {
        case "account-access-consents" :: consentId :: Nil JsonGet _ => {
          cc =>
            for {

@@ -256,7 +256,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val bundle : OBPEndpoint = {
+     lazy val bundle : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "bundle" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -317,7 +317,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val cancelPayments : OBPEndpoint = {
+     lazy val cancelPayments : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "cancelPayments" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -370,7 +370,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val cancelRecurringPayment : OBPEndpoint = {
+     lazy val cancelRecurringPayment : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "cancelRecurringPayment" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -433,7 +433,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val domestic : OBPEndpoint = {
+     lazy val domestic : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "domestic" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -496,7 +496,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val eEA : OBPEndpoint = {
+     lazy val eEA : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "EEA" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -559,7 +559,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getBundle : OBPEndpoint = {
+     lazy val getBundle : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "getBundle" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -644,7 +644,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getMultiplePayments : OBPEndpoint = {
+     lazy val getMultiplePayments : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "getMultiplePayments" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -693,7 +693,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getPayment : OBPEndpoint = {
+     lazy val getPayment : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "getPayment" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -733,7 +733,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val getRecurringPayment : OBPEndpoint = {
+     lazy val getRecurringPayment : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "getRecurringPayment" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -805,7 +805,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val nonEEA : OBPEndpoint = {
+     lazy val nonEEA : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "nonEEA" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -951,7 +951,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val recurring : OBPEndpoint = {
+     lazy val recurring : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "recurring" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -1028,7 +1028,7 @@ object APIMethods_PISApi extends RestHelper {
        ApiTag("PIS") :: apiTagMockedData :: Nil
      )
 
-     lazy val tax : OBPEndpoint = {
+     lazy val tax : OBPEndpointFuture = {
        case "payments":: "v2_1_1.1":: "tax" :: Nil JsonPost _ => {
          cc =>
            for {

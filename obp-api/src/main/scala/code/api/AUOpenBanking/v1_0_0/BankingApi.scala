@@ -68,7 +68,7 @@ object APIMethods_BankingApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Accounts") :: apiTagMockedData :: Nil
      )
 
-     lazy val getAccountDetail : OBPEndpoint = {
+     lazy val getAccountDetail : OBPEndpointFuture = {
        case "banking":: "accounts" :: accountId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -108,7 +108,7 @@ object APIMethods_BankingApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Payees") :: apiTagMockedData :: Nil
      )
 
-     lazy val getPayeeDetail : OBPEndpoint = {
+     lazy val getPayeeDetail : OBPEndpointFuture = {
        case "banking":: "payees" :: payeeId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -148,7 +148,7 @@ object APIMethods_BankingApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Products") :: apiTagMockedData :: Nil
      )
 
-     lazy val getProductDetail : OBPEndpoint = {
+     lazy val getProductDetail : OBPEndpointFuture = {
        case "banking":: "products" :: productId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -188,7 +188,7 @@ object APIMethods_BankingApi extends RestHelper {
        ApiTag("Banking") ::ApiTag("Accounts") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactionDetail : OBPEndpoint = {
+     lazy val getTransactionDetail : OBPEndpointFuture = {
        case "banking":: "accounts" :: accountId:: "transactions" :: transactionId :: Nil JsonGet _ => {
          cc =>
            for {
@@ -289,7 +289,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Accounts") :: apiTagMockedData :: Nil
      )
 
-     lazy val getTransactions : OBPEndpoint = {
+     lazy val getTransactions : OBPEndpointFuture = {
        case "banking":: "accounts" :: accountId:: "transactions" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -405,7 +405,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Accounts") :: Nil
      )
 
-     lazy val listAccounts : OBPEndpoint = {
+     lazy val listAccounts : OBPEndpointFuture = {
        case "banking":: "accounts" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -455,7 +455,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Accounts") :: Nil
      )
 
-     lazy val listBalance : OBPEndpoint = {
+     lazy val listBalance : OBPEndpointFuture = {
        case "banking":: "accounts" :: accountId:: "balance" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -527,7 +527,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Accounts") :: apiTagMockedData :: Nil
      )
 
-     lazy val listBalancesBulk : OBPEndpoint = {
+     lazy val listBalancesBulk : OBPEndpointFuture = {
        case "banking":: "accounts":: "balances" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -646,7 +646,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Accounts") :: apiTagMockedData :: Nil
      )
 
-     lazy val listBalancesSpecificAccounts : OBPEndpoint = {
+     lazy val listBalancesSpecificAccounts : OBPEndpointFuture = {
        case "banking":: "accounts":: "balances" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -754,7 +754,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Direct Debits") :: apiTagMockedData :: Nil
      )
 
-     lazy val listDirectDebits : OBPEndpoint = {
+     lazy val listDirectDebits : OBPEndpointFuture = {
        case "banking":: "accounts" :: accountId:: "direct-debits" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -856,7 +856,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Direct Debits") :: apiTagMockedData :: Nil
      )
 
-     lazy val listDirectDebitsBulk : OBPEndpoint = {
+     lazy val listDirectDebitsBulk : OBPEndpointFuture = {
        case "banking":: "accounts":: "direct-debits" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -963,7 +963,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Direct Debits") :: apiTagMockedData :: Nil
      )
 
-     lazy val listDirectDebitsSpecificAccounts : OBPEndpoint = {
+     lazy val listDirectDebitsSpecificAccounts : OBPEndpointFuture = {
        case "banking":: "accounts":: "direct-debits" :: Nil JsonPost _ => {
          cc =>
            for {
@@ -1055,7 +1055,7 @@ Some general notes that apply to all end points that retrieve transactions:
        ApiTag("Banking") ::ApiTag("Payees") :: apiTagMockedData :: Nil
      )
 
-     lazy val listPayees : OBPEndpoint = {
+     lazy val listPayees : OBPEndpointFuture = {
        case "banking":: "payees" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -1205,7 +1205,7 @@ In addition, the concept of effective date and time has also been included. This
        ApiTag("Banking") ::ApiTag("Products") :: apiTagMockedData :: Nil
      )
 
-     lazy val listProducts : OBPEndpoint = {
+     lazy val listProducts : OBPEndpointFuture = {
        case "banking":: "products" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -1581,7 +1581,7 @@ In addition, the concept of effective date and time has also been included. This
        ApiTag("Banking") ::ApiTag("Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val listScheduledPayments : OBPEndpoint = {
+     lazy val listScheduledPayments : OBPEndpointFuture = {
        case "banking":: "accounts" :: accountId:: "payments":: "scheduled" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -2199,7 +2199,7 @@ In addition, the concept of effective date and time has also been included. This
        ApiTag("Banking") ::ApiTag("Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val listScheduledPaymentsBulk : OBPEndpoint = {
+     lazy val listScheduledPaymentsBulk : OBPEndpointFuture = {
        case "banking":: "payments":: "scheduled" :: Nil JsonGet _ => {
          cc =>
            for {
@@ -2822,7 +2822,7 @@ In addition, the concept of effective date and time has also been included. This
        ApiTag("Banking") ::ApiTag("Scheduled Payments") :: apiTagMockedData :: Nil
      )
 
-     lazy val listScheduledPaymentsSpecificAccounts : OBPEndpoint = {
+     lazy val listScheduledPaymentsSpecificAccounts : OBPEndpointFuture = {
        case "banking":: "payments":: "scheduled" :: Nil JsonPost _ => {
          cc =>
            for {

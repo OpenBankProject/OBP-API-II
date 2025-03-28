@@ -59,13 +59,13 @@ trait APIMethodsDynamicEndpoint {
       box.openOrThrowException("impossible error")
     }
 
-    lazy val dynamicEndpoint: OBPEndpoint = {
+    lazy val dynamicEndpoint: OBPEndpointFuture = {
       case DynamicReq(url, json, method, params, pathParams, role, operationId, mockResponse, bankId) => { cc =>
         // process before authentication interceptor, get intercept result
         val resourceDoc = DynamicEndpointHelper.doc.find(_.operationId == operationId)
         val callContext = cc.copy(operationId = Some(operationId), resourceDocument = resourceDoc)
         val beforeInterceptResult: Box[JsonResponse] = beforeAuthenticateInterceptResult(Option(callContext), operationId)
-        if (beforeInterceptResult.isDefined) beforeInterceptResult
+        val result: Object = if (beforeInterceptResult.isDefined) beforeInterceptResult
         else for {
           (Full(u), callContext) <- authenticatedAccess(callContext) // Inject operationId into Call Context. It's used by Rate Limiting.
           _ <- NewStyle.function.hasEntitlement(bankId.getOrElse(""), u.userId, role, callContext)
@@ -197,8 +197,8 @@ trait APIMethodsDynamicEndpoint {
               fullBoxOrException[JValue](changedMsgFailure)
               ??? // will not execute to here, Because the failure message is thrown by upper line.
           }
-
         }
+        Future{(result, HttpCode.`200`(cc.callContext))}
       }
     }
   }
