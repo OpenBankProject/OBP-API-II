@@ -2926,6 +2926,24 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
           ))
       }
     } catch {
+      case e: LiftFlowOfControlException =>
+        val f: ((=> LiftResponse) => Unit) => Unit = ReflectUtils.getFieldByType(e, "f")
+        var responseBox: Box[JsonResponse] = Empty
+        f(response => responseBox = Full(response.asInstanceOf[JsonResponse]))
+        responseBox
+  
+      case JsonResponseException(jsonResponse) =>
+        Full(jsonResponse)
+  
+      case e: Throwable =>
+        val msg = e.getMessage
+        surroundErrorMessage(msg)
+        logger.debug("Error in futureToBoxedResponse", e)
+        extractAPIFailureNewStyle(msg) match {
+          case Some(apiFailure) => Full(errorJsonResponse(apiFailure.failMsg, apiFailure.failCode, apiFailure.ccl)(getHeadersNewStyle(apiFailure.ccl)))
+          case None => Full(errorJsonResponse(msg))
+        }
+  
       case e: Throwable =>
         logger.error("", e)
         val errorResponse = getFilteredOrFullErrorMessage(Full(e))
