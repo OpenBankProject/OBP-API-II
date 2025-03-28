@@ -440,6 +440,15 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
       Some(List(canReadResourceDoc))
     )
     
+    lazy val getResourceDocsObpV400Future : OBPEndpointFuture = {
+      case "resource-docs" :: requestedApiVersionString :: "obp-future" :: Nil JsonGet _ => {
+        val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
+        cc =>
+          implicit val ec = EndpointContext(Some(cc))
+          getApiLevelResourceDocs(cc,requestedApiVersionString, tags, partialFunctions, locale, contentParam, apiCollectionIdParam,true).map(_._1)
+      }
+    }
+    
     lazy val getResourceDocsObpV400 : OBPEndpoint = {
       case "resource-docs" :: requestedApiVersionString :: "obp" :: Nil JsonGet _ => {
         val (tags, partialFunctions, locale, contentParam, apiCollectionIdParam) = ResourceDocsAPIMethodsUtil.getParams()
