@@ -24,7 +24,7 @@ object JsonErrorHandler {
       OptionT {
         routes(req).value.handleErrorWith { error =>
           val stackTrace = error.getStackTrace.mkString("\n")
-          logger.error(s"[Error] ${error.getMessage} at ${req.method} ${req.uri}\n$stackTrace") *> IO {
+          logger.error(s"[${error.toString}]-Message:${error.getMessage} at ${req.method} ${req.uri}\n Error StackTrace: $stackTrace") *> IO {
             try {
               val failure = parse(error.getMessage).extract[APIFailureNewStyle]
               val errorMessage = ErrorMessage(failure.failCode, failure.failMsg)

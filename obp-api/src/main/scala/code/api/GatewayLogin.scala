@@ -44,6 +44,8 @@ import net.liftweb.json._
 import net.liftweb.util.Helpers
 
 import com.openbankproject.commons.ExecutionContext.Implicits.global
+import net.liftweb.http.provider.HTTPParam
+
 import scala.concurrent.Future
 
 /**
@@ -141,9 +143,9 @@ object GatewayLogin extends RestHelper with MdcLoggable {
   }
 
   // Check if the request (access token or request token) is valid and return a tuple
-  def validator(request: Box[Req]) : (Int, String, Map[String,String]) = {
+  def validator(requestHeaders: List[HTTPParam]) : (Int, String, Map[String,String]) = {
     // First we try to extract all parameters from a Request
-    val parameters: Map[String, String] = getAllParameters(request)
+    val parameters: Map[String, String] = getAllParameters(requestHeaders)
     val emptyMap = Map[String, String]()
 
     parameters.get("error") match {
@@ -385,47 +387,52 @@ object GatewayLogin extends RestHelper with MdcLoggable {
   }
 
   // Return a Map containing the GatewayLogin parameter : token -> value
-  def getAllParameters(request: Box[Req]): Map[String, String] = {
-    def toMap(parametersList: String) = {
-      //transform the string "GatewayLogin token="value""
-      //to a tuple (GatewayLogin_parameter,Decoded(value))
-      def dynamicListExtract(input: String) = {
-        val gatewayLoginPossibleParameters =
-          List(
-            "token"
-          )
-        if (input contains "=") {
+  def getAllParameters(params: List[HTTPParam]): Map[String, String] = {
+    // Convert the string of parameters into a map of GatewayLogin parameters
+    def toMap(parametersList: String): Map[String, String] = {
+      // Helper function to extract (key, value) tuples
+      def dynamicListExtract(input: String): Option[(String, String)] = {
+        val gatewayLoginPossibleParameters = List("token")
+
+        if (input.contains("=")) {
           val split = input.split("=", 2)
           val parameterValue = split(1).replace("\"", "")
-          //add only OAuth parameters and not empty
-          if (gatewayLoginPossibleParameters.contains(split(0)) && !parameterValue.isEmpty)
-            Some(split(0), parameterValue) // return key , value
-          else
+
+          // Only include valid parameters with non-empty values
+          if (gatewayLoginPossibleParameters.contains(split(0)) && parameterValue.nonEmpty) {
+            Some(split(0), parameterValue)
+          } else {
             None
-        }
-        else
+          }
+        } else {
           None
+        }
       }
-      // We delete the "GatewayLogin" prefix and all the white spaces that may exist in the string
+
+      // Remove "GatewayLogin" prefix and whitespaces, then process parameters
       val cleanedParameterList = parametersList.stripPrefix("GatewayLogin").replaceAll("\\s", "")
-      val params = Map(cleanedParameterList.split(",").flatMap(dynamicListExtract _): _*)
-      params
+      val params = cleanedParameterList
+        .split(",")
+        .flatMap(dynamicListExtract)
+      Map(params: _*)
     }
 
-    request match {
-      case Full(a) => a.header("Authorization") match {
-        case Full(header) => {
-          if (header.contains("GatewayLogin"))
-            toMap(header)
-          else
-            Map("error" -> "Missing GatewayLogin in header!")
-        }
-        case _ => Map("error" -> "Missing Authorization header!")
-      }
-      case _ => Map("error" -> "Request is incorrect!")
+    // Extract "Authorization" header from `params`
+    val authHeaderOpt = params
+      .filter(_.name.equalsIgnoreCase("Authorization")) // Find specific header
+      .flatMap(_.values)                                // Get its values
+      .headOption                                       // Use the first value if it exists
+
+    authHeaderOpt match {
+      case Some(header) =>
+        if (header.contains("GatewayLogin"))
+          toMap(header)
+        else
+          Map("error" -> "Missing GatewayLogin in header!")
+      case None => Map("error" -> "Missing Authorization header!")
     }
   }
-
+  
   // Returns the missing parameters
   def missingGatewayLoginParameters(parameters: Map[String, String]): Set[String] = {
     ("token" :: List()).toSet diff parameters.keySet
@@ -476,21 +483,21 @@ object GatewayLogin extends RestHelper with MdcLoggable {
     listOfValues
   }
 
-  def getUser : Box[User] = {
-    val (httpCode, message, parameters) = GatewayLogin.validator(S.request)
-    httpCode match {
-      case 200 =>
-        val payload = GatewayLogin.parseJwt(parameters)
-        payload match {
-          case Full(payload) =>
-            val username = getFieldFromPayloadJson(payload, "login_user_name")
-            logger.debug("username: " + username)
-            Users.users.vend.getUserByProviderId(provider = gateway, idGivenByProvider = username)
-          case _ =>
-            None
-        }
-      case _  =>
-        None
-    }
-  }
+//  def getUser : Box[User] = {
+//    val (httpCode, message, parameters) = GatewayLogin.validator(S.request)
+//    httpCode match {
+//      case 200 =>
+//        val payload = GatewayLogin.parseJwt(parameters)
+//        payload match {
+//          case Full(payload) =>
+//            val username = getFieldFromPayloadJson(payload, "login_user_name")
+//            logger.debug("username: " + username)
+//            Users.users.vend.getUserByProviderId(provider = gateway, idGivenByProvider = username)
+//          case _ =>
+//            None
+//        }
+//      case _  =>
+//        None
+//    }
+//  }
 }

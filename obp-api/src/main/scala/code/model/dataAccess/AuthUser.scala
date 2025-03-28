@@ -41,9 +41,7 @@ import code.bankconnectors.Connector
 import code.context.UserAuthContextProvider
 import code.entitlement.Entitlement
 import code.loginattempts.LoginAttempt
-import code.snippet.WebUI
-import code.token.TokensOpenIDConnect
-import code.users.{UserAgreementProvider, Users}
+import code.users.{Users}
 import code.util.Helper
 import code.util.Helper.{MdcLoggable, ObpS}
 import code.views.Views
@@ -439,146 +437,146 @@ import net.liftweb.util.Helpers._
   // To force validation of email addresses set this to false (default as of 29 June 2021)
   override def skipEmailValidation = APIUtil.getPropsAsBoolValue("authUser.skipEmailValidation", false)
 
-  override def loginXhtml = {
-    val loginXml = Templates(List("templates-hidden","_login")).map({
-        "form [action]" #> {ObpS.uri} &
-        "#loginText * " #> {S.?("log.in")} &
-        "#usernameText * " #> {S.?("username")} &
-        "#passwordText * " #> {S.?("password")} &
-        "#login_challenge [value]" #> ObpS.param("login_challenge").getOrElse("") &
-        "autocomplete=off [autocomplete] " #> APIUtil.getAutocompleteValue &
-        "#recoverPasswordLink * " #> {
-          "a [href]" #> {lostPasswordPath.mkString("/", "/", "")} &
-          "a *" #> {S.?("recover.password")}
-        } &
-        "#SignUpLink * " #> {
-          "a [href]" #> {AuthUser.signUpPath.foldLeft("")(_ + "/" + _)} &
-          "a *" #> {S.?("sign.up")}
-        }
-      })
+//  override def loginXhtml = {
+//    val loginXml = Templates(List("templates-hidden","_login")).map({
+//        "form [action]" #> {ObpS.uri} &
+//        "#loginText * " #> {S.?("log.in")} &
+//        "#usernameText * " #> {S.?("username")} &
+//        "#passwordText * " #> {S.?("password")} &
+//        "#login_challenge [value]" #> ObpS.param("login_challenge").getOrElse("") &
+//        "autocomplete=off [autocomplete] " #> APIUtil.getAutocompleteValue &
+//        "#recoverPasswordLink * " #> {
+//          "a [href]" #> {lostPasswordPath.mkString("/", "/", "")} &
+//          "a *" #> {S.?("recover.password")}
+//        } &
+//        "#SignUpLink * " #> {
+//          "a [href]" #> {AuthUser.signUpPath.foldLeft("")(_ + "/" + _)} &
+//          "a *" #> {S.?("sign.up")}
+//        }
+//      })
+//
+//    <div>{loginXml getOrElse NodeSeq.Empty}</div>
+//  }
 
-    <div>{loginXml getOrElse NodeSeq.Empty}</div>
-  }
 
-
-  // Update ResourceUser.LastUsedLocale only once per session in 60 seconds
-  def updateComputedLocale(sessionId: String, computedLocale: String): Boolean = {
-    /**
-     * Please note that "var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)"
-     * is just a temporary value field with UUID values in order to prevent any ambiguity.
-     * The real value will be assigned by Macro during compile time at this line of a code:
-     * https://github.com/OpenBankProject/scala-macros/blob/master/macros/src/main/scala/com/tesobe/CacheKeyFromArgumentsMacro.scala#L49
-     */
-    import scala.concurrent.duration._
-    val ttl: Duration = FiniteDuration(60, "second")
-    var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)
-    CacheKeyFromArguments.buildCacheKey {
-      Caching.memoizeSyncWithProvider(Some(cacheKey.toString()))(ttl) {
-        logger.debug(s"AuthUser.updateComputedLocale(sessionId = $sessionId, computedLocale = $computedLocale)")
-        getCurrentUser.map(_.userPrimaryKey.value) match {
-          case Full(id) =>
-            Users.users.vend.getResourceUserByResourceUserId(id).map {
-              u =>
-                u.LastUsedLocale(computedLocale).save
-                logger.debug(s"ResourceUser.LastUsedLocale is saved for the resource user id: $id")
-            }.isDefined
-          case _ => true// There is no current user
-        }
-      }
-    }
-  }
+//  // Update ResourceUser.LastUsedLocale only once per session in 60 seconds
+//  def updateComputedLocale(sessionId: String, computedLocale: String): Boolean = {
+//    /**
+//     * Please note that "var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)"
+//     * is just a temporary value field with UUID values in order to prevent any ambiguity.
+//     * The real value will be assigned by Macro during compile time at this line of a code:
+//     * https://github.com/OpenBankProject/scala-macros/blob/master/macros/src/main/scala/com/tesobe/CacheKeyFromArgumentsMacro.scala#L49
+//     */
+//    import scala.concurrent.duration._
+//    val ttl: Duration = FiniteDuration(60, "second")
+//    var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)
+//    CacheKeyFromArguments.buildCacheKey {
+//      Caching.memoizeSyncWithProvider(Some(cacheKey.toString()))(ttl) {
+//        logger.debug(s"AuthUser.updateComputedLocale(sessionId = $sessionId, computedLocale = $computedLocale)")
+//        getCurrentUser.map(_.userPrimaryKey.value) match {
+//          case Full(id) =>
+//            Users.users.vend.getResourceUserByResourceUserId(id).map {
+//              u =>
+//                u.LastUsedLocale(computedLocale).save
+//                logger.debug(s"ResourceUser.LastUsedLocale is saved for the resource user id: $id")
+//            }.isDefined
+//          case _ => true// There is no current user
+//        }
+//      }
+//    }
+//  }
   
   
-  /**
-    * Find current ResourceUser from the server. 
-    * This method has no parameters, it depends on different login types:
-    *  AuthUser:  AuthUser.currentUser
-    *  OAuthHandshake: OAuthHandshake.getUser
-    *  DirectLogin: DirectLogin.getUser
-    * to get the current Resourceuser .
-    *
-    */
-  def getCurrentUser: Box[User] = {
-    val authorization: Box[String] = S.request.map(_.header("Authorization")).flatten
-    val directLogin: Box[String] = S.request.map(_.header("DirectLogin")).flatten
-    for {
-      resourceUser <- if (AuthUser.currentUser.isDefined){
-        //AuthUser.currentUser.get.user.foreign // this will be issue when the resource user is in remote side {
-        val user = AuthUser.currentUser.openOrThrowException(ErrorMessages.attemptedToOpenAnEmptyBox)
-        // In case that the provider is empty field we default to "local_identity_provider" or "hostname"
-        val provider = 
-          if(user.provider.get == null || user.provider.get.isEmpty) 
-            Constant.localIdentityProvider 
-          else 
-            user.provider.get
-        Users.users.vend.getUserByProviderAndUsername(provider, user.username.get)
-      } else if (directLogin.isDefined) // Direct Login
-        DirectLogin.getUser
-      else if (hasDirectLoginHeader(authorization)) // Direct Login Deprecated
-        DirectLogin.getUser
-      else if (hasAnOAuthHeader(authorization)) {
-        OAuthHandshake.getUser
-      } else if (hasGatewayHeader(authorization)){
-        GatewayLogin.getUser
-      } else {
-        logger.debug(ErrorMessages.CurrentUserNotFoundException)
-        Failure(ErrorMessages.CurrentUserNotFoundException)
-      }
-    } yield {
-      resourceUser
-    }
-  }
-  /**
-   * get current user.
-    * Note: 1. it will call getCurrentUser method, 
-    *          
-   */
-  def getCurrentUserUsername: String = {
-     getCurrentUser match {
-       case Full(user) if user.provider.contains("google")  && !user.emailAddress.isEmpty => user.emailAddress
-       case Full(user) if user.provider.contains("yahoo")  && !user.emailAddress.isEmpty => user.emailAddress
-       case Full(user) if user.provider.contains("microsoft")  && !user.emailAddress.isEmpty => user.emailAddress
-       case Full(user) => user.name
-       case _ => "" //TODO need more error handling for different user cases
-     }
-  }
+//  /**
+//    * Find current ResourceUser from the server. 
+//    * This method has no parameters, it depends on different login types:
+//    *  AuthUser:  AuthUser.currentUser
+//    *  OAuthHandshake: OAuthHandshake.getUser
+//    *  DirectLogin: DirectLogin.getUser
+//    * to get the current Resourceuser .
+//    *
+//    */
+//  def getCurrentUser: Box[User] = {
+//    val authorization: Box[String] = S.request.map(_.header("Authorization")).flatten
+//    val directLogin: Box[String] = S.request.map(_.header("DirectLogin")).flatten
+//    for {
+//      resourceUser <- if (AuthUser.currentUser.isDefined){
+//        //AuthUser.currentUser.get.user.foreign // this will be issue when the resource user is in remote side {
+//        val user = AuthUser.currentUser.openOrThrowException(ErrorMessages.attemptedToOpenAnEmptyBox)
+//        // In case that the provider is empty field we default to "local_identity_provider" or "hostname"
+//        val provider = 
+//          if(user.provider.get == null || user.provider.get.isEmpty) 
+//            Constant.localIdentityProvider 
+//          else 
+//            user.provider.get
+//        Users.users.vend.getUserByProviderAndUsername(provider, user.username.get)
+//      } else if (directLogin.isDefined) // Direct Login
+//        DirectLogin.getUser
+//      else if (hasDirectLoginHeader(authorization)) // Direct Login Deprecated
+//        DirectLogin.getUser
+//      else if (hasAnOAuthHeader(authorization)) {
+//        OAuthHandshake.getUser
+//      } else if (hasGatewayHeader(authorization)){
+//        GatewayLogin.getUser
+//      } else {
+//        logger.debug(ErrorMessages.CurrentUserNotFoundException)
+//        Failure(ErrorMessages.CurrentUserNotFoundException)
+//      }
+//    } yield {
+//      resourceUser
+//    }
+//  }
+//  /**
+//   * get current user.
+//    * Note: 1. it will call getCurrentUser method, 
+//    *          
+//   */
+//  def getCurrentUserUsername: String = {
+//     getCurrentUser match {
+//       case Full(user) if user.provider.contains("google")  && !user.emailAddress.isEmpty => user.emailAddress
+//       case Full(user) if user.provider.contains("yahoo")  && !user.emailAddress.isEmpty => user.emailAddress
+//       case Full(user) if user.provider.contains("microsoft")  && !user.emailAddress.isEmpty => user.emailAddress
+//       case Full(user) => user.name
+//       case _ => "" //TODO need more error handling for different user cases
+//     }
+//  }
+//  
+//  def getIDTokenOfCurrentUser(): String = {
+//    if(APIUtil.getPropsAsBoolValue("openid_connect.show_tokens", false)) {
+//      AuthUser.currentUser match {
+//        case Full(authUser) =>
+//          TokensOpenIDConnect.tokens.vend.getOpenIDConnectTokenByAuthUser(authUser.id.get).map(_.idToken).getOrElse("")
+//        case _ => ""
+//      }
+//    } else { 
+//      "This information is not allowed at this instance."
+//    }
+//  }  
+//  def getAccessTokenOfCurrentUser(): String = {
+//    if(APIUtil.getPropsAsBoolValue("openid_connect.show_tokens", false)) {
+//      AuthUser.currentUser match {
+//        case Full(authUser) =>
+//          TokensOpenIDConnect.tokens.vend.getOpenIDConnectTokenByAuthUser(authUser.id.get).map(_.accessToken).getOrElse("")
+//        case _ => ""
+//      }
+//    } else { 
+//      "This information is not allowed at this instance."
+//    }
+//  }
   
-  def getIDTokenOfCurrentUser(): String = {
-    if(APIUtil.getPropsAsBoolValue("openid_connect.show_tokens", false)) {
-      AuthUser.currentUser match {
-        case Full(authUser) =>
-          TokensOpenIDConnect.tokens.vend.getOpenIDConnectTokenByAuthUser(authUser.id.get).map(_.idToken).getOrElse("")
-        case _ => ""
-      }
-    } else { 
-      "This information is not allowed at this instance."
-    }
-  }  
-  def getAccessTokenOfCurrentUser(): String = {
-    if(APIUtil.getPropsAsBoolValue("openid_connect.show_tokens", false)) {
-      AuthUser.currentUser match {
-        case Full(authUser) =>
-          TokensOpenIDConnect.tokens.vend.getOpenIDConnectTokenByAuthUser(authUser.id.get).map(_.accessToken).getOrElse("")
-        case _ => ""
-      }
-    } else { 
-      "This information is not allowed at this instance."
-    }
-  }
-  
-  /**
-    *  get current user.userId
-    *  Note: 1.resourceuser has two ids: id(Long) and userid_(String),
-    *        
-    * @return return userid_(String).
-    */
-  
-  def getCurrentResourceUserUserId: String = {
-    getCurrentUser match{
-      case Full(user) => user.userId
-      case _ => "" //TODO need more error handling for different user cases
-    }
-  }
+//  /**
+//    *  get current user.userId
+//    *  Note: 1.resourceuser has two ids: id(Long) and userid_(String),
+//    *        
+//    * @return return userid_(String).
+//    */
+//  
+//  def getCurrentResourceUserUserId: String = {
+//    getCurrentUser match{
+//      case Full(user) => user.userId
+//      case _ => "" //TODO need more error handling for different user cases
+//    }
+//  }
 
   /**
     * The string that's generated when the user name is not found.  By
@@ -614,28 +612,28 @@ import net.liftweb.util.Helpers._
     S.redirectTo(homePage)
   }
 
-  override def lostPasswordXhtml = {
-    <div id="recover-password" tabindex="-1">
-          <h1>Recover Password</h1>
-          <div id="recover-password-explanation">Enter your email address or username and we'll email you a link to reset your password</div>
-          <form action={ObpS.uri} method="post">
-            <div class="form-group">
-              <label>Username or email address</label> <span id="recover-password-email"><input id="email" type="text" /></span>
-            </div>
-            <div id="recover-password-submit">
-              <input type="submit" />
-            </div>
-          </form>
-    </div>
-  }
-
-  override def lostPassword = {
-    val bind =
-          "#email" #> SHtml.text("", sendPasswordReset _) &
-          "type=submit" #> lostPasswordSubmitButton(S.?("submit"))
-
-    bind(lostPasswordXhtml)
-  }
+//  override def lostPasswordXhtml = {
+//    <div id="recover-password" tabindex="-1">
+//          <h1>Recover Password</h1>
+//          <div id="recover-password-explanation">Enter your email address or username and we'll email you a link to reset your password</div>
+//          <form action={ObpS.uri} method="post">
+//            <div class="form-group">
+//              <label>Username or email address</label> <span id="recover-password-email"><input id="email" type="text" /></span>
+//            </div>
+//            <div id="recover-password-submit">
+//              <input type="submit" />
+//            </div>
+//          </form>
+//    </div>
+//  }
+//
+//  override def lostPassword = {
+//    val bind =
+//          "#email" #> SHtml.text("", sendPasswordReset _) &
+//          "type=submit" #> lostPasswordSubmitButton(S.?("submit"))
+//
+//    bind(lostPasswordXhtml)
+//  }
 
   //override def def passwordResetMailBody(user: TheUserType, resetLink: String): Elem = { }
 
@@ -663,47 +661,47 @@ import net.liftweb.util.Helpers._
      }
    }
 
-  override def validateUser(id: String): NodeSeq = findUserByUniqueId(id) match {
-    case Full(user) if !user.validated_? =>
-      user.setValidated(true).resetUniqueId().save
-      grantDefaultEntitlementsToAuthUser(user)
-      logUserIn(user, () => {
-        S.notice(S.?("account.validated"))
-        APIUtil.getPropsValue("user_account_validated_redirect_url") match {
-          case Full(redirectUrl) =>
-            logger.debug(s"user_account_validated_redirect_url = $redirectUrl")
-            S.redirectTo(redirectUrl)
-          case _ =>
-            logger.debug(s"user_account_validated_redirect_url is NOT defined")
-            S.redirectTo(homePage)
-        }
-      })
+//  override def validateUser(id: String): NodeSeq = findUserByUniqueId(id) match {
+//    case Full(user) if !user.validated_? =>
+//      user.setValidated(true).resetUniqueId().save
+//      grantDefaultEntitlementsToAuthUser(user)
+//      logUserIn(user, () => {
+//        S.notice(S.?("account.validated"))
+//        APIUtil.getPropsValue("user_account_validated_redirect_url") match {
+//          case Full(redirectUrl) =>
+//            logger.debug(s"user_account_validated_redirect_url = $redirectUrl")
+//            S.redirectTo(redirectUrl)
+//          case _ =>
+//            logger.debug(s"user_account_validated_redirect_url is NOT defined")
+//            S.redirectTo(homePage)
+//        }
+//      })
+//
+//    case _ => S.error(S.?("invalid.validation.link")); S.redirectTo(homePage)
+//  }
 
-    case _ => S.error(S.?("invalid.validation.link")); S.redirectTo(homePage)
-  }
-
-  override def actionsAfterSignup(theUser: TheUserType, func: () => Nothing): Nothing = {
-    theUser.setValidated(skipEmailValidation).resetUniqueId()
-    theUser.save
-    val privacyPolicyValue: String = getWebUiPropsValue("webui_privacy_policy", "")
-    val termsAndConditionsValue: String = getWebUiPropsValue("webui_terms_and_conditions", "")
-    // User Agreement table
-    UserAgreementProvider.userAgreementProvider.vend.createUserAgreement(
-      theUser.user.foreign.map(_.userId).getOrElse(""), "privacy_conditions", privacyPolicyValue)
-    UserAgreementProvider.userAgreementProvider.vend.createUserAgreement(
-      theUser.user.foreign.map(_.userId).getOrElse(""), "terms_and_conditions", termsAndConditionsValue)
-    if (!skipEmailValidation) {
-      sendValidationEmail(theUser)
-      S.notice(S.?("sign.up.message"))
-      func()
-    } else {
-      grantDefaultEntitlementsToAuthUser(theUser)
-      logUserIn(theUser, () => {
-        S.notice(S.?("welcome"))
-        func()
-      })
-    }
-  }
+//  override def actionsAfterSignup(theUser: TheUserType, func: () => Nothing): Nothing = {
+//    theUser.setValidated(skipEmailValidation).resetUniqueId()
+//    theUser.save
+//    val privacyPolicyValue: String = getWebUiPropsValue("webui_privacy_policy", "")
+//    val termsAndConditionsValue: String = getWebUiPropsValue("webui_terms_and_conditions", "")
+//    // User Agreement table
+//    UserAgreementProvider.userAgreementProvider.vend.createUserAgreement(
+//      theUser.user.foreign.map(_.userId).getOrElse(""), "privacy_conditions", privacyPolicyValue)
+//    UserAgreementProvider.userAgreementProvider.vend.createUserAgreement(
+//      theUser.user.foreign.map(_.userId).getOrElse(""), "terms_and_conditions", termsAndConditionsValue)
+//    if (!skipEmailValidation) {
+//      sendValidationEmail(theUser)
+//      S.notice(S.?("sign.up.message"))
+//      func()
+//    } else {
+//      grantDefaultEntitlementsToAuthUser(theUser)
+//      logUserIn(theUser, () => {
+//        S.notice(S.?("welcome"))
+//        func()
+//      })
+//    }
+//  }
   /**
    * Set this to redirect to a certain page after a failed login
    */
@@ -712,131 +710,131 @@ import net.liftweb.util.Helpers._
   }
 
 
-  def agreeTermsDiv = {
-    val webUi = new WebUI
-    val webUiPropsValue = getWebUiPropsValue("webui_terms_and_conditions", "")
-    val termsAndConditionsCheckboxTitle = Helper.i18n("terms_and_conditions_checkbox_text", Some("I agree to the above Terms and Conditions"))
-    val termsAndConditionsCheckboxLabel = Helper.i18n("terms_and_conditions_checkbox_label", Some("Terms and Conditions"))
-    val agreeTermsHtml = s"""<hr>
-                |                        <div class="form-group" id="terms-and-conditions-div" onclick="enableDisableButton()">
-                |                            <details open style="cursor:s-resize;">
-                |                                <summary style="display:list-item;"><a class="api_group_name">$termsAndConditionsCheckboxLabel</a></summary>
-                |                                <div id="terms-and-conditions-page">${webUi.makeHtml(webUiPropsValue)}</div>
-                |                            </details>
-                |                            <input type="checkbox" class="form-check-input" id="terms_checkbox" >
-                |                            <label id="terms_checkbox_value" class="form-check-label" for="terms_checkbox">$termsAndConditionsCheckboxTitle</label>
-                |                        </div>
-                |                        """.stripMargin
-
-    scala.xml.Unparsed(agreeTermsHtml)
-  }
-
-  def legalNoticeDiv = {
-    val agreeTermsHtml = getWebUiPropsValue("webui_legal_notice_html_text", "")
-    if(agreeTermsHtml.isEmpty){
-      s""
-    } else{
-      scala.xml.Unparsed(s"""$agreeTermsHtml""")
-    }
-  }
-
-  def agreePrivacyPolicy = {
-    val webUi = new WebUI
-    val privacyPolicyCheckboxText = Helper.i18n("privacy_policy_checkbox_text", Some("I agree to the above Privacy Policy"))
-    val privacyPolicyCheckboxLabel = Helper.i18n("privacy_policy_checkbox_label", Some("Privacy Policy"))
-    val webUiPropsValue = getWebUiPropsValue("webui_privacy_policy", "")
-    val agreePrivacyPolicy = s"""<hr>
-                           |                        <div class="form-group" id="privacy-conditions-div" onclick="enableDisableButton()">
-                           |                            <details open style="cursor:s-resize;">
-                           |                                <summary style="display:list-item;"><a class="api_group_name">$privacyPolicyCheckboxLabel</a></summary>
-                           |                                <div id="privacy-policy-page">${webUi.makeHtml(webUiPropsValue)}</div>
-                           |                            </details>
-                           |                            <input id="privacy_checkbox" type="checkbox" class="form-check-input">
-                           |                            <label class="form-check-label" for="privacy_checkbox">$privacyPolicyCheckboxText</label>
-                           |                        </div>
-                           |                        <hr>""".stripMargin
-
-    scala.xml.Unparsed(agreePrivacyPolicy)
-  }
-  def enableDisableSignUpButton = {
-    val javaScriptCode = """<script>
-                               |                function enableDisableButton() {
-                               |                  var checkBox = document.getElementById("terms-and-conditions-div").querySelector("input[type=checkbox]");
-                               |                  var checkBox2 = document.getElementById("privacy-conditions-div").querySelector("input[type=checkbox]");
-                               |                  var button = document.getElementById("submit-button");
-                               |                  if (checkBox.checked == true && checkBox2.checked == true){
-                               |                    button.disabled = false;
-                               |                  } else {
-                               |                     button.disabled = true;
-                               |                  }
-                               |                }
-                               |                </script>""".stripMargin
-
-    scala.xml.Unparsed(javaScriptCode)
-  }
-
-  def signupFormTitle = getWebUiPropsValue("webui_signup_form_title_text", S.?("sign.up"))
-
-  override def signupXhtml (user:AuthUser) =  {
-    <div id="signup" tabindex="-1">
-      <form method="post" action={ObpS.uriAndQueryString.getOrElse(ObpS.uri)}>
-          <h1>{signupFormTitle}</h1>
-          {legalNoticeDiv}
-          <div id="signup-general-error" class="alert alert-danger hide"><span data-lift="Msg?id=error"/></div>
-          {localForm(user, false, signupFields)}
-          {agreeTermsDiv}
-          {agreePrivacyPolicy}
-          <div id="signup-submit">
-            <input onmouseover="enableDisableButton()" onfocus="enableDisableButton()" disabled="true" id="submit-button" type="submit" class="btn btn-danger"/>
-          </div>
-          {enableDisableSignUpButton}
-      </form>
-    </div>
-  }
-
-
-  override def localForm(user: TheUserType, ignorePassword: Boolean, fields: List[FieldPointerType]): NodeSeq = {
-    for {
-      pointer <- fields
-      field <- computeFieldFromPointer(user, pointer).toList
-      if field.show_? && (!ignorePassword || !pointer.isPasswordField_?)
-      form <- field.toForm.toList
-    } yield {
-      if(field.uniqueFieldId.getOrElse("") == "authuser_password") {
-        <div class="form-group">
-          <label>{field.displayName}</label>
-          {form}
-        </div>
-      } else {
-        <div class="form-group">
-          <label>{field.displayName}</label>
-          {form}
-          <div id="signup-error" class="alert alert-danger hide"><span data-lift={s"Msg?id=${field.uniqueFieldId.getOrElse("")}&errorClass=error"}/></div>
-        </div>
-      }
-    }
-
-  }
-
-  def userLoginFailed = {
-    logger.info("failed: " + failedLoginRedirect.get)
-    // variable redir is from failedLoginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
-    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
-    // AuthUser.failedLoginRedirect.set(Full(Helpers.appendParams(currentUrl, List((FailedLoginParam, "true")))))
-    val redir = failedLoginRedirect.get
-
-    //Check the internal redirect, in case for open redirect issue.
-    // variable redir is from loginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
-    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
-    // AuthUser.loginRedirect.set(Full(Helpers.appendParams(currentUrl, List((LogUserOutParam, "false")))))
-    if (Helper.isValidInternalRedirectUrl(redir.toString)) {
-        S.redirectTo(redir.toString)
-    } else {
-      S.error(S.?(ErrorMessages.InvalidInternalRedirectUrl))
-      logger.info(ErrorMessages.InvalidInternalRedirectUrl + loginRedirect.get)
-    }
-    S.error("login", S.?("Invalid Username or Password"))
-  }
+//  def agreeTermsDiv = {
+//    val webUi = new WebUI
+//    val webUiPropsValue = getWebUiPropsValue("webui_terms_and_conditions", "")
+//    val termsAndConditionsCheckboxTitle = Helper.i18n("terms_and_conditions_checkbox_text", Some("I agree to the above Terms and Conditions"))
+//    val termsAndConditionsCheckboxLabel = Helper.i18n("terms_and_conditions_checkbox_label", Some("Terms and Conditions"))
+//    val agreeTermsHtml = s"""<hr>
+//                |                        <div class="form-group" id="terms-and-conditions-div" onclick="enableDisableButton()">
+//                |                            <details open style="cursor:s-resize;">
+//                |                                <summary style="display:list-item;"><a class="api_group_name">$termsAndConditionsCheckboxLabel</a></summary>
+//                |                                <div id="terms-and-conditions-page">${webUi.makeHtml(webUiPropsValue)}</div>
+//                |                            </details>
+//                |                            <input type="checkbox" class="form-check-input" id="terms_checkbox" >
+//                |                            <label id="terms_checkbox_value" class="form-check-label" for="terms_checkbox">$termsAndConditionsCheckboxTitle</label>
+//                |                        </div>
+//                |                        """.stripMargin
+//
+//    scala.xml.Unparsed(agreeTermsHtml)
+//  }
+//
+//  def legalNoticeDiv = {
+//    val agreeTermsHtml = getWebUiPropsValue("webui_legal_notice_html_text", "")
+//    if(agreeTermsHtml.isEmpty){
+//      s""
+//    } else{
+//      scala.xml.Unparsed(s"""$agreeTermsHtml""")
+//    }
+//  }
+//
+//  def agreePrivacyPolicy = {
+//    val webUi = new WebUI
+//    val privacyPolicyCheckboxText = Helper.i18n("privacy_policy_checkbox_text", Some("I agree to the above Privacy Policy"))
+//    val privacyPolicyCheckboxLabel = Helper.i18n("privacy_policy_checkbox_label", Some("Privacy Policy"))
+//    val webUiPropsValue = getWebUiPropsValue("webui_privacy_policy", "")
+//    val agreePrivacyPolicy = s"""<hr>
+//                           |                        <div class="form-group" id="privacy-conditions-div" onclick="enableDisableButton()">
+//                           |                            <details open style="cursor:s-resize;">
+//                           |                                <summary style="display:list-item;"><a class="api_group_name">$privacyPolicyCheckboxLabel</a></summary>
+//                           |                                <div id="privacy-policy-page">${webUi.makeHtml(webUiPropsValue)}</div>
+//                           |                            </details>
+//                           |                            <input id="privacy_checkbox" type="checkbox" class="form-check-input">
+//                           |                            <label class="form-check-label" for="privacy_checkbox">$privacyPolicyCheckboxText</label>
+//                           |                        </div>
+//                           |                        <hr>""".stripMargin
+//
+//    scala.xml.Unparsed(agreePrivacyPolicy)
+//  }
+//  def enableDisableSignUpButton = {
+//    val javaScriptCode = """<script>
+//                               |                function enableDisableButton() {
+//                               |                  var checkBox = document.getElementById("terms-and-conditions-div").querySelector("input[type=checkbox]");
+//                               |                  var checkBox2 = document.getElementById("privacy-conditions-div").querySelector("input[type=checkbox]");
+//                               |                  var button = document.getElementById("submit-button");
+//                               |                  if (checkBox.checked == true && checkBox2.checked == true){
+//                               |                    button.disabled = false;
+//                               |                  } else {
+//                               |                     button.disabled = true;
+//                               |                  }
+//                               |                }
+//                               |                </script>""".stripMargin
+//
+//    scala.xml.Unparsed(javaScriptCode)
+//  }
+//
+//  def signupFormTitle = getWebUiPropsValue("webui_signup_form_title_text", S.?("sign.up"))
+//
+//  override def signupXhtml (user:AuthUser) =  {
+//    <div id="signup" tabindex="-1">
+//      <form method="post" action={ObpS.uriAndQueryString.getOrElse(ObpS.uri)}>
+//          <h1>{signupFormTitle}</h1>
+//          {legalNoticeDiv}
+//          <div id="signup-general-error" class="alert alert-danger hide"><span data-lift="Msg?id=error"/></div>
+//          {localForm(user, false, signupFields)}
+//          {agreeTermsDiv}
+//          {agreePrivacyPolicy}
+//          <div id="signup-submit">
+//            <input onmouseover="enableDisableButton()" onfocus="enableDisableButton()" disabled="true" id="submit-button" type="submit" class="btn btn-danger"/>
+//          </div>
+//          {enableDisableSignUpButton}
+//      </form>
+//    </div>
+//  }
+//
+//
+//  override def localForm(user: TheUserType, ignorePassword: Boolean, fields: List[FieldPointerType]): NodeSeq = {
+//    for {
+//      pointer <- fields
+//      field <- computeFieldFromPointer(user, pointer).toList
+//      if field.show_? && (!ignorePassword || !pointer.isPasswordField_?)
+//      form <- field.toForm.toList
+//    } yield {
+//      if(field.uniqueFieldId.getOrElse("") == "authuser_password") {
+//        <div class="form-group">
+//          <label>{field.displayName}</label>
+//          {form}
+//        </div>
+//      } else {
+//        <div class="form-group">
+//          <label>{field.displayName}</label>
+//          {form}
+//          <div id="signup-error" class="alert alert-danger hide"><span data-lift={s"Msg?id=${field.uniqueFieldId.getOrElse("")}&errorClass=error"}/></div>
+//        </div>
+//      }
+//    }
+//
+//  }
+//
+//  def userLoginFailed = {
+//    logger.info("failed: " + failedLoginRedirect.get)
+//    // variable redir is from failedLoginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
+//    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
+//    // AuthUser.failedLoginRedirect.set(Full(Helpers.appendParams(currentUrl, List((FailedLoginParam, "true")))))
+//    val redir = failedLoginRedirect.get
+//
+//    //Check the internal redirect, in case for open redirect issue.
+//    // variable redir is from loginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
+//    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
+//    // AuthUser.loginRedirect.set(Full(Helpers.appendParams(currentUrl, List((LogUserOutParam, "false")))))
+//    if (Helper.isValidInternalRedirectUrl(redir.toString)) {
+//        S.redirectTo(redir.toString)
+//    } else {
+//      S.error(S.?(ErrorMessages.InvalidInternalRedirectUrl))
+//      logger.info(ErrorMessages.InvalidInternalRedirectUrl + loginRedirect.get)
+//    }
+//    S.error("login", S.?("Invalid Username or Password"))
+//  }
 
 
 
@@ -967,15 +965,15 @@ def restoreSomeSessions(): Unit = {
   override protected def capturePreLoginState(): () => Unit = () => {restoreSomeSessions}
 
 
-  /**
-    * The LocParams for the menu item for login.
-    * Overridden in order to add custom error message. Attention: Not calling super will change the default behavior!
-    */
-  override protected def loginMenuLocParams: List[LocParam[Unit]] = {
-    If(notLoggedIn_? _, () => RedirectResponse("/already-logged-in")) ::
-      Template(() => wrapIt(login)) ::
-      Nil
-  }
+//  /**
+//    * The LocParams for the menu item for login.
+//    * Overridden in order to add custom error message. Attention: Not calling super will change the default behavior!
+//    */
+//  override protected def loginMenuLocParams: List[LocParam[Unit]] = {
+//    If(notLoggedIn_? _, () => RedirectResponse("/already-logged-in")) ::
+//      Template(() => wrapIt(login)) ::
+//      Nil
+//  }
 
 
   //overridden to allow a redirection if login fails
@@ -992,219 +990,219 @@ def restoreSomeSessions(): Unit = {
     *  case4: wrong username   --> Invalid Login Credentials
     *  case5: UnKnow error     --> UnexpectedErrorDuringLogin
     */
-  override def login: NodeSeq = {
-    // This query parameter is specific to ORY Hydra login request
-    val loginChallenge: Box[String] = ObpS.param("login_challenge").or(S.getSessionAttribute("login_challenge"))
-    def redirectUri(user: Box[ResourceUser]): String = {
-      val userId = user.map(_.userId).getOrElse("")
-      val hashedAgreementTextOfUser =
-        UserAgreementProvider.userAgreementProvider.vend.getLastUserAgreement(userId, "terms_and_conditions")
-          .map(_.agreementHash).getOrElse(HashUtil.Sha256Hash("not set"))
-      val agreementText = getWebUiPropsValue("webui_terms_and_conditions", "not set")
-      val hashedAgreementText = HashUtil.Sha256Hash(agreementText)
-      if(hashedAgreementTextOfUser == hashedAgreementText) { // Check terms and conditions
-        val hashedAgreementTextOfUser =
-          UserAgreementProvider.userAgreementProvider.vend.getLastUserAgreement(userId, "privacy_conditions")
-            .map(_.agreementHash).getOrElse(HashUtil.Sha256Hash("not set"))
-        val agreementText = getWebUiPropsValue("webui_privacy_policy", "not set")
-        val hashedAgreementText = HashUtil.Sha256Hash(agreementText)
-        if(hashedAgreementTextOfUser == hashedAgreementText) { // Check privacy policy
-          loginRedirect.get match {
-            case Full(url) =>
-              loginRedirect(Empty)
-              url
-            case _ =>
-              homePage
-          }
-        } else {
-          "/privacy-policy"
-        }
-      } else {
-        "/terms-and-conditions"
-      }
+//  override def login: NodeSeq = {
+//    // This query parameter is specific to ORY Hydra login request
+//    val loginChallenge: Box[String] = ObpS.param("login_challenge").or(S.getSessionAttribute("login_challenge"))
+//    def redirectUri(user: Box[ResourceUser]): String = {
+//      val userId = user.map(_.userId).getOrElse("")
+//      val hashedAgreementTextOfUser =
+//        UserAgreementProvider.userAgreementProvider.vend.getLastUserAgreement(userId, "terms_and_conditions")
+//          .map(_.agreementHash).getOrElse(HashUtil.Sha256Hash("not set"))
+//      val agreementText = getWebUiPropsValue("webui_terms_and_conditions", "not set")
+//      val hashedAgreementText = HashUtil.Sha256Hash(agreementText)
+//      if(hashedAgreementTextOfUser == hashedAgreementText) { // Check terms and conditions
+//        val hashedAgreementTextOfUser =
+//          UserAgreementProvider.userAgreementProvider.vend.getLastUserAgreement(userId, "privacy_conditions")
+//            .map(_.agreementHash).getOrElse(HashUtil.Sha256Hash("not set"))
+//        val agreementText = getWebUiPropsValue("webui_privacy_policy", "not set")
+//        val hashedAgreementText = HashUtil.Sha256Hash(agreementText)
+//        if(hashedAgreementTextOfUser == hashedAgreementText) { // Check privacy policy
+//          loginRedirect.get match {
+//            case Full(url) =>
+//              loginRedirect(Empty)
+//              url
+//            case _ =>
+//              homePage
+//          }
+//        } else {
+//          "/privacy-policy"
+//        }
+//      } else {
+//        "/terms-and-conditions"
+//      }
+//
+//    }
+//    //Check the internal redirect, in case for open redirect issue.
+//    // variable redirect is from loginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
+//    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
+//    // AuthUser.loginRedirect.set(Full(Helpers.appendParams(currentUrl, List((LogUserOutParam, "false")))))
+//    def checkInternalRedirectAndLogUserIn(preLoginState: () => Unit, redirect: String, user: AuthUser) = {
+//      if (Helper.isValidInternalRedirectUrl(redirect)) {
+//        logUserIn(user, () => {
+//          S.notice(S.?("logged.in"))
+//          preLoginState()
+//          if(emailDomainToSpaceMappings.nonEmpty){
+//            Future{
+//              tryo{AuthUser.grantEntitlementsToUseDynamicEndpointsInSpaces(user)}
+//                .openOr(logger.error(s"${user} checkInternalRedirectAndLogUserIn.grantEntitlementsToUseDynamicEndpointsInSpaces throw exception! "))
+//            }}
+//          if(emailDomainToEntitlementMappings.nonEmpty){
+//            Future{
+//                tryo{AuthUser.grantEmailDomainEntitlementsToUser(user)}
+//                  .openOr(logger.error(s"${user} checkInternalRedirectAndLogUserIn.grantEmailDomainEntitlementsToUser throw exception! "))
+//            }}
+//          // We use Hydra as an Headless Identity Provider which implies OBP-API must provide User Management.
+//          // If there is the query parameter login_challenge in a url we know it is tha Hydra request
+//          // TODO Write standalone application for Login and Consent Request of Hydra as Identity Provider
+//          integrateWithHydra match {
+//            case true =>
+//              if (loginChallenge.isEmpty == false) {
+//                val acceptLoginRequest = new AcceptLoginRequest
+//                val adminApi: AdminApi = new AdminApi
+//                acceptLoginRequest.setSubject(user.username.get)
+//                val result = adminApi.acceptLoginRequest(loginChallenge.getOrElse(""), acceptLoginRequest)
+//                S.redirectTo(result.getRedirectTo)
+//              } else {
+//                S.redirectTo(redirect)
+//              }
+//            case false =>
+//              S.redirectTo(redirect)
+//          }
+//        })
+//      } else {
+//        S.error(S.?(ErrorMessages.InvalidInternalRedirectUrl))
+//        logger.info(ErrorMessages.InvalidInternalRedirectUrl + loginRedirect.get)
+//      }
+//    }
+//
+//    def isObpProvider(user: AuthUser) = {
+//      // TODO Consider does http://host should match https://host in development mode
+//      user.getProvider() == Constant.localIdentityProvider
+//    }
+//
+//    def obpUserIsValidatedAndNotLocked(usernameFromGui: String, user: AuthUser) = {
+//      user.validated_? && !LoginAttempt.userIsLocked(user.getProvider(), usernameFromGui) &&
+//        isObpProvider(user)
+//    }
+//
+//    def externalUserIsValidatedAndNotLocked(usernameFromGui: String, user: AuthUser) = {
+//      user.validated_? && !LoginAttempt.userIsLocked(user.getProvider(), usernameFromGui) &&
+//        !isObpProvider(user)
+//    }
+//
+//    def loginAction = {
+//      if (S.post_?) {
+//        val usernameFromGui = ObpS.param("username").getOrElse("")
+//        val passwordFromGui = ObpS.param("password").getOrElse("")
+//        val usernameEmptyField = ObpS.param("username").map(_.isEmpty()).getOrElse(true)
+//        val passwordEmptyField = ObpS.param("password").map(_.isEmpty()).getOrElse(true)
+//        val emptyField = usernameEmptyField || passwordEmptyField
+//        emptyField match {
+//          case true =>
+//            if(usernameEmptyField)
+//              S.error("login-form-username-error", Helper.i18n("please.enter.your.username"))
+//            if(passwordEmptyField)
+//              S.error("login-form-password-error", Helper.i18n("please.enter.your.password"))
+//          case false =>
+//            findAuthUserByUsernameLocallyLegacy(usernameFromGui) match {
+//              case Full(user) if !user.validated_? =>
+//                S.error(S.?("account.validation.error"))
+//
+//              // Check if user comes from localhost and
+//              case Full(user) if obpUserIsValidatedAndNotLocked(usernameFromGui, user) =>
+//                if(user.testPassword(Full(passwordFromGui))) { // if User is NOT locked and password is good
+//                  // Reset any bad attempt
+//                  LoginAttempt.resetBadLoginAttempts(user.getProvider(), usernameFromGui)
+//                  val preLoginState = capturePreLoginState()
+//                  // User init actions
+//                  AfterApiAuth.innerLoginUserInitAction(Full(user))
+//                  logger.info("login redirect: " + loginRedirect.get)
+//                  val redirect = redirectUri(user.user.foreign)
+//                  checkInternalRedirectAndLogUserIn(preLoginState, redirect, user)
+//                } else { // If user is NOT locked AND password is wrong => increment bad login attempt counter.
+//                  LoginAttempt.incrementBadLoginAttempts(user.getProvider(),usernameFromGui)
+//                  S.error(Helper.i18n("invalid.login.credentials"))
+//                }
+//
+//              // If user is locked, send the error to GUI
+//              case Full(user) if LoginAttempt.userIsLocked(user.getProvider(), usernameFromGui) =>
+//                LoginAttempt.incrementBadLoginAttempts(user.getProvider(),usernameFromGui)
+//                S.error(S.?(ErrorMessages.UsernameHasBeenLocked))
+//                loginRedirect(ObpS.param("Referer").or(S.param("Referer")))
+//
+//              // Check if user came from CBS and
+//              // if User is NOT locked. Then check username and password
+//              // from connector in case they changed on the south-side
+//              case Full(user) if externalUserIsValidatedAndNotLocked(usernameFromGui, user) && testExternalPassword(usernameFromGui, passwordFromGui) =>
+//                  // Reset any bad attempts
+//                  LoginAttempt.resetBadLoginAttempts(user.getProvider(), usernameFromGui)
+//                  val preLoginState = capturePreLoginState()
+//                  logger.info("login redirect: " + loginRedirect.get)
+//                  val redirect = redirectUri(user.user.foreign)
+//                  //This method is used for connector = cbs* || obpjvm*
+//                  //It will update the views and createAccountHolder ....
+//                  registeredUserHelper(user.getProvider(),user.username.get)
+//                  // User init actions
+//                  AfterApiAuth.innerLoginUserInitAction(Full(user))
+//                  checkInternalRedirectAndLogUserIn(preLoginState, redirect, user)
+//
+//
+//              // Error case:
+//              // the username exist but provider cannot be matched
+//              // It can happen via next scenario:
+//              //   - sign up user at some obp-api cluster
+//              //   - change a url of the cluster
+//              //   - try to log on user at the cluster
+//              case Full(user) if !isObpProvider(user) =>
+//                S.error(S.?(s"${ErrorMessages.InvalidProviderUrl} Actual: ${Constant.localIdentityProvider}, Expected: ${user.provider}"))
+//
+//
+//              // If user cannot be found locally, try to authenticate user via connector
+//              case Empty if (APIUtil.getPropsAsBoolValue("connector.user.authentication", false)) =>
+//
+//                val preLoginState = capturePreLoginState()
+//                logger.info("login redirect: " + loginRedirect.get)
+//                val redirect = redirectUri(user.foreign)
+//                externalUserHelper(usernameFromGui, passwordFromGui) match {
+//                    case Full(user: AuthUser) =>
+//                      LoginAttempt.resetBadLoginAttempts(user.getProvider(), usernameFromGui)
+//                      // User init actions
+//                      AfterApiAuth.innerLoginUserInitAction(Full(user))
+//                      checkInternalRedirectAndLogUserIn(preLoginState, redirect, user)
+//                    case _ =>
+//                      LoginAttempt.incrementBadLoginAttempts(user.foreign.map(_.provider).getOrElse(Constant.HostName), username.get)
+//                      Empty
+//                      S.error(Helper.i18n("invalid.login.credentials"))
+//                }
+//
+//              //If there is NO the username, throw the error message.
+//              case Empty =>
+//                S.error(Helper.i18n("invalid.login.credentials"))
+//              case unhandledCase =>
+//                logger.error("------------------------------------------------------")
+//                logger.error(s"username from GUI: $usernameFromGui")
+//                logger.error("An unexpected login error occurred:")
+//                logger.error("unhandledCase", unhandledCase)
+//                logger.error("------------------------------------------------------")
+//                LoginAttempt.incrementBadLoginAttempts(user.foreign.map(_.provider).getOrElse(Constant.HostName), usernameFromGui)
+//                S.error(S.?(ErrorMessages.UnexpectedErrorDuringLogin)) // Note we hit this if user has not clicked email validation link
+//            }
+//        }
+//      }
+//    }
+//
+//    // In this function we bind submit button to loginAction function.
+//    // In case that unique token of submit button cannot be paired submit action will be omitted.
+//    // Implemented in order to prevent a CSRF attack
+//    def insertSubmitButton = {
+//      scala.xml.XML.loadString(loginSubmitButton(loginButtonText, loginAction _).toString().replace("type=\"submit\"","class=\"submit\" type=\"submit\""))
+//    }
+//
+//    val bind =
+//          "submit" #> insertSubmitButton
+//   bind(loginXhtml)
+//  }
 
-    }
-    //Check the internal redirect, in case for open redirect issue.
-    // variable redirect is from loginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
-    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
-    // AuthUser.loginRedirect.set(Full(Helpers.appendParams(currentUrl, List((LogUserOutParam, "false")))))
-    def checkInternalRedirectAndLogUserIn(preLoginState: () => Unit, redirect: String, user: AuthUser) = {
-      if (Helper.isValidInternalRedirectUrl(redirect)) {
-        logUserIn(user, () => {
-          S.notice(S.?("logged.in"))
-          preLoginState()
-          if(emailDomainToSpaceMappings.nonEmpty){
-            Future{
-              tryo{AuthUser.grantEntitlementsToUseDynamicEndpointsInSpaces(user)}
-                .openOr(logger.error(s"${user} checkInternalRedirectAndLogUserIn.grantEntitlementsToUseDynamicEndpointsInSpaces throw exception! "))
-            }}
-          if(emailDomainToEntitlementMappings.nonEmpty){
-            Future{
-                tryo{AuthUser.grantEmailDomainEntitlementsToUser(user)}
-                  .openOr(logger.error(s"${user} checkInternalRedirectAndLogUserIn.grantEmailDomainEntitlementsToUser throw exception! "))
-            }}
-          // We use Hydra as an Headless Identity Provider which implies OBP-API must provide User Management.
-          // If there is the query parameter login_challenge in a url we know it is tha Hydra request
-          // TODO Write standalone application for Login and Consent Request of Hydra as Identity Provider
-          integrateWithHydra match {
-            case true =>
-              if (loginChallenge.isEmpty == false) {
-                val acceptLoginRequest = new AcceptLoginRequest
-                val adminApi: AdminApi = new AdminApi
-                acceptLoginRequest.setSubject(user.username.get)
-                val result = adminApi.acceptLoginRequest(loginChallenge.getOrElse(""), acceptLoginRequest)
-                S.redirectTo(result.getRedirectTo)
-              } else {
-                S.redirectTo(redirect)
-              }
-            case false =>
-              S.redirectTo(redirect)
-          }
-        })
-      } else {
-        S.error(S.?(ErrorMessages.InvalidInternalRedirectUrl))
-        logger.info(ErrorMessages.InvalidInternalRedirectUrl + loginRedirect.get)
-      }
-    }
-
-    def isObpProvider(user: AuthUser) = {
-      // TODO Consider does http://host should match https://host in development mode
-      user.getProvider() == Constant.localIdentityProvider
-    }
-
-    def obpUserIsValidatedAndNotLocked(usernameFromGui: String, user: AuthUser) = {
-      user.validated_? && !LoginAttempt.userIsLocked(user.getProvider(), usernameFromGui) &&
-        isObpProvider(user)
-    }
-
-    def externalUserIsValidatedAndNotLocked(usernameFromGui: String, user: AuthUser) = {
-      user.validated_? && !LoginAttempt.userIsLocked(user.getProvider(), usernameFromGui) &&
-        !isObpProvider(user)
-    }
-
-    def loginAction = {
-      if (S.post_?) {
-        val usernameFromGui = ObpS.param("username").getOrElse("")
-        val passwordFromGui = ObpS.param("password").getOrElse("")
-        val usernameEmptyField = ObpS.param("username").map(_.isEmpty()).getOrElse(true)
-        val passwordEmptyField = ObpS.param("password").map(_.isEmpty()).getOrElse(true)
-        val emptyField = usernameEmptyField || passwordEmptyField
-        emptyField match {
-          case true =>
-            if(usernameEmptyField)
-              S.error("login-form-username-error", Helper.i18n("please.enter.your.username"))
-            if(passwordEmptyField)
-              S.error("login-form-password-error", Helper.i18n("please.enter.your.password"))
-          case false =>
-            findAuthUserByUsernameLocallyLegacy(usernameFromGui) match {
-              case Full(user) if !user.validated_? =>
-                S.error(S.?("account.validation.error"))
-
-              // Check if user comes from localhost and
-              case Full(user) if obpUserIsValidatedAndNotLocked(usernameFromGui, user) =>
-                if(user.testPassword(Full(passwordFromGui))) { // if User is NOT locked and password is good
-                  // Reset any bad attempt
-                  LoginAttempt.resetBadLoginAttempts(user.getProvider(), usernameFromGui)
-                  val preLoginState = capturePreLoginState()
-                  // User init actions
-                  AfterApiAuth.innerLoginUserInitAction(Full(user))
-                  logger.info("login redirect: " + loginRedirect.get)
-                  val redirect = redirectUri(user.user.foreign)
-                  checkInternalRedirectAndLogUserIn(preLoginState, redirect, user)
-                } else { // If user is NOT locked AND password is wrong => increment bad login attempt counter.
-                  LoginAttempt.incrementBadLoginAttempts(user.getProvider(),usernameFromGui)
-                  S.error(Helper.i18n("invalid.login.credentials"))
-                }
-
-              // If user is locked, send the error to GUI
-              case Full(user) if LoginAttempt.userIsLocked(user.getProvider(), usernameFromGui) =>
-                LoginAttempt.incrementBadLoginAttempts(user.getProvider(),usernameFromGui)
-                S.error(S.?(ErrorMessages.UsernameHasBeenLocked))
-                loginRedirect(ObpS.param("Referer").or(S.param("Referer")))
-
-              // Check if user came from CBS and
-              // if User is NOT locked. Then check username and password
-              // from connector in case they changed on the south-side
-              case Full(user) if externalUserIsValidatedAndNotLocked(usernameFromGui, user) && testExternalPassword(usernameFromGui, passwordFromGui) =>
-                  // Reset any bad attempts
-                  LoginAttempt.resetBadLoginAttempts(user.getProvider(), usernameFromGui)
-                  val preLoginState = capturePreLoginState()
-                  logger.info("login redirect: " + loginRedirect.get)
-                  val redirect = redirectUri(user.user.foreign)
-                  //This method is used for connector = cbs* || obpjvm*
-                  //It will update the views and createAccountHolder ....
-                  registeredUserHelper(user.getProvider(),user.username.get)
-                  // User init actions
-                  AfterApiAuth.innerLoginUserInitAction(Full(user))
-                  checkInternalRedirectAndLogUserIn(preLoginState, redirect, user)
-
-
-              // Error case:
-              // the username exist but provider cannot be matched
-              // It can happen via next scenario:
-              //   - sign up user at some obp-api cluster
-              //   - change a url of the cluster
-              //   - try to log on user at the cluster
-              case Full(user) if !isObpProvider(user) =>
-                S.error(S.?(s"${ErrorMessages.InvalidProviderUrl} Actual: ${Constant.localIdentityProvider}, Expected: ${user.provider}"))
-
-
-              // If user cannot be found locally, try to authenticate user via connector
-              case Empty if (APIUtil.getPropsAsBoolValue("connector.user.authentication", false)) =>
-
-                val preLoginState = capturePreLoginState()
-                logger.info("login redirect: " + loginRedirect.get)
-                val redirect = redirectUri(user.foreign)
-                externalUserHelper(usernameFromGui, passwordFromGui) match {
-                    case Full(user: AuthUser) =>
-                      LoginAttempt.resetBadLoginAttempts(user.getProvider(), usernameFromGui)
-                      // User init actions
-                      AfterApiAuth.innerLoginUserInitAction(Full(user))
-                      checkInternalRedirectAndLogUserIn(preLoginState, redirect, user)
-                    case _ =>
-                      LoginAttempt.incrementBadLoginAttempts(user.foreign.map(_.provider).getOrElse(Constant.HostName), username.get)
-                      Empty
-                      S.error(Helper.i18n("invalid.login.credentials"))
-                }
-
-              //If there is NO the username, throw the error message.
-              case Empty =>
-                S.error(Helper.i18n("invalid.login.credentials"))
-              case unhandledCase =>
-                logger.error("------------------------------------------------------")
-                logger.error(s"username from GUI: $usernameFromGui")
-                logger.error("An unexpected login error occurred:")
-                logger.error("unhandledCase", unhandledCase)
-                logger.error("------------------------------------------------------")
-                LoginAttempt.incrementBadLoginAttempts(user.foreign.map(_.provider).getOrElse(Constant.HostName), usernameFromGui)
-                S.error(S.?(ErrorMessages.UnexpectedErrorDuringLogin)) // Note we hit this if user has not clicked email validation link
-            }
-        }
-      }
-    }
-
-    // In this function we bind submit button to loginAction function.
-    // In case that unique token of submit button cannot be paired submit action will be omitted.
-    // Implemented in order to prevent a CSRF attack
-    def insertSubmitButton = {
-      scala.xml.XML.loadString(loginSubmitButton(loginButtonText, loginAction _).toString().replace("type=\"submit\"","class=\"submit\" type=\"submit\""))
-    }
-
-    val bind =
-          "submit" #> insertSubmitButton
-   bind(loginXhtml)
-  }
-
-  override def logout = {
-    logoutCurrentUser
-    S.request match {
-      case Full(a) =>  a.param("redirect") match {
-        case Full(customRedirect) => S.redirectTo(customRedirect)
-        case _ => S.redirectTo(homePage)
-      }
-      case _ => S.redirectTo(homePage)
-    }
-  }
+//  override def logout = {
+//    logoutCurrentUser
+//    S.request match {
+//      case Full(a) =>  a.param("redirect") match {
+//        case Full(customRedirect) => S.redirectTo(customRedirect)
+//        case _ => S.redirectTo(homePage)
+//      }
+//      case _ => S.redirectTo(homePage)
+//    }
+//  }
 
 
   /**
@@ -1569,22 +1567,22 @@ def restoreSomeSessions(): Unit = {
     }
   }
 
-  override def passwordResetXhtml = {
-    <div id="recover-password" tabindex="-1">
-      <h1>{if(ObpS.queryString.isDefined) Helper.i18n("set.your.password") else S.?("reset.your.password")}</h1>
-      <form action={ObpS.uri} method="post">
-        <div class="form-group">
-          <label for="password">{S.?("enter.your.new.password")}</label> <span><input id="password" class="form-control" type="password" /></span>
-        </div>
-        <div class="form-group">
-          <label for="repeatpassword">{S.?("repeat.your.new.password")}</label> <span><input id="repeatpassword" class="form-control" type="password" /></span>
-        </div>
-        <div class="form-group">
-          <input type="submit" class="btn btn-danger" />
-        </div>
-      </form>
-    </div>
-  }
+//  override def passwordResetXhtml = {
+//    <div id="recover-password" tabindex="-1">
+//      <h1>{if(ObpS.queryString.isDefined) Helper.i18n("set.your.password") else S.?("reset.your.password")}</h1>
+//      <form action={ObpS.uri} method="post">
+//        <div class="form-group">
+//          <label for="password">{S.?("enter.your.new.password")}</label> <span><input id="password" class="form-control" type="password" /></span>
+//        </div>
+//        <div class="form-group">
+//          <label for="repeatpassword">{S.?("repeat.your.new.password")}</label> <span><input id="repeatpassword" class="form-control" type="password" /></span>
+//        </div>
+//        <div class="form-group">
+//          <input type="submit" class="btn btn-danger" />
+//        </div>
+//      </form>
+//    </div>
+//  }
   
   /**
     * Find the authUsers by author email(authUser and resourceUser are the same).
@@ -1594,67 +1592,67 @@ def restoreSomeSessions(): Unit = {
     val usernames: List[String] = this.getResourceUsersByEmail(email).map(_.user.name)
     findAll(ByList(this.username, usernames))
   }
-  def signupSubmitButtonValue() = getWebUiPropsValue("webui_signup_form_submit_button_value", S.?("sign.up"))
+//  def signupSubmitButtonValue() = getWebUiPropsValue("webui_signup_form_submit_button_value", S.?("sign.up"))
 
   //overridden to allow redirect to loginRedirect after signup. This is mostly to allow
   // loginFirst menu items to work if the user doesn't have an account. Without this,
   // if a user tries to access a logged-in only page, and then signs up, they don't get redirected
   // back to the proper page.
-  override def signup = {
-    val theUser: TheUserType = mutateUserOnSignup(createNewUserInstance())
-    val theName = signUpPath.mkString("")
-
-    //Check the internal redirect, in case for open redirect issue.
-    // variable redir is from loginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
-    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
-    // AuthUser.loginRedirect.set(Full(Helpers.appendParams(currentUrl, List((LogUserOutParam, "false")))))
-    val loginRedirectSave = loginRedirect.is
-
-    def testSignup() {
-      validateSignup(theUser) match {
-        case Nil =>
-          //here we check loginRedirectSave (different from implementation in super class)
-          val redir = loginRedirectSave match {
-            case Full(url) =>
-              loginRedirect(Empty)
-              url
-            case _ =>
-              //if the register page url (user_mgt/sign_up?after-signup=link-to-customer) contains the parameter 
-              //after-signup=link-to-customer,then it will redirect to the on boarding customer page.
-              ObpS.param("after-signup") match { 
-                case url if (url.equals("link-to-customer")) =>
-                  "/add-user-auth-context-update-request"
-                case _ =>
-                  homePage
-            }
-          }
-          if (Helper.isValidInternalRedirectUrl(redir.toString)) {
-            actionsAfterSignup(theUser, () => {
-              S.redirectTo(redir)
-            })
-          } else {
-            S.error(S.?(ErrorMessages.InvalidInternalRedirectUrl))
-            logger.info(ErrorMessages.InvalidInternalRedirectUrl + loginRedirect.get)
-          }
-
-        case xs =>
-          xs.foreach{
-            e => S.error(e.field.uniqueFieldId.openOrThrowException("There is no uniqueFieldId."), e.msg)
-          }
-          signupFunc(Full(innerSignup _))
-      }
-    }
-
-    def innerSignup = {
-      val bind = "type=submit" #> signupSubmitButton(signupSubmitButtonValue(), testSignup _)
-      bind(signupXhtml(theUser))
-    }
-    
-    if(APIUtil.getPropsAsBoolValue("user_invitation.mandatory", false)) 
-      S.redirectTo("/user-invitation-info") 
-    else 
-      innerSignup
-  }
+//  override def signup = {
+//    val theUser: TheUserType = mutateUserOnSignup(createNewUserInstance())
+//    val theName = signUpPath.mkString("")
+//
+//    //Check the internal redirect, in case for open redirect issue.
+//    // variable redir is from loginRedirect, it is set-up in OAuthAuthorisation.scala as following code:
+//    // val currentUrl = ObpS.uriAndQueryString.getOrElse("/")
+//    // AuthUser.loginRedirect.set(Full(Helpers.appendParams(currentUrl, List((LogUserOutParam, "false")))))
+//    val loginRedirectSave = loginRedirect.is
+//
+//    def testSignup() {
+//      validateSignup(theUser) match {
+//        case Nil =>
+//          //here we check loginRedirectSave (different from implementation in super class)
+//          val redir = loginRedirectSave match {
+//            case Full(url) =>
+//              loginRedirect(Empty)
+//              url
+//            case _ =>
+//              //if the register page url (user_mgt/sign_up?after-signup=link-to-customer) contains the parameter 
+//              //after-signup=link-to-customer,then it will redirect to the on boarding customer page.
+//              ObpS.param("after-signup") match { 
+//                case url if (url.equals("link-to-customer")) =>
+//                  "/add-user-auth-context-update-request"
+//                case _ =>
+//                  homePage
+//            }
+//          }
+//          if (Helper.isValidInternalRedirectUrl(redir.toString)) {
+//            actionsAfterSignup(theUser, () => {
+//              S.redirectTo(redir)
+//            })
+//          } else {
+//            S.error(S.?(ErrorMessages.InvalidInternalRedirectUrl))
+//            logger.info(ErrorMessages.InvalidInternalRedirectUrl + loginRedirect.get)
+//          }
+//
+//        case xs =>
+//          xs.foreach{
+//            e => S.error(e.field.uniqueFieldId.openOrThrowException("There is no uniqueFieldId."), e.msg)
+//          }
+//          signupFunc(Full(innerSignup _))
+//      }
+//    }
+//
+//    def innerSignup = {
+//      val bind = "type=submit" #> signupSubmitButton(signupSubmitButtonValue(), testSignup _)
+//      bind(signupXhtml(theUser))
+//    }
+//    
+//    if(APIUtil.getPropsAsBoolValue("user_invitation.mandatory", false)) 
+//      S.redirectTo("/user-invitation-info") 
+//    else 
+//      innerSignup
+//  }
 
   def scrambleAuthUser(userPrimaryKey: UserPrimaryKey): Box[Boolean] = tryo {
     AuthUser.find(By(AuthUser.user, userPrimaryKey.value)) match {

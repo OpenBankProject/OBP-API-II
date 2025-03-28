@@ -24,7 +24,7 @@ import code.api.Constant._
 import code.api.ResourceDocs1_4_0.ResourceDocs140.ImplementationsResourceDocs
 import net.liftweb.http.LiftResponse
 import net.liftweb.actor.LAFuture
-import bootstrap.http4s.LiftCompatUtils.createLiftRequestObject 
+import bootstrap.http4s.LiftCompatUtils.createLiftRequestObject
 
 
 object Http4s130 {
@@ -42,10 +42,10 @@ object Http4s130 {
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)
         val liftResponse = callLiftEndpoint(ImplementationsResourceDocs.getResourceDocsObpV400, liftRequest, callContext)
-        
-        IO.fromFuture(IO(Future{liftResponse})).flatMap {
-          case (json) => Ok(json.toString)
-        }
+        //        IO.fromFuture(IO(Future{liftResponse.head})).flatMap {
+//          case (json) => Ok(json.json.toString())
+//        }
+        Ok(liftResponse.head.json.toJsCmd)
         
       }(req)
       

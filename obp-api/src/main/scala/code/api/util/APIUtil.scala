@@ -109,7 +109,8 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.{List, Nil}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.collection.{immutable, mutable}
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
+import net.liftweb.actor.LAFuture
 import scala.io.BufferedSource
 import scala.util.control.Breaks.{break, breakable}
 import scala.xml.{Elem, XML}
@@ -2824,6 +2825,16 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   }
 
 
+  def laFutureToscalaFuture[T](la: LAFuture[T]): Future[T] = {
+    val promise = Promise[T]()
+    la.onComplete {
+      case Full(value) => promise.success(value)
+      case Empty => promise.failure(new NoSuchElementException("Empty Box"))
+      case Failure(msg, _, _) => promise.failure(new RuntimeException(msg))
+    }
+    promise.future
+  }
+
   def extractAPIFailureNewStyle(msg: String): Option[APIFailureNewStyle] = {
     try {
       parse(msg).extractOpt[APIFailureNewStyle] match {
@@ -2904,45 +2915,22 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    * current session and the current Req object).
    */
   def futureToBoxedResponse[T](in: LAFuture[(T, Option[CallContext])]): Box[JsonResponse] = {
-    RestContinuation.async(reply => {
-      in.onSuccess{ _ match {
+    try {
+      val result = in.get // This will block until the future is completed
+      result match {
         case (Full(jsonResponse: JsonResponse), _: Option[_]) =>
-          reply(jsonResponse)
-        case t => Full(
-          writeMetricEndpointTiming(t._1, t._2.map(_.toLight))(
-            reply.apply(successJsonResponseNewStyle(t._1, t._2)(getHeadersNewStyle(t._2.map(_.toLight))))
-          )
-        )
+          Full(jsonResponse)
+        case t =>
+          Full(writeMetricEndpointTiming(t._1, t._2.map(_.toLight))(
+            successJsonResponseNewStyle(t._1, t._2)(getHeadersNewStyle(t._2.map(_.toLight)))
+          ))
       }
-      }
-      in.onFail {
-        case Failure("Continuation", Full(e), _) if e.isInstanceOf[LiftFlowOfControlException] =>
-          val f: ((=> LiftResponse) => Unit) => Unit = ReflectUtils.getFieldByType(e, "f")
-          f(reply(_))
-
-        case Failure(_, Full(JsonResponseException(jsonResponse)), _) =>
-          reply.apply(jsonResponse)
-
-        case Failure(null, e, _) =>
-          e.foreach(logger.error("", _))
-          val errorResponse = getFilteredOrFullErrorMessage(e)
-          Full(reply.apply(errorResponse))
-        case Failure(msg, e, _) =>
-          surroundErrorMessage(msg)
-          e.foreach(logger.debug("", _))
-          extractAPIFailureNewStyle(msg) match {
-            case Some(af) =>
-              val callContextLight = af.ccl.map(_.copy(httpCode = Some(af.failCode)))
-              Full(writeMetricEndpointTiming(af.failMsg, callContextLight)(reply.apply(errorJsonResponse(af.failMsg, af.failCode, callContextLight)(getHeadersNewStyle(af.ccl)))))
-            case _ =>
-              val errorResponse: JsonResponse = errorJsonResponse(msg)
-              Full((reply.apply(errorResponse)))
-          }
-        case _ =>
-          val errorResponse: JsonResponse = errorJsonResponse(UnknownError)
-          Full(reply.apply(errorResponse))
-      }
-    })
+    } catch {
+      case e: Throwable =>
+        logger.error("", e)
+        val errorResponse = getFilteredOrFullErrorMessage(Full(e))
+        Full(errorResponse)
+    }
   }
 
   def getFilteredOrFullErrorMessage[T](e: Box[Throwable]): JsonResponse = {
@@ -2987,23 +2975,25 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 
 
   /**
-   * This function is planed to be used at an endpoint in order to get a User based on Authorization Header data
-   * It has to do the same thing as function OBPRestHelper.failIfBadAuthorizationHeader does
-   * The only difference is that this function use Akka's Future in non-blocking way i.e. without using Await.result
-   * @return A Tuple of an User wrapped into a Future and optional session context data
+   * Prepares the `callContext` on the http4s side and retrieves a `User` based on the Authorization Header data. 
+   * This method operates in a non-blocking manner using Akka `Future`, avoiding the use of `Await.result`.
+   * The function ensures it conducts the same operation as `OBPRestHelper.failIfBadAuthorizationHeader` but 
+   * processes the Authorization Header asynchronously.
+   *
+   * @param cc The `CallContext` containing information about the request such as headers, HTTP methods, URLs, and other context data.
+   * @return An `OBPReturnType` containing a `Box` holding a `User` wrapped in a `Future` alongside optional session context data.
    */
   def getUserAndSessionContextFuture(cc: CallContext): OBPReturnType[Box[User]] = {
-    val s = S
-    val spelling = getSpellingParam()
-    val body: Box[String] = getRequestBody(S.request)
-    val implementedInVersion = S.request.openOrThrowException(attemptedToOpenAnEmptyBox).view
-    val verb = S.request.openOrThrowException(attemptedToOpenAnEmptyBox).requestType.method
-    val url = URLDecoder.decode(ObpS.uriAndQueryString.getOrElse(""),"UTF-8")
+    val spelling = getSpellingParam() //TODO maybe need to get value from cc
+    val body: Box[String] = cc.httpBody.toBox
+    val implementedInVersion = cc.implementedInVersion
+    val verb = cc.verb
+    val url = URLDecoder.decode(cc.url,"UTF-8")
     val correlationId = getCorrelationId()
-    val reqHeaders = S.request.openOrThrowException(attemptedToOpenAnEmptyBox).request.headers
+    val reqHeaders = cc.requestHeaders
     val title = s"Request Headers for verb: $verb, URL: $url"
     surroundDebugMessage(reqHeaders.map(h => h.name + ": " + h.values.mkString(",")).mkString, title)
-    val remoteIpAddress = getRemoteIpAddress()
+    val remoteIpAddress = cc.ipAddress //getRemoteIpAddress()
 
     val authHeaders = AuthorisationUtil.getAuthorisationHeaders(reqHeaders)
 
@@ -3052,7 +3042,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       else if (getPropsAsBoolValue("allow_gateway_login", false) && hasGatewayHeader(cc.authReqHeaderField)) {
         APIUtil.getPropsValue("gateway.host") match {
           case Full(h) if h.split(",").toList.exists(_.equalsIgnoreCase(remoteIpAddress) == true) => // Only addresses from white list can use this feature
-            val (httpCode, message, parameters) = GatewayLogin.validator(s.request)
+            val (httpCode, message, parameters) = GatewayLogin.validator(reqHeaders)
             httpCode match {
               case 200 =>
                 val payload = GatewayLogin.parseJwt(parameters)
@@ -4076,7 +4066,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     val connectorMethodName = {messageDoc.process.replaceAll("obp.","").replace(".","")}
     ResourceDoc(
       null,
-      ApiVersion.v3_1_0,
+      com.openbankproject.commons.util.ApiVersion.v3_1_0,
       connectorMethodName,
       requestVerb = {
         getRequestTypeByMethodName(connectorMethodName)
@@ -4967,54 +4957,72 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     }
   )
 
-  /**
-   * call an endpoint method
-   * @param endpoint endpoint method
-   * @param endpointPartPath endpoint method url slices, it is for endpoint the first case expression
-   * @param requestType http request method
-   * @param requestBody http request body
-   * @param addlParams append request parameters
-   * @return result of call endpoint method
-   */
-  def callEndpoint(endpoint: OBPEndpoint, endpointPartPath: List[String], requestType: RequestType, requestBody: String = "", addlParams: Map[String, String] = Map.empty): Either[(String, Int), String] = {
-    val req: Req = S.request.openOrThrowException("no request object can be extract.")
-    val pathOrigin = req.path
-    val forwardPath = pathOrigin.copy(partPath = endpointPartPath)
+//  /**
+//   * call an endpoint method
+//   * @param endpoint endpoint method
+//   * @param endpointPartPath endpoint method url slices, it is for endpoint the first case expression
+//   * @param requestType http request method
+//   * @param requestBody http request body
+//   * @param addlParams append request parameters
+//   * @return result of call endpoint method
+//   */
+//  def callEndpoint(endpoint: OBPEndpoint, endpointPartPath: List[String], requestType: RequestType, requestBody: String = "", addlParams: Map[String, String] = Map.empty): Either[(String, Int), String] = {
+//    val req: Req = S.request.openOrThrowException("no request object can be extract.")
+//    val pathOrigin = req.path
+//    val forwardPath = pathOrigin.copy(partPath = endpointPartPath)
+//
+//    val body = Full(BodyOrInputStream(IOUtils.toInputStream(requestBody)))
+//
+//    val paramCalcInfo = ParamCalcInfo(req.paramNames, req._params, Nil, body)
+//    val newRequest = new Req(forwardPath, req.contextPath, requestType, Full("application/json"), req.request, req.nanoStart, req.nanoEnd, false, () => paramCalcInfo, addlParams)
+//
+//    val user = AuthUser.getCurrentUser
+//    val result = tryo {
+//      endpoint(newRequest)(CallContext(user = user))
+//    }
+//
+//    val func: ((=> LiftResponse) => Unit) => Unit = result match {
+//      case Failure("Continuation", Full(continueException), _) => ReflectUtils.getCallByNameValue(continueException, "f").asInstanceOf[((=> LiftResponse) => Unit) => Unit]
+//      case _ => null
+//    }
+//
+//    val future = new LAFuture[LiftResponse]
+//    val satisfyFutureFunction: (=> LiftResponse) => Unit = liftResponse => future.satisfy(liftResponse)
+//    func(satisfyFutureFunction)
+//
+//    val timeoutOfEndpointMethod = 60 * 1000L // endpoint is async, but html template must not async, So here need wait for endpoint value.
+//
+//    future.get(timeoutOfEndpointMethod) match {
+//      case Full(JsonResponse(jsExp, _, _, code)) if (code.toString.startsWith("20")) => Right(jsExp.toJsCmd)
+//      case Full(JsonResponse(jsExp, _, _, code)) => {
+//        val message = json.parse(jsExp.toJsCmd)
+//          .asInstanceOf[JObject]
+//          .obj
+//          .find(_.name == "message")
+//          .map(_.value.asInstanceOf[JString].s)
+//          .getOrElse("")
+//        Left((message, code))
+//      }
+//      case Empty => Left((FutureTimeoutException, 500))
+//    }
+//  }
+  
+  def callLiftEndpoint(endpoint: OBPEndpoint, req: Req, callContext: CallContext): Box[JsonResponse] = {
+//    val result = 
+      endpoint(req)(callContext)
+//    }
 
-    val body = Full(BodyOrInputStream(IOUtils.toInputStream(requestBody)))
+//    val func: ((=> LiftResponse) => Unit) => Unit = result match {
+//      case Failure("Continuation", Full(continueException), _) => ReflectUtils.getCallByNameValue(continueException, "f").asInstanceOf[((=> LiftResponse) => Unit) => Unit]
+//      case _ => null
+//    }
 
-    val paramCalcInfo = ParamCalcInfo(req.paramNames, req._params, Nil, body)
-    val newRequest = new Req(forwardPath, req.contextPath, requestType, Full("application/json"), req.request, req.nanoStart, req.nanoEnd, false, () => paramCalcInfo, addlParams)
-
-    val user = AuthUser.getCurrentUser
-    val result = tryo {
-      endpoint(newRequest)(CallContext(user = user))
-    }
-
-    val func: ((=> LiftResponse) => Unit) => Unit = result match {
-      case Failure("Continuation", Full(continueException), _) => ReflectUtils.getCallByNameValue(continueException, "f").asInstanceOf[((=> LiftResponse) => Unit) => Unit]
-      case _ => null
-    }
-
-    val future = new LAFuture[LiftResponse]
-    val satisfyFutureFunction: (=> LiftResponse) => Unit = liftResponse => future.satisfy(liftResponse)
-    func(satisfyFutureFunction)
-
-    val timeoutOfEndpointMethod = 60 * 1000L // endpoint is async, but html template must not async, So here need wait for endpoint value.
-
-    future.get(timeoutOfEndpointMethod) match {
-      case Full(JsonResponse(jsExp, _, _, code)) if (code.toString.startsWith("20")) => Right(jsExp.toJsCmd)
-      case Full(JsonResponse(jsExp, _, _, code)) => {
-        val message = json.parse(jsExp.toJsCmd)
-          .asInstanceOf[JObject]
-          .obj
-          .find(_.name == "message")
-          .map(_.value.asInstanceOf[JString].s)
-          .getOrElse("")
-        Left((message, code))
-      }
-      case Empty => Left((FutureTimeoutException, 500))
-    }
+//    val future = new LAFuture[LiftResponse]
+//    val satisfyFutureFunction: (=> LiftResponse) => Unit = liftResponse => future.satisfy(liftResponse)
+//    func(satisfyFutureFunction)
+//    
+//    future
+//    result
   }
 
   val berlinGroupV13AliasPath = APIUtil.getPropsValue("berlin_group_v1.3_alias.path","").split("/").toList.map(_.trim)
