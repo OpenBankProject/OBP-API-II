@@ -68,5 +68,5 @@ object OBP_PAPI_2_1_1_1 extends OBPRestHelper with MdcLoggable with ScannedApis 
   // Make them available for use!
 //  registerRoutes(routes, allResourceDocs, apiPrefix)
 
-  logger.info(s"version $version has been run! There are ${routes.length} routes.")
+  //logger.info(s"version $version has been run! There are ${routes.length} routes.")
 }

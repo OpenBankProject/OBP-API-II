@@ -1866,7 +1866,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
         override def isDefinedAt(x: Req): Boolean =
           obpEndpoint.isDefinedAt(x) && isUrlMatchesResourceDocUrl(x.path.partPath)
 
-        override def apply(req: Req): OBPEndpointFuture = {
+        override def apply(req: Req): CallContext => Future[(Any, Option[CallContext])] = {
           val originFn  = obpEndpoint.apply(req)
 
           val pathParams = getPathParams(req.path.partPath)
@@ -1901,7 +1901,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
           cc: CallContext => {
             implicit val ec = EndpointContext(Some(cc)) // Supply call context in case of saving row to the metric table
             // if authentication check, do authorizedAccess, else do Rate Limit check
-            for {
+            val result: Future[(Box[JsonResponse], Option[CallContext])] = for {
               (boxUser, callContext) <- checkAuth(cc)
               
               _ <- checkObpIds(allObpKeyValuePairs, callContext) 
@@ -1938,9 +1938,10 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
                       originFn(newCallContext.orNull)
                     }
                   }
-                  Future{(boxResponse, newCallContext)}
+                  (boxResponse, newCallContext)
               }
             }
+            result
           }
         }
       }
@@ -5025,7 +5026,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 //    }
 //  }
   
-  def callLiftEndpoint(endpoint: OBPEndpointFuture, req: Req, callContext: CallContext): Box[JsonResponse] = {
+  def callLiftEndpoint(endpoint: OBPEndpointFuture, req: Req, callContext: CallContext): Future[(Any, Option[CallContext])] = {
 //    val result = 
       endpoint(req)(callContext)
 //    }

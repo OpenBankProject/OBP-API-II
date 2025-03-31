@@ -140,38 +140,38 @@ trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMeth
 
       logger.debug(s"There are ${resourceDocs.length} resource docs available to $requestedApiVersion")
 
-      val versionRoutes = requestedApiVersion match {
-        case ApiVersion.v5_1_0 => OBPAPI5_1_0.routes
-        case ApiVersion.v5_0_0 => OBPAPI5_0_0.routes
-        case ApiVersion.v4_0_0 => OBPAPI4_0_0.routes
-        case ApiVersion.v3_1_0 => OBPAPI3_1_0.routes
-        case ApiVersion.v3_0_0 => OBPAPI3_0_0.routes
-        case ApiVersion.v2_2_0 => OBPAPI2_2_0.routes
-        case ApiVersion.v2_1_0 => OBPAPI2_1_0.routes
-        case ApiVersion.v2_0_0 => OBPAPI2_0_0.routes
-        case ApiVersion.v1_4_0 => OBPAPI1_4_0.routes
-//        case ApiVersion.v1_3_0 => OBPAPI1_3_0.routes
-        case ApiVersion.v1_2_1 => OBPAPI1_2_1.routes
-        case version: ScannedApiVersion => ScannedApis.versionMapScannedApis(version).routes
-        case _                 => Nil
-      }
+//      val versionRoutes = requestedApiVersion match {
+//        case ApiVersion.v5_1_0 => OBPAPI5_1_0.routes
+//        case ApiVersion.v5_0_0 => OBPAPI5_0_0.routes
+//        case ApiVersion.v4_0_0 => OBPAPI4_0_0.routes
+//        case ApiVersion.v3_1_0 => OBPAPI3_1_0.routes
+//        case ApiVersion.v3_0_0 => OBPAPI3_0_0.routes
+//        case ApiVersion.v2_2_0 => OBPAPI2_2_0.routes
+//        case ApiVersion.v2_1_0 => OBPAPI2_1_0.routes
+//        case ApiVersion.v2_0_0 => OBPAPI2_0_0.routes
+//        case ApiVersion.v1_4_0 => OBPAPI1_4_0.routes
+////        case ApiVersion.v1_3_0 => OBPAPI1_3_0.routes
+//        case ApiVersion.v1_2_1 => OBPAPI1_2_1.routes
+//        case version: ScannedApiVersion => ScannedApis.versionMapScannedApis(version).routes
+//        case _                 => Nil
+//      }
 
-      logger.debug(s"There are ${versionRoutes.length} routes available to $requestedApiVersion")
+//      logger.debug(s"There are ${versionRoutes.length} routes available to $requestedApiVersion")
 
 
       // We only want the resource docs for which a API route exists else users will see 404s
       // Get a list of the partial function classes represented in the routes available to this version.
-      val versionRoutesClasses = versionRoutes.map { vr => vr.getClass }
+//      val versionRoutesClasses = versionRoutes.map { vr => vr.getClass }
 
       // Only return the resource docs that have available routes
-      val activeResourceDocs = resourceDocs.filter(rd => versionRoutesClasses.contains(rd.partialFunction.getClass))
+//      val activeResourceDocs = resourceDocs.filter(rd => versionRoutesClasses.contains(rd.partialFunction.getClass))
 
-      logger.debug(s"There are ${activeResourceDocs.length} resource docs available to $requestedApiVersion")
+//      logger.debug(s"There are ${activeResourceDocs.length} resource docs available to $requestedApiVersion")
 
 
       val activePlusLocalResourceDocs = ArrayBuffer[ResourceDoc]()
 
-      activePlusLocalResourceDocs ++= activeResourceDocs
+//      activePlusLocalResourceDocs ++= activeResourceDocs
       requestedApiVersion match
       {
         // only `obp` standard show the `localResourceDocs`

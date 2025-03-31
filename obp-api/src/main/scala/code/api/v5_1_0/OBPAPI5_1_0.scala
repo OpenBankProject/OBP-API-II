@@ -90,7 +90,7 @@ object OBPAPI5_1_0 extends OBPRestHelper
   ).filterNot(it => it.partialFunctionName.matches(excludeEndpoints.mkString("|")))
 
   // all endpoints
-  private val endpoints: List[OBPEndpointFuture] = OBPAPI5_0_0.routes ++ endpointsOf5_1_0
+  //private val endpoints: List[OBPEndpointFuture] = OBPAPI5_0_0.routes ++ endpointsOf5_1_0
 //
 //  // Filter the possible endpoints by the disabled / enabled Props settings and add them together
 //  val routes : List[OBPEndpointFuture] = Implementations5_1_0.root :: // For now we make this mandatory 
@@ -100,7 +100,7 @@ object OBPAPI5_1_0 extends OBPRestHelper
 //  registerRoutes(routes, allResourceDocs, apiPrefix, true)
 
 
-//  logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
+//  //logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
 //
 //  // specified response for OPTIONS request.
 //  private val corsResponse: Box[LiftResponse] = Full{

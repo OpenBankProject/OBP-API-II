@@ -5,14 +5,14 @@ import code.api.util.DynamicUtil.{Sandbox, Validation}
 import code.api.util.{CallContext, CustomJsonFormats, DynamicUtil}
 import net.liftweb.common.Box
 import net.liftweb.http.{JsonResponse, Req}
-
+import scala.concurrent.{Future, Promise}
 /**
  * this is super trait of dynamic compile endpoint, the dynamic compiled code should extends this trait and supply
  * logic of process method
  */
 trait DynamicCompileEndpoint {
   implicit val formats = CustomJsonFormats.formats
-
+  import com.openbankproject.commons.ExecutionContext.Implicits.global
   // * is any bankId
   val boundBankId: String
 
@@ -21,15 +21,15 @@ trait DynamicCompileEndpoint {
   val endpoint: OBPEndpointFuture = new OBPEndpointFuture {
     override def isDefinedAt(x: Req): Boolean = true
 
-    override def apply(request: Req): CallContext => Box[JsonResponse] = { cc =>
+    override def apply(request: Req): CallContext => Future[(Box[JsonResponse], Option[CallContext])] = { cc =>
       val Some(pathParams) = cc.resourceDocument.map(_.getPathParams(request.path.partPath))
 
       validateDependencies()
 
-      Sandbox.sandbox(boundBankId).runInSandbox {
+      val result: Box[JsonResponse] = Sandbox.sandbox(boundBankId).runInSandbox {
         process(cc, request, pathParams)
       }
-
+      Future{(result, Some(cc))}
     }
   }
 

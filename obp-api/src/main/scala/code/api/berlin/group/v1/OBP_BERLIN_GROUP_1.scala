@@ -63,6 +63,6 @@ object OBP_BERLIN_GROUP_1 extends OBPRestHelper with MdcLoggable with ScannedApi
   // Make them available for use!
 //  registerRoutes(routes, allResourceDocs, apiPrefix)
 
-  logger.info(s"version $apiVersion has been run! There are ${routes.length} routes.")
+//  logger.info(s"version $apiVersion has been run! There are ${routes.length} routes.")
 
 }

@@ -101,7 +101,7 @@ trait APIMethodsDynamicEntity {
         val callContext = cc.copy(operationId = Some(operationId), resourceDocument = resourceDoc)
         // process before authentication interceptor, get intercept result
         val beforeInterceptResult: Box[JsonResponse] = beforeAuthenticateInterceptResult(Option(callContext), operationId)
-        if (beforeInterceptResult.isDefined) beforeInterceptResult
+        if (beforeInterceptResult.isDefined) Future((beforeInterceptResult, Some(callContext)))
         else for {
           (Full(u), callContext) <- authenticatedAccess(callContext) // Inject operationId into Call Context. It's used by Rate Limiting.
 
@@ -159,7 +159,7 @@ trait APIMethodsDynamicEntity {
               result
             }
           }
-          Future{(jValue, HttpCode.`200`(cc.callContext))} 
+          (jValue, HttpCode.`200`(cc.callContext)) 
         }
       }
       case EntityName(bankId, entityName, _, isPersonalEntity) JsonPost json -> _ => { cc =>
@@ -184,7 +184,7 @@ trait APIMethodsDynamicEntity {
 
         // process before authentication interceptor, get intercept result
         val beforeInterceptResult: Box[JsonResponse] = beforeAuthenticateInterceptResult(Option(callContext), operationId)
-        if (beforeInterceptResult.isDefined) beforeInterceptResult
+        if (beforeInterceptResult.isDefined) Future((beforeInterceptResult, Option(callContext)))
         else for {
           (Full(u), callContext) <- authenticatedAccess(callContext) // Inject operationId into Call Context. It's used by Rate Limiting.
           (_, callContext) <-
@@ -220,7 +220,7 @@ trait APIMethodsDynamicEntity {
           } else {
             result
           }
-          Future{(entity, HttpCode.`200`(cc.callContext))}
+          (entity, HttpCode.`200`(cc.callContext))
         }
       }
       case EntityName(bankId, entityName, id, isPersonalEntity) JsonPut json -> _ => { cc =>
@@ -245,7 +245,7 @@ trait APIMethodsDynamicEntity {
 
         // process before authentication interceptor, get intercept result
         val beforeInterceptResult: Box[JsonResponse] = beforeAuthenticateInterceptResult(Option(callContext), operationId)
-        if (beforeInterceptResult.isDefined) beforeInterceptResult
+        if (beforeInterceptResult.isDefined) Future((beforeInterceptResult, Option(callContext)))
         else for {
           (Full(u), callContext) <- authenticatedAccess(callContext) // Inject operationId into Call Context. It's used by Rate Limiting.
           (_, callContext) <-
@@ -290,7 +290,7 @@ trait APIMethodsDynamicEntity {
           } else {
             result
           }
-          Future{(entity, HttpCode.`200`(cc.callContext))}
+          (entity, HttpCode.`200`(cc.callContext))
         }
       }
       case EntityName(bankId, entityName, id, isPersonalEntity) JsonDelete _ => { cc =>
@@ -314,7 +314,7 @@ trait APIMethodsDynamicEntity {
 
         // process before authentication interceptor, get intercept result
         val beforeInterceptResult: Box[JsonResponse] = beforeAuthenticateInterceptResult(Option(callContext), operationId)
-        if (beforeInterceptResult.isDefined) beforeInterceptResult
+        if (beforeInterceptResult.isDefined) Future((beforeInterceptResult, Option(callContext))) 
         else for {
           (Full(u), callContext) <- authenticatedAccess(callContext) // Inject operationId into Call Context. It's used by Rate Limiting.
           (_, callContext) <-
@@ -355,7 +355,7 @@ trait APIMethodsDynamicEntity {
           )
           deleteResult: JBool = unboxResult(box.asInstanceOf[Box[JBool]], entityName)
         } yield {
-          Future{(deleteResult, HttpCode.`200`(cc.callContext))}
+          (deleteResult, HttpCode.`200`(cc.callContext))
         }
       }
     }

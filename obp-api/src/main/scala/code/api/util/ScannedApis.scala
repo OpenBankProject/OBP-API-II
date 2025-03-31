@@ -14,7 +14,7 @@ trait ScannedApis extends LiftRules.DispatchPF {
   val apiVersion: ScannedApiVersion
   lazy val version: ApiVersion = this.apiVersion
   val allResourceDocs: ArrayBuffer[ResourceDoc]
-  val routes: List[OBPEndpointFuture]
+//  val routes: List[OBPEndpointFuture]
   //  val apiRelations: ArrayBuffer[ApiRelation]
 }
 

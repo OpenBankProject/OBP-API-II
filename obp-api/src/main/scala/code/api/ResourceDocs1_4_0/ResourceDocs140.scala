@@ -13,9 +13,9 @@ object ResourceDocs140 extends OBPRestHelper with ResourceDocsAPIMethods with Md
     ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
     ImplementationsResourceDocs.getResourceDocsSwagger,
   )
-  routes.foreach(route => {
-    oauthServe(apiPrefix{route})
-  })
+//  routes.foreach(route => {
+//    oauthServe(apiPrefix{route})
+//  })
 }
 
 
@@ -28,9 +28,9 @@ object ResourceDocs200 extends OBPRestHelper with ResourceDocsAPIMethods with Md
     ImplementationsResourceDocs.getResourceDocsSwagger,
     ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
   )
-  routes.foreach(route => {
-    oauthServe(apiPrefix{route})
-  })
+//  routes.foreach(route => {
+//    oauthServe(apiPrefix{route})
+//  })
 }
 
 
@@ -43,9 +43,9 @@ object ResourceDocs210 extends OBPRestHelper with ResourceDocsAPIMethods with Md
     ImplementationsResourceDocs.getResourceDocsSwagger,
     ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
   )
-  routes.foreach(route => {
-    oauthServe(apiPrefix{route})
-  })
+//  routes.foreach(route => {
+//    oauthServe(apiPrefix{route})
+//  })
 }
 
 // Hack to provide Resource Docs / Swagger on endpoints other than 1.4.0 where it is defined.
@@ -57,9 +57,9 @@ object ResourceDocs220 extends OBPRestHelper with ResourceDocsAPIMethods with Md
     ImplementationsResourceDocs.getResourceDocsSwagger,
     ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
   )
-  routes.foreach(route => {
-    oauthServe(apiPrefix{route})
-  })
+//  routes.foreach(route => {
+//    oauthServe(apiPrefix{route})
+//  })
 }
 
 // Hack to provide Resource Docs / Swagger on endpoints other than 1.4.0 where it is defined.
@@ -71,9 +71,9 @@ object ResourceDocs300 extends OBPRestHelper with ResourceDocsAPIMethods with Md
     ImplementationsResourceDocs.getResourceDocsSwagger,
     ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
   )
-  routes.foreach(route => {
-    oauthServe(apiPrefix{route})
-  })
+//  routes.foreach(route => {
+//    oauthServe(apiPrefix{route})
+//  })
 
   // Hack to provide Resource Docs / Swagger on endpoints other than 1.4.0 where it is defined.
   object ResourceDocs310 extends OBPRestHelper with ResourceDocsAPIMethods with MdcLoggable {
@@ -84,11 +84,11 @@ object ResourceDocs300 extends OBPRestHelper with ResourceDocsAPIMethods with Md
       ImplementationsResourceDocs.getResourceDocsSwagger,
       ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
     )
-    routes.foreach(route => {
-      oauthServe(apiPrefix {
-        route
-      })
-    })
+//    routes.foreach(route => {
+//      oauthServe(apiPrefix {
+//        route
+//      })
+//    })
   }
   // Hack to provide Resource Docs / Swagger on endpoints other than 1.4.0 where it is defined.
   object ResourceDocs400 extends OBPRestHelper with ResourceDocsAPIMethods with MdcLoggable {
@@ -99,11 +99,11 @@ object ResourceDocs300 extends OBPRestHelper with ResourceDocsAPIMethods with Md
       ImplementationsResourceDocs.getResourceDocsSwagger,
       ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
     )
-    routes.foreach(route => {
-      oauthServe(apiPrefix {
-        route
-      })
-    })
+//    routes.foreach(route => {
+//      oauthServe(apiPrefix {
+//        route
+//      })
+//    })
   }
   // Hack to provide Resource Docs / Swagger on endpoints other than 1.4.0 where it is defined.
   object ResourceDocs500 extends OBPRestHelper with ResourceDocsAPIMethods with MdcLoggable {
@@ -114,11 +114,11 @@ object ResourceDocs300 extends OBPRestHelper with ResourceDocsAPIMethods with Md
       ImplementationsResourceDocs.getResourceDocsSwagger,
       ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
     )
-    routes.foreach(route => {
-      oauthServe(apiPrefix {
-        route
-      })
-    })
+//    routes.foreach(route => {
+//      oauthServe(apiPrefix {
+//        route
+//      })
+//    })
   } 
   
   object ResourceDocs510 extends OBPRestHelper with ResourceDocsAPIMethods with MdcLoggable {
@@ -130,11 +130,11 @@ object ResourceDocs300 extends OBPRestHelper with ResourceDocsAPIMethods with Md
       ImplementationsResourceDocs.getBankLevelDynamicResourceDocsObp,
 //      ImplementationsResourceDocs.getStaticResourceDocsObp
     )
-    routes.foreach(route => {
-      oauthServe(apiPrefix {
-        route
-      })
-    })
+//    routes.foreach(route => {
+//      oauthServe(apiPrefix {
+//        route
+//      })
+//    })
   }
 
 }

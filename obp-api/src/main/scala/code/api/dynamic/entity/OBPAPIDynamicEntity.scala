@@ -31,7 +31,7 @@ import code.api.OBPRestHelper
 import code.api.dynamic.endpoint.helper.DynamicEndpoints
 import code.api.util.APIUtil.OBPEndpointFuture
 import code.api.util.{APIUtil, VersionedOBPApis}
-import code.api.v5_0_0.OBPAPI5_0_0.{allResourceDocs,routes}
+import code.api.v5_0_0.OBPAPI5_0_0.{allResourceDocs}
 import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 import net.liftweb.common.{Box, Full}
@@ -54,7 +54,7 @@ object OBPAPIDynamicEntity extends OBPRestHelper with MdcLoggable with Versioned
 //
 //  routes.map(endpoint => oauthServe(apiPrefix{endpoint}, None))
 //  
-//  logger.info(s"version $version has been run! There are ${routes.length} routes.")
+//  //logger.info(s"version $version has been run! There are ${routes.length} routes.")
 //  // specified response for OPTIONS request.
 //  private val corsResponse: Box[LiftResponse] = Full{
 //    val corsHeaders = List(

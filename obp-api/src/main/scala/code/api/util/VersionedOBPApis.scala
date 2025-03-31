@@ -12,5 +12,5 @@ trait VersionedOBPApis {
 
   def allResourceDocs: ArrayBuffer[ResourceDoc]
 
-  def routes: List[OBPEndpointFuture]
+//  def routes: List[OBPEndpointFuture]
 }

@@ -20,10 +20,10 @@ object CNBV9_1_0_0 extends OBPRestHelper with MdcLoggable with ScannedApis {
   override val allResourceDocs: ArrayBuffer[ResourceDoc] = APIMethods_AtmsApi.resourceDocs
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
-  override val routes: List[OBPEndpointFuture] = getAllowedEndpoints(endpoints, allResourceDocs)
+//  override val routes: List[OBPEndpointFuture] = getAllowedEndpoints(endpoints, allResourceDocs)
 
   // Make them available for use!
 //  registerRoutes(routes, allResourceDocs, apiPrefix)
 
-  logger.info(s"version $version has been run! There are ${routes.length} routes.")
+  //logger.info(s"version $version has been run! There are ${routes.length} routes.")
 }

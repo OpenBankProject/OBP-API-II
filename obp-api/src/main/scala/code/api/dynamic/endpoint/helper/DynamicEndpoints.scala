@@ -217,9 +217,9 @@ case class CompiledObjects(exampleRequestBody: Option[JValue], successResponseBo
       override def isDefinedAt(req: Req): Boolean = partialFunction.isDefinedAt(req)
   
       // run dynamic code in sandbox
-      override def apply(req: Req): OBPEndpointFuture = { (req: Req,cc: CallContext) =>
+      override def apply(req: Req): CallContext => Future[(Any, Option[CallContext])] = { (cc: CallContext) =>
         val fn = partialFunction.apply(req)
-        Future{(sandbox.runInSandbox(fn(cc)), cc)}
+        sandbox.runInSandbox(fn(cc))
       }
     }
   }

@@ -38,14 +38,14 @@ object Http4s130 {
 
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
-//    case req @ GET -> Root / "resource-docs"/ "v5.1.0" / "obp-future"  =>
-//      securedEndpoint { (user: User, callContext: CallContext) =>
-//        val liftRequest = createLiftRequestObject(req)
-//        val liftResponse = callLiftEndpoint(ImplementationsResourceDocs.getResourceDocsObpV400, liftRequest, callContext)
-//        IO.fromFuture(IO(liftResponse)).flatMap {
-//          case (Full(json)) => Ok(json.json.toJsCmd)
-//        }
-//      }(req)
+    case req @ GET -> Root / "resource-docs"/ "v5.1.0" / "obp"  =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(ImplementationsResourceDocs.getResourceDocsObpV400, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
       
 //    case req @ GET -> Root / "resource-docs"/ "v5.1.0" / "obp"  =>
 //      securedEndpoint { (user: User, callContext: CallContext) =>

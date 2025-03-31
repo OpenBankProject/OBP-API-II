@@ -122,7 +122,7 @@ object OBPAPI1_2_1 extends OBPRestHelper with APIMethods121 with MdcLoggable wit
 
 //  registerRoutes(routes, allResourceDocs, apiPrefix)
 
-  logger.info(s"version $version has been run! There are ${routes.length} routes.")
+  //logger.info(s"version $version has been run! There are ${routes.length} routes.")
 
 
 

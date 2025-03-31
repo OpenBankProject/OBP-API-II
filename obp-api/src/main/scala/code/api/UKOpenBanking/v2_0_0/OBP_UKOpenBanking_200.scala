@@ -63,6 +63,6 @@ object OBP_UKOpenBanking_200 extends OBPRestHelper with MdcLoggable with Scanned
   // Make them available for use!
 //  registerRoutes(routes, allResourceDocs, apiPrefix)
 
-  logger.info(s"version $version has been run! There are ${routes.length} routes.")
+  //logger.info(s"version $version has been run! There are ${routes.length} routes.")
 
 }

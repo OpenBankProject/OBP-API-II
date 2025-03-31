@@ -72,7 +72,7 @@ object OBPAPI4_0_0 extends OBPRestHelper with APIMethods130 with APIMethods140 w
     //TODO exclude two endpoints, after training we need add logic to exclude endpoints
 
   // all endpoints
-  private val endpoints: List[OBPEndpointFuture] = OBPAPI3_1_0.routes ++ endpointsOf4_0_0
+  //private val endpoints: List[OBPEndpointFuture] = OBPAPI3_1_0.routes ++ endpointsOf4_0_0
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
 //  val routes : List[OBPEndpointFuture] = Implementations4_0_0.root :: // For now we make this mandatory
@@ -81,7 +81,7 @@ object OBPAPI4_0_0 extends OBPRestHelper with APIMethods130 with APIMethods140 w
   // register v4.0.0 apis first, Make them available for use!
 //  registerRoutes(routes, allResourceDocs, apiPrefix, true)
 
-  logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
+  //logger.info(s"version $version has been run! There are ${routes.length} routes, ${allResourceDocs.length} allResourceDocs.")
 
   // specified response for OPTIONS request.
   private val corsResponse: Box[LiftResponse] = Full{
