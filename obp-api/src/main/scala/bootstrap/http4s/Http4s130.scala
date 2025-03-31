@@ -35,9 +35,25 @@ object Http4s130 {
   val version: ApiVersion = ApiVersion.v1_3_0
   val versionStatus = ApiVersionStatus.DEPRECATED.toString
 
-
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
-
+    case req @ GET -> Root / "banks" / "gh.29.uk" / "FooBar01" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.dynamic.entity.APIMethodsDynamicEntity.ImplementationsDynamicEntity.genericEndpoint, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
+    case req @ GET -> Root / "banks" / "gh.29.uk" / "FooBar01" / fooBarId =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.dynamic.entity.APIMethodsDynamicEntity.ImplementationsDynamicEntity.genericEndpoint, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
     case req @ GET -> Root / "resource-docs"/ "v5.1.0" / "obp"  =>
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)

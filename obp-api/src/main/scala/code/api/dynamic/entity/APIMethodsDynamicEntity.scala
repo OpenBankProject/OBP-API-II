@@ -159,7 +159,7 @@ trait APIMethodsDynamicEntity {
               result
             }
           }
-          (jValue, HttpCode.`200`(cc.callContext)) 
+          (compactRender(jValue), HttpCode.`200`(cc.callContext)) 
         }
       }
       case EntityName(bankId, entityName, _, isPersonalEntity) JsonPost json -> _ => { cc =>
@@ -220,7 +220,7 @@ trait APIMethodsDynamicEntity {
           } else {
             result
           }
-          (entity, HttpCode.`200`(cc.callContext))
+          (compactRender(entity), HttpCode.`200`(cc.callContext))
         }
       }
       case EntityName(bankId, entityName, id, isPersonalEntity) JsonPut json -> _ => { cc =>
@@ -290,7 +290,7 @@ trait APIMethodsDynamicEntity {
           } else {
             result
           }
-          (entity, HttpCode.`200`(cc.callContext))
+          (compactRender(entity), HttpCode.`200`(cc.callContext))
         }
       }
       case EntityName(bankId, entityName, id, isPersonalEntity) JsonDelete _ => { cc =>
@@ -355,7 +355,7 @@ trait APIMethodsDynamicEntity {
           )
           deleteResult: JBool = unboxResult(box.asInstanceOf[Box[JBool]], entityName)
         } yield {
-          (deleteResult, HttpCode.`200`(cc.callContext))
+          (compactRender(deleteResult), HttpCode.`200`(cc.callContext))
         }
       }
     }
