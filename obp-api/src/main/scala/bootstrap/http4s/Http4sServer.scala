@@ -48,16 +48,17 @@ import fs2.text.utf8
 import org.http4s.dsl.io._
 import bootstrap.http4s.CallContextMiddleware.withCallContext
 import bootstrap.http4s.middleware.JsonErrorHandler
+import bootstrap.http4s.ResponseMiddleware.contentTypeMiddleware
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats
   
   //this is the routers
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = JsonErrorHandler(withCallContext(
+  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandler(withCallContext(
     v130Services <+> 
       bankServices <+> 
       helloWorldService
-  ))
+  )))
 
   val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
 

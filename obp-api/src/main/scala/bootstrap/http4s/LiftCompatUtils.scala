@@ -86,7 +86,7 @@ object LiftCompatUtils {
 
     override def multipartContent_? : Boolean = false
 
-    override def contentType: Box[String] = Empty
+    override def contentType: Box[String] = headers("Content-Type").headOption
 
     override def suspend(timeout: Long): RetryState.Value = RetryState.TIMED_OUT
 
@@ -116,7 +116,7 @@ object LiftCompatUtils {
   }
 
 
-  def fromHttp4sRequest(http4sReq: Request[IO]): MockLiftHttpRequest = {
+  private def createLiftHttpRequest(http4sReq: Request[IO]): MockLiftHttpRequest = {
     import cats.effect.unsafe.implicits.global
     val bodyBytes: Array[Byte] =
       http4sReq.body.compile.toVector.unsafeRunSync().toArray.map(_.toByte)
@@ -157,7 +157,7 @@ object LiftCompatUtils {
 
   def createLiftRequestObject(http4sReq: Request[IO]): Req = {
     // Convert Http4s Request to MockLiftHttpRequest
-    val dummyHttpRequest = fromHttp4sRequest(http4sReq)
+    val liftHttpRequest = createLiftHttpRequest(http4sReq)
 
     val pathSegments = http4sReq.uri.path.segments.map(_.decoded()).toList
 
@@ -168,13 +168,23 @@ object LiftCompatUtils {
       endSlash = false
     )
 
-    val requestType = GetRequest       // Assuming the request type is a GET request
-    val contentType = dummyHttpRequest.contentType
+    val requestType = http4sReq.method match {
+      case Method.GET             => GetRequest
+      case Method.POST            => PostRequest
+      case Method.PUT             => PutRequest
+      case Method.DELETE          => DeleteRequest
+      case Method.HEAD            => HeadRequest
+      case Method.OPTIONS         => OptionsRequest
+      case Method.PATCH           => PatchRequest
+      case meth                   => UnknownRequest(meth.toString()) // http4s.RequestMethod support more methods
+    }     
+    
+    val contentType = liftHttpRequest.contentType
     val nanoEnd = System.nanoTime()    // Timestamp for request end time
 
     // Custom default parameter calculator
     val paramCalculator: () => ParamCalcInfo = () => {
-      val paramMap: Map[String, List[String]] = dummyHttpRequest.params
+      val paramMap: Map[String, List[String]] = liftHttpRequest.params
         .groupBy(_.name)
         .map { case (k, vs: List[HTTPParam]) => k -> vs.flatMap(_.values) }
 
@@ -184,7 +194,7 @@ object LiftCompatUtils {
         paramNames = paramNames,
         params = paramMap,
         uploadedFiles = Nil,
-        body = Empty
+        body = Full(BodyOrInputStream(new ByteArrayInputStream(liftHttpRequest.bodyBytes)))
       )
     }
 
@@ -198,7 +208,7 @@ object LiftCompatUtils {
       contextPath = "",
       requestType = requestType,
       contentType = contentType,
-      request = dummyHttpRequest,
+      request = liftHttpRequest,
       nanoStart = System.nanoTime(),
       nanoEnd = nanoEnd,
       _stateless_? = false,

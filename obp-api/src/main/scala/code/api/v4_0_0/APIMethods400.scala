@@ -1634,7 +1634,7 @@ trait APIMethods400 extends MdcLoggable {
       } yield {
         curdRoles.map(role => Entitlement.entitlement.vend.addEntitlement(dynamicEntity.bankId.getOrElse(""), cc.userId, role.toString()))
         val commonsData: DynamicEntityCommons = result
-        (commonsData.jValue, HttpCode.`201`(cc.callContext))
+        (compactRender(commonsData.jValue), HttpCode.`201`(cc.callContext))
       }
     }
     

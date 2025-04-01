@@ -44,6 +44,14 @@ object Http4s130 {
           case (json) => Ok(json._1.toString)
         }
       }(req)
+    case req @ POST -> Root / "management" / "system-dynamic-entities"  =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.v4_0_0.APIMethods400.Implementations4_0_0.createSystemDynamicEntity, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
       
     case req @ GET -> Root / "banks" / "gh.29.uk" / "FooBar01" / fooBarId =>
       securedEndpoint { (user: User, callContext: CallContext) =>
