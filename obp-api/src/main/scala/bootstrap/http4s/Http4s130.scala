@@ -62,6 +62,24 @@ object Http4s130 {
         }
       }(req)
       
+    case req @ DELETE -> Root / "banks" / "gh.29.uk" / "FooBar01" / fooBarId =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.dynamic.entity.APIMethodsDynamicEntity.ImplementationsDynamicEntity.genericEndpoint, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
+    case req @ PUT -> Root / "banks" / "gh.29.uk" / "FooBar01" / fooBarId =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.dynamic.entity.APIMethodsDynamicEntity.ImplementationsDynamicEntity.genericEndpoint, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
     case req @ GET -> Root / "resource-docs"/ "v5.1.0" / "obp"  =>
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)
