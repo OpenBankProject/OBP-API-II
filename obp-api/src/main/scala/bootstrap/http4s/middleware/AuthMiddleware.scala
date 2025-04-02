@@ -1,12 +1,12 @@
-package bootstrap.http4s
+package bootstrap.http4s.middleware
 
+import bootstrap.http4s.RestHelperChecks._
+import bootstrap.http4s.CallContextKeyProvider.callContextKey
 import cats.effect._
-import org.http4s._
-import org.http4s.dsl.io._
 import code.api.util.CallContext
 import com.openbankproject.commons.model.User
-import bootstrap.http4s.AuthZChecks._
-import bootstrap.http4s.CallContextKeyProvider.callContextKey
+import org.http4s._
+import org.http4s.dsl.io._
 
 object AuthMiddleware {
 

@@ -9,7 +9,7 @@ import code.api.util.NewStyle.HttpCode
 import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
 import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
-import bootstrap.http4s.AuthMiddleware._
+import bootstrap.http4s.middleware.AuthMiddleware._
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.{BankId, ErrorMessage, User}
 import net.liftweb.common.Full
@@ -48,6 +48,33 @@ object Http4s130 {
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)
         val liftResponse = callLiftEndpoint(code.api.v4_0_0.APIMethods400.Implementations4_0_0.createSystemDynamicEntity, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
+    case req @ POST -> Root / "management" / "dynamic-endpoints2"  =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+//        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint2(code.api.v4_0_0.APIMethods400.Implementations4_0_0.createDynamicEndpoint2, req, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
+    case req @ POST -> Root / "management" / "dynamic-endpoints"  =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.v4_0_0.APIMethods400.Implementations4_0_0.createDynamicEndpoint, liftRequest, callContext)
+        IO.fromFuture(IO(liftResponse)).flatMap {
+          case (json) => Ok(json._1.toString)
+        }
+      }(req)
+      
+    case req @ POST -> Root / "api"/ "v1" / "products" / "PRODUCT_CODE" / "quote"  =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val liftRequest = createLiftRequestObject(req)
+        val liftResponse = callLiftEndpoint(code.api.dynamic.endpoint.APIMethodsDynamicEndpoint.ImplementationsDynamicEndpoint.dynamicEndpoint, liftRequest, callContext)
         IO.fromFuture(IO(liftResponse)).flatMap {
           case (json) => Ok(json._1.toString)
         }

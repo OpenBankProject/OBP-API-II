@@ -5129,6 +5129,17 @@ trait APIMethods400 extends MdcLoggable {
           createDynamicEndpointMethod(None, json, cc)
       }
     }
+    
+    
+    
+  
+    
+    lazy val createDynamicEndpoint2: OBPEndpointFuture2 = {
+      case req  => {
+        cc => implicit val ec = EndpointContext(Some(cc))
+          createDynamicEndpointMethod(None, parse(cc.httpBody.getOrElse("")), cc)
+      }
+    }
 
     staticResourceDocs += ResourceDoc(
       createBankLevelDynamicEndpoint,
@@ -12158,7 +12169,7 @@ trait APIMethods400 extends MdcLoggable {
     } yield {
       val swaggerJson = parse(dynamicEndpoint.swaggerString)
       val responseJson: JObject = ("bank_id", dynamicEndpoint.bankId) ~ ("user_id", cc.userId) ~ ("dynamic_endpoint_id", dynamicEndpoint.dynamicEndpointId) ~ ("swagger_string", swaggerJson)
-      (responseJson, HttpCode.`201`(callContext))
+      (compactRender(responseJson) , HttpCode.`201`(callContext))
     }
   }
 }

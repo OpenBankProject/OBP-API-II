@@ -1,4 +1,4 @@
-package bootstrap.http4s
+package bootstrap.http4s.middleware
 
 import cats.data.Kleisli
 import cats.effect.IO

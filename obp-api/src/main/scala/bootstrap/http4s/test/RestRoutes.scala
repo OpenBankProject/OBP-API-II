@@ -1,28 +1,16 @@
-package bootstrap.http4s
+package bootstrap.http4s.test
 
-import cats.effect._
-import org.http4s.{HttpRoutes, _}
-import org.http4s.dsl.io._
-import cats.implicits._
-import code.api.util.{APIUtil, CustomJsonFormats}
+import code.api.util.CustomJsonFormats
+import code.api.v4_0_0.JSONFactory400
 import code.bankconnectors.Connector
-import code.model.dataAccess.MappedBank
 import com.openbankproject.commons.model.BankCommons
-import net.liftweb.json.Formats
+import net.liftweb.json.{Extraction, Formats}
+import net.liftweb.json.JsonAST.prettyRender
 import org.http4s.HttpRoutes
-import org.http4s.dsl.Http4sDsl
+import org.http4s.dsl.io._
 
 import scala.language.higherKinds
-import cats.effect._
-import code.api.v4_0_0.JSONFactory400
-import org.http4s._
-import org.http4s.dsl.io._
-import net.liftweb.json.JsonAST.{JValue, prettyRender}
-import net.liftweb.json.{Extraction, MappingException, compactRender, parse}
 //import org.http4s.server.middleware.ErrorHandling
-import org.typelevel.log4cats.LoggerFactory
-import org.typelevel.log4cats.slf4j.Slf4jFactory
-import cats.data.{OptionT,Kleisli }
 import cats.effect.IO
 
 
@@ -55,7 +43,6 @@ object RestRoutes {
       val banks = Connector.connector.vend.getBanksLegacy(None).map(_._1).openOrThrowException("xxxxx")
       Ok(prettyRender(Extraction.decompose(banks)))
     case GET -> Root / "banks"/ "future"  =>
-      import scala.concurrent.Future
       import scala.concurrent.ExecutionContext.Implicits.global
       Ok(IO.fromFuture(IO(
         for {

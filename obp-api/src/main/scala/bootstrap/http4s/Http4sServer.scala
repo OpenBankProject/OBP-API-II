@@ -1,6 +1,6 @@
 package bootstrap.http4s
 
-import bootstrap.http4s.RestRoutes.{bankServices, helloWorldService}
+import bootstrap.http4s.test.RestRoutes.{bankServices, helloWorldService}
 import bootstrap.http4s.Http4s130.v130Services
 import cats.data.{Kleisli, OptionT}
 
@@ -46,15 +46,15 @@ import code.api.util.{APIUtil, CustomJsonFormats}
 import code.util.Helper.MdcLoggable
 import fs2.text.utf8
 import org.http4s.dsl.io._
-import bootstrap.http4s.CallContextMiddleware.withCallContext
-import bootstrap.http4s.middleware.JsonErrorHandler
-import bootstrap.http4s.ResponseMiddleware.contentTypeMiddleware
+import bootstrap.http4s.middleware.CallContextMiddleware.withCallContext
+import bootstrap.http4s.middleware.JsonErrorHandlerMiddleware
+import bootstrap.http4s.middleware.ResponseMiddleware.contentTypeMiddleware
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats
   
   //this is the routers
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandler(withCallContext(
+  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
     v130Services <+> 
       bankServices <+> 
       helloWorldService

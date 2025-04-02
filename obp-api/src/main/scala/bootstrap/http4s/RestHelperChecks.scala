@@ -15,7 +15,7 @@ import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import scala.util.{Failure, Success}
 
-object AuthZChecks {
+object RestHelperChecks {
 
   // Convert Future to IO with proper exception handling
   private def futureToIO[T](f: => Future[T]): IO[T] = {

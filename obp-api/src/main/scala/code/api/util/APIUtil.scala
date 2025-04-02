@@ -2758,6 +2758,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 
 
   type OBPEndpointFuture = PartialFunction[Req, CallContext => Future[(Any, Option[CallContext])]]
+  type OBPEndpointFuture2 = PartialFunction[org.http4s.Request[cats.effect.IO], CallContext => Future[(Any, Option[CallContext])]]
   type OBPReturnType[T] = Future[(T, Option[CallContext])]
 
 
@@ -5027,6 +5028,24 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 //  }
   
   def callLiftEndpoint(endpoint: OBPEndpointFuture, req: Req, callContext: CallContext): Future[(Any, Option[CallContext])] = {
+//    val result = 
+      endpoint(req)(callContext)
+//    }
+
+//    val func: ((=> LiftResponse) => Unit) => Unit = result match {
+//      case Failure("Continuation", Full(continueException), _) => ReflectUtils.getCallByNameValue(continueException, "f").asInstanceOf[((=> LiftResponse) => Unit) => Unit]
+//      case _ => null
+//    }
+
+//    val future = new LAFuture[LiftResponse]
+//    val satisfyFutureFunction: (=> LiftResponse) => Unit = liftResponse => future.satisfy(liftResponse)
+//    func(satisfyFutureFunction)
+//    
+//    future
+//    result
+  }
+  
+  def callLiftEndpoint2(endpoint: OBPEndpointFuture2, req: org.http4s.Request[cats.effect.IO], callContext: CallContext): Future[(Any, Option[CallContext])] = {
 //    val result = 
       endpoint(req)(callContext)
 //    }

@@ -2,18 +2,15 @@ package bootstrap.http4s.middleware
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.IO
-import org.http4s._
-import org.http4s.dsl.io._
-import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
-import org.typelevel.log4cats.slf4j.Slf4jLogger
-import net.liftweb.json.{parse, Extraction, compactRender}
 import code.api.APIFailureNewStyle
-import code.api.util.ErrorMessages
-import code.api.util.{APIUtil, CustomJsonFormats}
+import code.api.util.CustomJsonFormats
 import com.openbankproject.commons.model.ErrorMessage
+import net.liftweb.json.{Extraction, compactRender, parse}
+import org.http4s.{MediaType, _}
+import org.http4s.headers.`Content-Type`
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-object JsonErrorHandler {
+object JsonErrorHandlerMiddleware {
   
   implicit val formats = CustomJsonFormats.formats
   
