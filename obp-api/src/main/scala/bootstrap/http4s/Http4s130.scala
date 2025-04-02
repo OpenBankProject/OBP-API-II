@@ -62,7 +62,7 @@ object Http4s130 {
         }
       }(req)
       
-    case req @ POST -> Root / "management" / "dynamic-endpoints"  =>
+    case req @ POST -> Root  / "management" / "dynamic-endpoints"  =>
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)
         val liftResponse = callLiftEndpoint(code.api.v4_0_0.APIMethods400.Implementations4_0_0.createDynamicEndpoint, liftRequest, callContext)
@@ -71,7 +71,7 @@ object Http4s130 {
         }
       }(req)
       
-    case req @ POST -> Root / "api"/ "v1" / "products" / "PRODUCT_CODE" / "quote"  =>
+    case req @ POST -> Root /"api"/ "v1" / "products" / "PRODUCT_CODE" / "quote"  =>
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)
         val liftResponse = callLiftEndpoint(code.api.dynamic.endpoint.APIMethodsDynamicEndpoint.ImplementationsDynamicEndpoint.dynamicEndpoint, liftRequest, callContext)

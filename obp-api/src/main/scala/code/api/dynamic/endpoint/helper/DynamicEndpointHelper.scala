@@ -176,9 +176,12 @@ object DynamicEndpointHelper extends RestHelper {
       val requestUri = r.request.uri //eg: `/obp/dynamic-endpoint/fashion-brand-list/BRAND_ID`
       val partPath = r.path.partPath //eg: List("fashion-brand-list","BRAND_ID"), the dynamic is from OBP URL, not in the partPath now.
       
-      if (!testResponse_?(r) || !requestUri.startsWith(s"/${ApiStandards.obp.toString}/${ApiShortVersions.`dynamic-endpoint`.toString}"+urlPrefix))//if check the Content-Type contains json or not, and check the if it is the `dynamic_endpoints_url_prefix`
+//      if (!testResponse_?(r) || !requestUri.startsWith(s"/${ApiStandards.obp.toString}/${ApiShortVersions.`dynamic-endpoint`.toString}"+urlPrefix))//if check the Content-Type contains json or not, and check the if it is the `dynamic_endpoints_url_prefix`
+      //TODO, here, lift has the prefix, but http4s has not. we need to think about it.
+      if (!testResponse_?(r) )//if check the Content-Type contains json or not, and check the if it is the `dynamic_endpoints_url_prefix`
         None //if do not match `URL and Content-Type`, then can not find this endpoint. return None.
-      else {
+      else 
+      {
         val akkaHttpMethod = HttpMethods.getForKeyCaseInsensitive(r.requestType.method).get
         val httpMethod = HttpMethod.valueOf(r.requestType.method)
         val urlQueryParameters = r.params
