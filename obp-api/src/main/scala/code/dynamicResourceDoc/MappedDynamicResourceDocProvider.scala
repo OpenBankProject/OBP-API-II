@@ -15,8 +15,7 @@ import scala.concurrent.duration.DurationInt
 object MappedDynamicResourceDocProvider extends DynamicResourceDocProvider {
 
   private val getDynamicResourceDocTTL : Int = {
-    if(Props.testMode) 0
-    else if(Props.devMode) 10
+    if(Props.testMode) 0 //make the scala test work
     else APIUtil.getPropsValue(s"dynamicResourceDoc.cache.ttl.seconds", "40").toInt
   }
 
@@ -50,9 +49,8 @@ object MappedDynamicResourceDocProvider extends DynamicResourceDocProvider {
     }
   
   override def getAllAndConvert[T: Manifest](bankId: Option[String], transform: JsonDynamicResourceDoc => T): List[T] = {
-    var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)
-    CacheKeyFromArguments.buildCacheKey {
-      Caching.memoizeSyncWithProvider (Some(cacheKey.toString())) (getDynamicResourceDocTTL second) {
+    val cacheKey = (bankId.toString+transform.toString()).intern()
+    Caching.memoizeSyncWithImMemory(Some(cacheKey))(getDynamicResourceDocTTL seconds){
         if(bankId.isEmpty){
           DynamicResourceDoc.findAll()
             .map(doc => transform(DynamicResourceDoc.getJsonDynamicResourceDoc(doc)))
@@ -61,7 +59,6 @@ object MappedDynamicResourceDocProvider extends DynamicResourceDocProvider {
             By(DynamicResourceDoc.BankId, bankId.getOrElse("")))
             .map(doc => transform(DynamicResourceDoc.getJsonDynamicResourceDoc(doc)))
         }
-      }
       }
   }
 
