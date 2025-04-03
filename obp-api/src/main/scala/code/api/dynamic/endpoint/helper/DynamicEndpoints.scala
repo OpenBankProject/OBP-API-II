@@ -55,15 +55,15 @@ object DynamicEndpoints {
    * by resourceDocs, then we can create the endpoints object in memory).
    * 
    */
-//  val dynamicEndpoint: OBPEndpointFuture = new OBPEndpointFuture {
-//    override def isDefinedAt(req: Req): Boolean = findEndpoint(req).isDefined
-//
-//    override def apply(req: Req): CallContext => Box[JsonResponse] = {
-//      val Some(endpoint) = findEndpoint(req)
-//      endpoint(req)
-//    }
-//  }
-//
+  val dynamicEndpoint: OBPEndpointFuture = new OBPEndpointFuture {
+    override def isDefinedAt(req: Req): Boolean = findEndpoint(req).isDefined
+
+    override def apply(req: Req): CallContext => Future[(Any, Option[CallContext])] = {
+      val Some(endpoint) = findEndpoint(req)
+      endpoint(req)
+    }
+  }
+
   def dynamicResourceDocs: List[ResourceDoc] = endpointGroups.flatMap(_.docs)
 }
 
@@ -218,7 +218,7 @@ case class CompiledObjects(exampleRequestBody: Option[JValue], successResponseBo
   
       // run dynamic code in sandbox
       override def apply(req: Req): CallContext => Future[(Any, Option[CallContext])] = { (cc: CallContext) =>
-        val fn = partialFunction.apply(req)
+        val fn: CallContext => Future[(Any, Option[CallContext])] = partialFunction.apply(req)
         sandbox.runInSandbox(fn(cc))
       }
     }

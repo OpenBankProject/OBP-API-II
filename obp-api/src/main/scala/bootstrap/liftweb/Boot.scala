@@ -311,6 +311,10 @@ class Boot extends MdcLoggable {
 
     }
 
+    //This is to initiate all the connector classes, so that the connector classes can be used in the code.
+    code.bankconnectors.Connector.getConnectorInstance("mapped")
+    
+    
     ApiWarnings.logWarningsRegardingProperties()
     ApiWarnings.customViewNamesCheck()
     ApiWarnings.systemViewNamesCheck()

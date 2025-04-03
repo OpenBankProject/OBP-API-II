@@ -47,7 +47,7 @@ object AkkaConnector_vDec2018 extends Connector with AkkaConnectorActorInit {
     exampleOutboundMessage = (
       OutBoundGetAdapterInfo(
         outboundAdapterCallContext
-      )),
+      )),   
     exampleInboundMessage = (
       InBoundGetAdapterInfo(
         inboundAdapterCallContext,
