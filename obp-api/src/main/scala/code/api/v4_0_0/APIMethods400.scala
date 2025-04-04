@@ -9789,7 +9789,7 @@ trait APIMethods400 extends MdcLoggable {
 
             (dynamicResourceDoc, callContext) <- NewStyle.function.updateJsonDynamicResourceDoc(None, dynamicResourceDocBody.copy(dynamicResourceDocId = Some(dynamicResourceDocId)), callContext)
           } yield {
-            ((compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`200`(callContext))
+            (compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`200`(callContext))
           }
       }
     }
@@ -9852,7 +9852,7 @@ trait APIMethods400 extends MdcLoggable {
           for {
             (dynamicResourceDoc, callContext) <- NewStyle.function.getJsonDynamicResourceDocById(None, dynamicResourceDocId, cc.callContext)
           } yield {
-            ((compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`200`(callContext))
+            (compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`200`(callContext))
           }
       }
     }
@@ -9883,7 +9883,7 @@ trait APIMethods400 extends MdcLoggable {
           for {
             (dynamicResourceDocs, callContext) <- NewStyle.function.getJsonDynamicResourceDocs(None, cc.callContext)
           } yield {
-            (ListResult("dynamic-resource-docs", (compactRender(Extraction.decompose(dynamicResourceDocs))), HttpCode.`200`(callContext))
+            (compactRender(Extraction.decompose((ListResult("dynamic-resource-docs",dynamicResourceDocs)))), HttpCode.`200`(callContext))
           }
       }
     }
@@ -9955,7 +9955,7 @@ trait APIMethods400 extends MdcLoggable {
 
             (dynamicResourceDoc, callContext) <- NewStyle.function.createJsonDynamicResourceDoc(Some(bankId), jsonDynamicResourceDoc, callContext)
           } yield {
-            (dynamicResourceDoc, HttpCode.`201`(callContext))
+            (compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`201`(callContext))
           }
       }
     }
@@ -10027,7 +10027,7 @@ trait APIMethods400 extends MdcLoggable {
 
             (dynamicResourceDoc, callContext) <- NewStyle.function.updateJsonDynamicResourceDoc(Some(bankId), dynamicResourceDocBody.copy(dynamicResourceDocId = Some(dynamicResourceDocId)), callContext)
           } yield {
-            (dynamicResourceDoc, HttpCode.`200`(callContext))
+            (compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`200`(callContext))
           }
       }
     }
@@ -10092,7 +10092,7 @@ trait APIMethods400 extends MdcLoggable {
           for {
             (dynamicResourceDoc, callContext) <- NewStyle.function.getJsonDynamicResourceDocById(Some(bankId), dynamicResourceDocId, cc.callContext)
           } yield {
-            (dynamicResourceDoc, HttpCode.`200`(callContext))
+            (compactRender(Extraction.decompose(dynamicResourceDoc)), HttpCode.`200`(callContext))
           }
       }
     }
@@ -10124,7 +10124,7 @@ trait APIMethods400 extends MdcLoggable {
           for {
             (dynamicResourceDocs, callContext) <- NewStyle.function.getJsonDynamicResourceDocs(Some(bankId), cc.callContext)
           } yield {
-            (ListResult("dynamic-resource-docs", dynamicResourceDocs), HttpCode.`200`(callContext))
+            (compactRender(Extraction.decompose((ListResult("dynamic-resource-docs",dynamicResourceDocs)))), HttpCode.`200`(callContext))
           }
       }
     }
