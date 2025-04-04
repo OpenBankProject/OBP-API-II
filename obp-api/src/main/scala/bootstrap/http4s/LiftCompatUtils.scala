@@ -34,6 +34,10 @@ import net.liftweb.http._
 import java.io.{ByteArrayInputStream, InputStream}
 import scala.xml.NodeSeq
 import java.util.Locale
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import org.http4s.Request
+import fs2.Stream
 
 
 object LiftCompatUtils {
@@ -153,7 +157,22 @@ object LiftCompatUtils {
       cookieList = cookieList
     )
   }
+  
+def convertHttp4sIORequestToFutureRequest(ioRequest: Request[IO]): Future[Request[Future]] = {
+  import cats.effect.unsafe.implicits.global
+  val bodyFuture: Future[Stream[Future, Byte]] =
+    ioRequest.body.compile.toVector.map(bytes => Stream.emits[Future, Byte](bytes)).unsafeToFuture()
 
+  implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+  bodyFuture.map { body =>
+    Request[Future](
+      method = ioRequest.method,
+      uri = ioRequest.uri,
+      headers = ioRequest.headers,
+      body = body
+    )
+  }
+}
 
   def createLiftRequestObject(http4sReq: Request[IO]): Req = {
     // Convert Http4s Request to MockLiftHttpRequest
