@@ -1,5 +1,7 @@
 package code.api.v4_0_0
 
+import cats.effect.IO
+
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util
@@ -95,6 +97,7 @@ import deletion._
 import net.liftweb.common._
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.http.{JsonResponse, Req, S}
+import net.liftweb.json
 import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Serialization.write
@@ -5134,12 +5137,27 @@ trait APIMethods400 extends MdcLoggable {
     
     
     
+    
   
     
     lazy val createDynamicEndpoint2: OBPEndpointFuture2 = {
       case req  => {
         cc => implicit val ec = EndpointContext(Some(cc))
-          createDynamicEndpointMethod(None, parse(cc.httpBody.getOrElse("")), cc)
+          val text: fs2.Stream[IO, String] = req.bodyText
+          
+          val t2: IO[String] = req.bodyText.compile.foldMonoid
+          import cats.effect.unsafe.implicits.global
+          val t3: Future[String] = t2.unsafeToFuture()
+          
+          implicit val ec2: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
+          val t4: Future[json.JValue] = t3.map(parse)
+          
+//          val jValue = parse(text.toString())
+          val a: Future[Future[(String, Option[CallContext])]] = t4.map(value => createDynamicEndpointMethod(None, value, cc))
+          val b: Future[(String, Option[CallContext])] = a.flatten
+          b
+          
+          
       }
     }
 
