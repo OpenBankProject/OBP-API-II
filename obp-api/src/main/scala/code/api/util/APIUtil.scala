@@ -1232,6 +1232,17 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
       (i, callContext.map(_.copy(paginationOffset = offset, paginationLimit = limit))) 
     }
   }
+  def createQueriesByHttpParamsIO(httpParams: List[HTTPParam], callContext: Option[CallContext]): OBPReturnTypeIO[List[OBPQueryParam]] = {
+    IO(createQueriesByHttpParams(httpParams: List[HTTPParam])) map { i =>
+      (i, callContext) 
+    } map { x => 
+      fullBoxOrException(x._1 ~> APIFailureNewStyle(InvalidFilterParameterFormat, 400, callContext.map(_.toLight)))
+    } map { unboxFull(_) } map { i => 
+      val limit: Option[String] = i.collectFirst { case OBPLimit(value) => value.toString }
+      val offset: Option[String] = i.collectFirst { case OBPOffset(value) => value.toString }
+      (i, callContext.map(_.copy(paginationOffset = offset, paginationLimit = limit))) 
+    }
+  }
 
   /**
    * Here we use the HTTPParam case class from liftweb.
@@ -1305,6 +1316,10 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   }
 
   def createHttpParamsByUrlFuture(httpRequestUrl: String) = Future {
+    createHttpParamsByUrl(httpRequestUrl: String)
+  }
+
+  def createHttpParamsByUrlIO(httpRequestUrl: String) = IO {
     createHttpParamsByUrl(httpRequestUrl: String)
   }
 

@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 import org.slf4j.MDC
 import org.apache.commons.lang3.StringUtils
-
+import cats.effect._
 
 object Helper extends Loggable {
 
@@ -118,6 +118,13 @@ object Helper extends Loggable {
     */
   def booleanToFuture(failMsg: String, failCode: Int = 400, cc: Option[CallContext])(statement: => Boolean): Future[Box[Unit]] = {
     Future{
+      booleanToBox(statement)
+    } map {
+      x => fullBoxOrException(x ~> APIFailureNewStyle(failMsg, failCode, cc.map(_.toLight)))
+    }
+  }
+  def booleanToIO(failMsg: String, failCode: Int = 400, cc: Option[CallContext])(statement: => Boolean): IO[Box[Unit]] = {
+    IO{
       booleanToBox(statement)
     } map {
       x => fullBoxOrException(x ~> APIFailureNewStyle(failMsg, failCode, cc.map(_.toLight)))

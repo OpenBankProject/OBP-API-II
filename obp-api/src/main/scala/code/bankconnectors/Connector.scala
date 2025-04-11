@@ -451,6 +451,8 @@ trait Connector extends MdcLoggable {
   def getBankLegacy(bankId : BankId, callContext: Option[CallContext]) : Box[(Bank, Option[CallContext])] = Failure(setUnimplementedError(nameOf(getBankLegacy _)))
 
   def getBank(bankId : BankId, callContext: Option[CallContext]) : Future[Box[(Bank, Option[CallContext])]] = Future(Failure(setUnimplementedError(nameOf(getBank _))))
+  
+  def getBankIO(bankId : BankId, callContext: Option[CallContext]) : IO[Box[(Bank, Option[CallContext])]] = IO(Failure(setUnimplementedError(nameOf(getBank _))))
 
   //gets banks handled by this connector
   def getBanksLegacy(callContext: Option[CallContext]): Box[(List[Bank], Option[CallContext])] = Failure(setUnimplementedError(nameOf(getBanksLegacy _)))
@@ -616,6 +618,8 @@ trait Connector extends MdcLoggable {
   def deletePhysicalCardForBank(bankId: BankId, cardId: String,  callContext:Option[CallContext]) : OBPReturnType[Box[Boolean]] = Future{(Failure(setUnimplementedError(nameOf(deletePhysicalCardForBank _))), callContext)}
 
   def getPhysicalCardsForBank(bank: Bank, user : User, queryParams: List[OBPQueryParam], callContext:Option[CallContext]) : OBPReturnType[Box[List[PhysicalCard]]] = Future{(Failure(setUnimplementedError(nameOf(getPhysicalCardsForBank _))), callContext)}
+  
+  def getPhysicalCardsForBankIO(bank: Bank, user : User, queryParams: List[OBPQueryParam], callContext:Option[CallContext]) : OBPReturnTypeIO[Box[List[PhysicalCard]]] = IO{(Failure(setUnimplementedError(nameOf(getPhysicalCardsForBank _))), callContext)}
 
   def createPhysicalCardLegacy(
     bankCardNumber: String,

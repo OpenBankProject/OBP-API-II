@@ -210,5 +210,25 @@ object Http4s130 {
           case (json, _) => Ok(json)
         }
       }(req)
+
+    case req @ GET -> Root / ApiPathZero / apiVersion / "banks" / bankId / "cardsIO" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+         val ioLogic = for {
+           httpParams <- NewStyle.function.extractHttpParamsFromUrlIO(req.uri.renderString)
+           obpQueryParamsWithCtx <- createQueriesByHttpParamsIO(httpParams, Some(callContext))
+           (obpQueryParams, ctx1) = obpQueryParamsWithCtx
+           _ <- NewStyle.function.hasEntitlementIO(bankId, user.userId, ApiRole.canGetCardsForBank, ctx1)
+           result <- NewStyle.function.getBankIO(BankId(bankId), ctx1) 
+           (bank, ctx2)= result 
+           result <- NewStyle.function.getPhysicalCardsForBankIO(bank, user, obpQueryParams, ctx2)
+          (cards, ctx3) = result
+          json:String =(JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
+        } yield (json, ctx3)
+        ioLogic.
+          flatMap {
+            case (json, _) =>
+              Ok(convertAnyToJsonString(json))
+          }
+      }(req)
   }
 }

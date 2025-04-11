@@ -86,6 +86,8 @@ import code.util.Helper.MdcLoggable
 import code.views.system.AccountAccess
 import com.openbankproject.commons.model.enums.SuppliedAnswerType
 import net.liftweb.mapper.By
+import cats.effect._
+
 
 object NewStyle extends MdcLoggable{
 
@@ -312,6 +314,12 @@ object NewStyle extends MdcLoggable{
     
     def getBank(bankId : BankId, callContext: Option[CallContext]) : OBPReturnType[Bank] = {
       Connector.connector.vend.getBank(bankId, callContext) map {
+        unboxFullOrFail(_, callContext, s"$BankNotFound Current BankId is $bankId", 404)
+      }
+    }
+    
+    def getBankIO(bankId : BankId, callContext: Option[CallContext]) : OBPReturnTypeIO[Bank] = {
+      Connector.connector.vend.getBankIO(bankId, callContext) map {
         unboxFullOrFail(_, callContext, s"$BankNotFound Current BankId is $bankId", 404)
       }
     }
@@ -947,6 +955,10 @@ object NewStyle extends MdcLoggable{
       }
     }
 
+    def extractHttpParamsFromUrlIO(url: String): IO[List[HTTPParam]] = {
+      createHttpParamsByUrlIO(url) map { unboxFull(_) }
+    }
+    
     def extractHttpParamsFromUrl(url: String): Future[List[HTTPParam]] = {
       createHttpParamsByUrlFuture(url) map { unboxFull(_) }
     }
@@ -1007,6 +1019,17 @@ object NewStyle extends MdcLoggable{
         else errorMsg
 
       Helper.booleanToFuture(errorInfo, cc=callContext) {
+        APIUtil.hasEntitlement(bankId, userId, role)
+      } map validateRequestPayload(callContext)
+    }
+
+    def hasEntitlementIO(bankId: String, userId: String, role: ApiRole, callContext: Option[CallContext], errorMsg: String = ""): IO[Box[Unit]] = {
+      val errorInfo =
+        if(StringUtils.isBlank(errorMsg)&& !bankId.isEmpty) UserHasMissingRoles + role.toString() + s" at Bank($bankId)" 
+        else if(StringUtils.isBlank(errorMsg)&& bankId.isEmpty) UserHasMissingRoles + role.toString() 
+        else errorMsg
+
+      Helper.booleanToIO(errorInfo, cc=callContext) {
         APIUtil.hasEntitlement(bankId, userId, role)
       } map validateRequestPayload(callContext)
     }
@@ -3066,6 +3089,10 @@ object NewStyle extends MdcLoggable{
 
     def getPhysicalCardsForBank(bank: Bank, user : User, queryParams: List[OBPQueryParam], callContext:Option[CallContext]) : OBPReturnType[List[PhysicalCard]] =
       Connector.connector.vend.getPhysicalCardsForBank(bank: Bank, user : User, queryParams: List[OBPQueryParam], callContext:Option[CallContext]) map {
+        i => (unboxFullOrFail(i._1, callContext, CardNotFound), i._2)
+      }
+    def getPhysicalCardsForBankIO(bank: Bank, user : User, queryParams: List[OBPQueryParam], callContext:Option[CallContext]) : OBPReturnTypeIO[List[PhysicalCard]] =
+      Connector.connector.vend.getPhysicalCardsForBankIO(bank: Bank, user : User, queryParams: List[OBPQueryParam], callContext:Option[CallContext]) map {
         i => (unboxFullOrFail(i._1, callContext, CardNotFound), i._2)
       }
 
