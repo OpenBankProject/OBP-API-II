@@ -182,16 +182,16 @@ object Http4s130 {
     case req @ GET -> Root / ApiPathZero / apiVersion / "cardsIO" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
 
-        val ioLogic: IO[(PhysicalCardsJSON, CallContext)] = for {
+        val ioLogic = for {
           result <- Connector.connector.vend.getPhysicalCardsForUserIO(user, Some(callContext))
           (cards, updatedCtxOpt) = (unboxFullOrFail(result._1, Some(callContext), s"$CardNotFound"), result._2)
-          json = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
+          json:String = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
         } yield (json, updatedCtxOpt.getOrElse(callContext))
 
         ioLogic.
           flatMap { 
             case (json, _) => 
-              Ok(convertAnyToJsonString(json))
+              Ok(json)
           }
       }(req)
 
@@ -222,12 +222,12 @@ object Http4s130 {
            (bank, ctx2)= result 
            result <- NewStyle.function.getPhysicalCardsForBankIO(bank, user, obpQueryParams, ctx2)
           (cards, ctx3) = result
-          json:String =(JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
+          json:String =JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
         } yield (json, ctx3)
         ioLogic.
           flatMap {
             case (json, _) =>
-              Ok(convertAnyToJsonString(json))
+              Ok(json)
           }
       }(req)
   }

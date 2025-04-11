@@ -587,6 +587,10 @@ object LocalMappedConnector extends Connector with MdcLoggable {
     getBankLegacy(bankId, callContext)
   }
 
+  override def getBankIO(bankId: BankId, callContext: Option[CallContext]) = IO {
+    getBankLegacy(bankId, callContext)
+  }
+
 
   override def getBanksLegacy(callContext: Option[CallContext]): Box[(List[Bank], Option[CallContext])] = writeMetricEndpointTiming {
     Full(MappedBank
@@ -1525,6 +1529,12 @@ object LocalMappedConnector extends Connector with MdcLoggable {
   }
 
   override def getPhysicalCardsForBank(bank: Bank, user: User, queryParams: List[OBPQueryParam], callContext: Option[CallContext]): OBPReturnType[Box[List[PhysicalCard]]] = Future {
+    (
+      LocalMappedConnectorInternal.getPhysicalCardsForBankLocal(bank: Bank, user: User, queryParams),
+      callContext
+    )
+  }
+  override def getPhysicalCardsForBankIO(bank: Bank, user: User, queryParams: List[OBPQueryParam], callContext: Option[CallContext]): OBPReturnTypeIO[Box[List[PhysicalCard]]] = IO {
     (
       LocalMappedConnectorInternal.getPhysicalCardsForBankLocal(bank: Bank, user: User, queryParams),
       callContext
