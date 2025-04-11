@@ -362,7 +362,21 @@ case class MakePaymentJson(
 )
 
 object JSONFactory{
-
+  import cats.effect._
+  
+ def getApiInfoJSONIO(apiVersion: ApiVersion, apiVersionStatus: String): IO[JValue] = IO {
+   val organisation = APIUtil.getPropsValue("hosted_by.organisation", "TESOBE")
+   val email = APIUtil.getPropsValue("hosted_by.email", "contact@tesobe.com")
+   val phone = APIUtil.getPropsValue("hosted_by.phone", "+49 (0)30 8145 3994")
+   val organisationWebsite = APIUtil.getPropsValue("organisation_website", "https://www.tesobe.com")
+ 
+   val connector = APIUtil.getPropsValue("connector").openOrThrowException("no connector set")
+ 
+   val hostedBy = new HostedBy(organisation, email, phone, organisationWebsite)
+   val apiInfoJSON = new APIInfoJSON(apiVersion.vDottedApiVersion, apiVersionStatus, gitCommit, connector, hostedBy)
+   Extraction.decompose(apiInfoJSON)
+ }
+  
   def getApiInfoJSON(apiVersion : ApiVersion, apiVersionStatus : String) = {
     val apiDetails: JValue = {
 

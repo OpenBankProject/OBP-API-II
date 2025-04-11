@@ -36,6 +36,17 @@ object Http4s130 {
   val versionStatus = ApiVersionStatus.DEPRECATED.toString
 
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
+
+    case req@GET -> Root / ApiPathZero / apiVersion / "rootIO" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+
+        val json: IO[String] = JSONFactory.getApiInfoJSONIO(version, versionStatus).map(convertAnyToJsonString)
+
+        Ok(json)
+
+      }(req)
+      
+      
     case req @ POST -> Root /"dynamic-resource-doc"/"test"/"my_user"/"MY_USER_ID" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
         val liftRequest = createLiftRequestObject(req)
