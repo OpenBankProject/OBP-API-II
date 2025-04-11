@@ -2760,6 +2760,9 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   type OBPEndpointFuture = PartialFunction[Req, CallContext => Future[(Any, Option[CallContext])]]
   type OBPEndpointFuture2 = PartialFunction[org.http4s.Request[cats.effect.IO], CallContext => Future[(Any, Option[CallContext])]]
   type OBPReturnType[T] = Future[(T, Option[CallContext])]
+  
+  type OBPEndpointIO = PartialFunction[org.http4s.Request[cats.effect.IO], CallContext => IO[(Any, Option[CallContext])]]
+  type OBPReturnTypeIO[T] = IO[(T, Option[CallContext])]
 
 
   def getAllowedEndpoints (endpoints : Iterable[OBPEndpointFuture], resourceDocs: ArrayBuffer[ResourceDoc]) : List[OBPEndpointFuture] = {

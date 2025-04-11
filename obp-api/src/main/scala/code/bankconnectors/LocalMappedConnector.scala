@@ -96,6 +96,8 @@ import scala.language.postfixOps
 import scala.math.{BigDecimal, BigInt}
 import scala.util.{Random, Try}
 
+import cats.effect._
+
 object LocalMappedConnector extends Connector with MdcLoggable {
 
   //  override type AccountType = MappedBankAccount
@@ -1460,6 +1462,37 @@ object LocalMappedConnector extends Connector with MdcLoggable {
     }
   }
 
+  override def getPhysicalCardsForUserIO(user: User, callContext: Option[CallContext]): OBPReturnTypeIO[Box[List[PhysicalCard]]] = IO {
+    val list = code.cards.PhysicalCard.physicalCardProvider.vend.getPhysicalCards(user)
+    val cardList = for (l <- list) yield
+      PhysicalCard(
+        cardId = l.cardId,
+        bankId = l.bankId,
+        bankCardNumber = l.bankCardNumber,
+        cardType = l.cardType,
+        nameOnCard = l.nameOnCard,
+        issueNumber = l.issueNumber,
+        serialNumber = l.serialNumber,
+        validFrom = l.validFrom,
+        expires = l.expires,
+        enabled = l.enabled,
+        cancelled = l.cancelled,
+        onHotList = l.onHotList,
+        technology = l.technology,
+        networks = l.networks,
+        allows = l.allows,
+        account = l.account,
+        replacement = l.replacement,
+        pinResets = l.pinResets,
+        collected = l.collected,
+        posted = l.posted,
+        customerId = l.customerId,
+        cvv = l.cvv,
+        brand = l.brand
+      )
+    (Full(cardList), callContext)
+  }
+  
   override def getPhysicalCardsForUser(user: User, callContext: Option[CallContext]): OBPReturnType[Box[List[PhysicalCard]]] = Future {
     val list = code.cards.PhysicalCard.physicalCardProvider.vend.getPhysicalCards(user)
     val cardList = for (l <- list) yield

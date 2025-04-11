@@ -13,18 +13,20 @@ import bootstrap.http4s.middleware.AuthMiddleware._
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.{BankId, ErrorMessage, User}
 import net.liftweb.common.Full
+
 import scala.concurrent.Future
 import cats.effect._
 import org.http4s.{HttpRoutes, _}
 import org.http4s.dsl.io._
 import net.liftweb.json.{Extraction, Formats, JsonAST, MappingException, parse, prettyRender}
-import code.api.v1_3_0.JSONFactory1_3_0
+import code.api.v1_3_0.{JSONFactory1_3_0, PhysicalCardsJSON}
 import code.api.APIFailureNewStyle
 import code.api.Constant._
 import code.api.ResourceDocs1_4_0.ResourceDocs140.ImplementationsResourceDocs
 import net.liftweb.http.LiftResponse
 import net.liftweb.actor.LAFuture
 import bootstrap.http4s.LiftCompatUtils.createLiftRequestObject
+import code.bankconnectors.Connector
 
 
 object Http4s130 {
@@ -175,6 +177,22 @@ object Http4s130 {
           json :String = (JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
         } yield (json, updatedCtxOpt.getOrElse(callContext))
         IO.fromFuture(IO(futureLogic)).flatMap { case (json, _) => Ok(json) }
+      }(req)
+      
+    case req @ GET -> Root / ApiPathZero / apiVersion / "cardsIO" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+
+        val ioLogic: IO[(PhysicalCardsJSON, CallContext)] = for {
+          result <- Connector.connector.vend.getPhysicalCardsForUserIO(user, Some(callContext))
+          (cards, updatedCtxOpt) = (unboxFullOrFail(result._1, Some(callContext), s"$CardNotFound"), result._2)
+          json = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
+        } yield (json, updatedCtxOpt.getOrElse(callContext))
+
+        ioLogic.
+          flatMap { 
+            case (json, _) => 
+              Ok(convertAnyToJsonString(json))
+          }
       }(req)
 
     case req @ GET -> Root / ApiPathZero / apiVersion / "banks" / bankId / "cards" =>

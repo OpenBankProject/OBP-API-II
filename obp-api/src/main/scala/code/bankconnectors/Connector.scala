@@ -39,6 +39,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.reflect.runtime.universe.{MethodSymbol, typeOf}
+import cats.effect._
 
 /*
 So we can switch between different sources of resources e.g.
@@ -605,6 +606,8 @@ trait Connector extends MdcLoggable {
   def getTransaction(bankId: BankId, accountId : AccountId, transactionId : TransactionId, callContext: Option[CallContext] = None): OBPReturnType[Box[Transaction]] = Future{(Failure(setUnimplementedError(nameOf(getTransaction _))), callContext)}
 
   def getPhysicalCardsForUser(user : User, callContext: Option[CallContext] = None) : OBPReturnType[Box[List[PhysicalCard]]] = Future{(Failure(setUnimplementedError(nameOf(getPhysicalCardsForUser _))), callContext)}
+  
+  def getPhysicalCardsForUserIO(user : User, callContext: Option[CallContext] = None) : OBPReturnTypeIO[Box[List[PhysicalCard]]] = IO{(Failure(setUnimplementedError(nameOf(getPhysicalCardsForUser _))), callContext)}
 
   def getPhysicalCardForBank(bankId: BankId, cardId: String,  callContext:Option[CallContext]) : OBPReturnType[Box[PhysicalCardTrait]] = Future{(Failure(setUnimplementedError(nameOf(getPhysicalCardForBank _))), callContext)}
   
