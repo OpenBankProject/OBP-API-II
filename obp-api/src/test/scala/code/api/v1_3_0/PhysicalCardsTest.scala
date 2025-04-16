@@ -25,13 +25,13 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
   override def beforeAll() {
     super.beforeAll()
     //use the mock connector
-    Connector.connector.default.set(MockedCardConnector)
+//    Connector.connector.default.set(MockedCardConnector)
   }
 
   override def afterAll() {
     super.afterAll()
     //reset the default connector
-    Connector.connector.default.set(Connector.buildOne)
+//    Connector.connector.default.set(Connector.buildOne)
     wipeTestData()
   }
 
@@ -106,7 +106,7 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
     scenario("A user wants to get details of all their cards across all banks") {
       When("A user requests their cards")
 
-      val request = (v1_3Request / "cards").GET <@ (user1)
+      val request = (v1_3Request / "cards").GET  <@ (user1)
       val response = makeGetRequest(request)
 
       Then("We should get a 200")
@@ -120,6 +120,21 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
       val returnedCardNumbers = json.cards.map(_.bank_card_number)
 
       returnedCardNumbers should equal(expectedCardNumbers)
+    }
+    scenario("A user wants to get details of all their cards across all banks3") {
+      When("A user requests their cards")
+
+      val request = (v1_3Request / "banks").GET  <@ (user1)
+      val response = makeGetRequest(request)
+
+      Then("We should get a 200")
+      response.code should equal(200)
+
+      //dummy connector above tells us we should get back user1AllCards
+      //we are just testing that the api calls the connector properly
+      And("We should get the correct cards")
+      val json = response.body  
+      println(json)
     }
 
     scenario("A user wants to get details of all their cards issued by a single bank") {

@@ -67,6 +67,7 @@ object TestServer {
   }
 
   def stopServer(): Unit = {
+    println("[TestServer] Shutting down server...")
     cancelToken.foreach(_.unsafeRunSync())
   }
   

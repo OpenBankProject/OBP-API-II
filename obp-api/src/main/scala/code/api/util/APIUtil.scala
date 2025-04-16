@@ -4575,6 +4575,9 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   val anonymousAccessFun: PartialFunction[CallContext, OBPReturnType[Box[User]]] = {
     case x => anonymousAccess(x)
   }
+  val anonymousAccessFunHttp4s: PartialFunction[(Request[IO], CallContext), OBPReturnType[Box[User]]] = {
+    case (req,x) => anonymousAccessHttp4s(req, x)
+  }
   val checkRolesFun: PartialFunction[String, (String, List[ApiRole], Option[CallContext]) => Future[Box[Unit]]] = {
     case x => NewStyle.function.handleEntitlementsAndScopes(x, _, _, _)
   }

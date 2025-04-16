@@ -169,6 +169,9 @@ object Http4s130 {
         }
       }(req)
 
+    case GET -> Root  / ApiPathZero / apiVersion / "banks"  =>
+      val banks = Connector.connector.vend.getBanksLegacy(None).map(_._1).openOrThrowException("xxxxx")
+      Ok(prettyRender(Extraction.decompose(banks)))
 
     case req @ GET -> Root / ApiPathZero / apiVersion / "cards" =>
       securedEndpoint { (user: User, callContext: CallContext) =>

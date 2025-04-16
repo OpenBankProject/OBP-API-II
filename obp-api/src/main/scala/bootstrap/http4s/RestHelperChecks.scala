@@ -30,9 +30,9 @@ object RestHelperChecks {
   def checkAuth(req: org.http4s.Request[cats.effect.IO],cc: CallContext): IO[(Option[User], CallContext)] = {
     val resultF =
       //TODO  here should be `isNeedCheckAuth`,we should use resourceDos here.
-//      if (isNeedCheckAuth) authenticatedAccessFun(cc)
-//      else anonymousAccessFun(cc) 
-      authenticatedAccessFunHttp4s(req,cc)
+      if (false) authenticatedAccessFunHttp4s(req,cc)
+      else anonymousAccessFunHttp4s(req,cc) 
+        
 
     futureToIO(resultF).map {
       case (Full(user), Some(updatedCtx)) => (Some(user), updatedCtx)

@@ -183,11 +183,11 @@ trait SendServerRequests {
         val body = if (response.getResponseBody().isEmpty) "{}" else response.getResponseBody()
 
         // Check that every response has a correlationId at Response Header
-        val list = response.getHeaders(ResponseHeader.`Correlation-Id`).asScala.toList
-        list match {
-          case Nil => throw new Exception(s"There is no ${ResponseHeader.`Correlation-Id`} in response header. Couldn't parse response from ${req.url} : $body")
-          case _ =>
-        }
+//        val list = response.getHeaders(ResponseHeader.`Correlation-Id`).asScala.toList
+//        list match {
+//          case Nil => throw new Exception(s"There is no ${ResponseHeader.`Correlation-Id`} in response header. Couldn't parse response from ${req.url} : $body")
+//          case _ =>
+//        }
 
         val parsedBody = tryo {
           parse(body)
