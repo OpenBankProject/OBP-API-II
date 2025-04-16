@@ -1,61 +1,35 @@
 package bootstrap.http4s
 
-import bootstrap.http4s.test.RestRoutes.{bankServices, helloWorldService}
 import bootstrap.http4s.Http4s130.v130Services
-import cats.data.{Kleisli, OptionT}
-
-import scala.language.higherKinds
-import cats.syntax.all._
-import com.comcast.ip4s._
-import org.http4s.ember.server._
-import org.http4s.implicits._
-import cats.effect._
-import org.http4s._
-import code.api.Constant._
-import cats.effect.{ExitCode, IO, IOApp}
-import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.HttpRoutes
-import org.http4s.implicits._
-import com.comcast.ip4s.{Host, Port}
-
-import java.net.URI
-import java.security.KeyStore
-import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
-import java.io.FileInputStream
-import java.security.Security
-import fs2.io.net.tls.TLSContext
-import cats.effect.{ExitCode, IO, IOApp}
-import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.HttpRoutes
-import org.http4s.implicits._
-import com.comcast.ip4s.{Host, Port}
-
-import java.net.URI
-import java.security.KeyStore
-import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
-import java.io.FileInputStream
-import fs2.io.net.tls.TLSContext
-import cats.effect.kernel.Async
-import org.http4s.server.middleware.ErrorAction
-import org.http4s.server.middleware.ErrorHandling
-import org.typelevel.log4cats.LoggerFactory
-import org.typelevel.log4cats.slf4j.Slf4jFactory
-import net.liftweb.json.JsonAST.{JValue, prettyRender}
-import net.liftweb.json.{Extraction, MappingException, compactRender, parse}
-import code.api.util.{APIUtil, CustomJsonFormats}
-import code.util.Helper.MdcLoggable
-import fs2.text.utf8
-import org.http4s.dsl.io._
 import bootstrap.http4s.middleware.CallContextMiddleware.withCallContext
 import bootstrap.http4s.middleware.JsonErrorHandlerMiddleware
 import bootstrap.http4s.middleware.ResponseMiddleware.contentTypeMiddleware
+import bootstrap.http4s.test.RestRoutes.{bankServices, helloWorldService}
+import cats.data.{Kleisli, OptionT}
+import cats.effect.kernel.Async
+import cats.effect.{ExitCode, IO, IOApp}
+import cats.syntax.all._
+import code.api.Constant._
+import code.api.util.CustomJsonFormats
+import code.util.Helper.MdcLoggable
+import com.comcast.ip4s.{Host, Port}
+import fs2.io.net.tls.TLSContext
+import org.http4s._
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.implicits._
+
+import java.io.FileInputStream
+import java.security.KeyStore
+import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
+import scala.language.higherKinds
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats
   
   //this is the routers
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
-    v130Services <+> 
+    code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes<+>
+      v130Services <+> 
       bankServices <+> 
       helloWorldService
   )))

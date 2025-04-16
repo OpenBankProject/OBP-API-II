@@ -157,31 +157,13 @@ object Http4s130 {
 //        Ok(liftResponse.head.json.toJsCmd)
 //        
 //      }(req)
-      
-    case req @ GET -> Root / ApiPathZero / apiVersion / "root" =>
-      securedEndpoint { (user: User, callContext: CallContext) =>
-        val futureLogic = Future {
-          val json :String = JSONFactory.getApiInfoJSON(version, versionStatus)
-          (json, callContext)
-        }
-        IO.fromFuture(IO(futureLogic)).flatMap {
-          case (json, _) => Ok(json)
-        }
-      }(req)
+    
 
     case GET -> Root  / ApiPathZero / apiVersion / "banks"  =>
       val banks = Connector.connector.vend.getBanksLegacy(None).map(_._1).openOrThrowException("xxxxx")
       Ok(prettyRender(Extraction.decompose(banks)))
 
-    case req @ GET -> Root / ApiPathZero / apiVersion / "cards" =>
-      securedEndpoint { (user: User, callContext: CallContext) =>
-        val futureLogic = for {
-          (cards, updatedCtxOpt) <- NewStyle.function.getPhysicalCardsForUser(user, Some(callContext))
-          json :String = (JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
-        } yield (json, updatedCtxOpt.getOrElse(callContext))
-        IO.fromFuture(IO(futureLogic)).flatMap { case (json, _) => Ok(json) }
-      }(req)
-      
+ 
     case req @ GET -> Root / ApiPathZero / apiVersion / "cardsIO" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
 
@@ -196,22 +178,6 @@ object Http4s130 {
             case (json, _) => 
               Ok(json)
           }
-      }(req)
-
-    case req @ GET -> Root / ApiPathZero / apiVersion / "banks" / bankId / "cards" =>
-      securedEndpoint { (user: User, callContext: CallContext) =>
-        val futureLogic = for {
-          httpParams <- NewStyle.function.extractHttpParamsFromUrl(req.uri.renderString)
-          (obpQueryParams, ctx1) <- createQueriesByHttpParamsFuture(httpParams, Some(callContext))
-          _ <- NewStyle.function.hasEntitlement(bankId, user.userId, ApiRole.canGetCardsForBank, ctx1)
-          (bank, ctx2) <- NewStyle.function.getBank(BankId(bankId), ctx1)
-          (cards, ctx3) <- NewStyle.function.getPhysicalCardsForBank(bank, user, obpQueryParams, ctx2)
-          json:String =(JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
-        } yield (json, ctx3)
-
-        IO.fromFuture(IO(futureLogic)).flatMap {
-          case (json, _) => Ok(json)
-        }
       }(req)
 
     case req @ GET -> Root / ApiPathZero / apiVersion / "banks" / bankId / "cardsIO" =>
