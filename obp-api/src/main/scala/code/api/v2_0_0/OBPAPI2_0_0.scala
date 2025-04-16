@@ -30,11 +30,11 @@ import code.api.OBPRestHelper
 import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 import code.api.util.VersionedOBPApis
-import code.api.v1_3_0.APIMethods130
+import code.api.v1_3_0.APIMethodsLegacy130
 import code.api.v1_4_0.APIMethods140
 import code.util.Helper.MdcLoggable
 
-object OBPAPI2_0_0 extends OBPRestHelper with APIMethods130 with APIMethods140 with APIMethods200 with MdcLoggable with VersionedOBPApis{
+object OBPAPI2_0_0 extends OBPRestHelper with APIMethodsLegacy130 with APIMethods140 with APIMethods200 with MdcLoggable with VersionedOBPApis{
 
 
   val version : ApiVersion = ApiVersion.v2_0_0 // "2.0.0"

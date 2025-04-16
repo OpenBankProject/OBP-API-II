@@ -1,120 +1,93 @@
 package code.api.v1_3_0
 
-import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON._
+import bootstrap.http4s.middleware.AuthMiddleware._
+import cats.effect._
+import code.api.Constant._
 import code.api.util.APIUtil._
-import code.api.util.ApiTag._
 import code.api.util.ErrorMessages._
-import code.api.util.FutureUtil.EndpointContext
-import code.api.util.NewStyle.HttpCode
-import code.api.util.{ApiRole, NewStyle}
+import code.api.util.{ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
-import com.openbankproject.commons.model.BankId
-import com.openbankproject.commons.util.ApiVersion
 import com.openbankproject.commons.ExecutionContext.Implicits.global
-import net.liftweb.common.Full
-import net.liftweb.http.rest.RestHelper
-import net.liftweb.json.Extraction
+import com.openbankproject.commons.model.{BankId, User}
+import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
+import net.liftweb.json.{Extraction, Formats, prettyRender}
+import org.http4s.HttpRoutes
+import org.http4s.dsl.io._
 
-import scala.collection.immutable.Nil
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Future
 
-trait APIMethods130 {
-  //needs to be a RestHelper to get access to JsonGet, JsonPost, etc.
-//  self: RestHelper =>
+object APIMethods130 {
 
-  val Implementations1_3_0 = new Object(){
+  implicit val formats: Formats = CustomJsonFormats.formats
 
-    val resourceDocs = ArrayBuffer[ResourceDoc]()
-    val apiVersion = ApiVersion.v1_3_0 // was String "1_3_0"
+  implicit def convertAnyToJsonString(any: Any): String = prettyRender(Extraction.decompose(any))
 
-//
-//    resourceDocs += ResourceDoc(
-//      root,
-//      apiVersion,
-//      "root",
-//      "GET",
-//      "/root",
-//      "Get API Info (root)",
-//      """Returns information about:
-//        |
-//        |* API version
-//        |* Hosted by information
-//        |* Git Commit""",
-//      EmptyBody,
-//      apiInfoJSON,
-//      List(UnknownError, "no connector set"),
-//      apiTagApi :: Nil)
-//
-//    lazy val root : OBPEndpointFuture = {
-//      case (Nil | "root" :: Nil) JsonGet _ => {
-//        cc =>
-//          implicit val ec = EndpointContext(Some(cc))
-//          for {
-//            _ <- Future() // Just start async call
-//          } yield {
-//            (JSONFactory.getApiInfoJSON(OBPAPI1_3_0.version, OBPAPI1_3_0.versionStatus), HttpCode.`200`(cc.callContext))
-//          }
-//      }
-//    }
-//    
-//    resourceDocs += ResourceDoc(
-//      getCards,
-//      apiVersion,
-//      "getCards",
-//      "GET",
-//      "/cards",
-//      "Get cards for the current user",
-//      "Returns data about all the physical cards a user has been issued. These could be debit cards, credit cards, etc.",
-//      EmptyBody,
-//      physicalCardsJSON,
-//      List(UserNotLoggedIn, UnknownError),
-//      List(apiTagCard))
-//
-//    lazy val getCards : OBPEndpointFuture = {
-//      case "cards" :: Nil JsonGet _ => {
-//        cc => {
-//          implicit val ec = EndpointContext(Some(cc))
-//            for {
-//              (Full(u), callContext) <- authenticatedAccess(cc)
-//              (cards,callContext) <- NewStyle.function.getPhysicalCardsForUser(u, callContext)
-//            } yield {
-//              (JSONFactory1_3_0.createPhysicalCardsJSON(cards, u), HttpCode.`200`(callContext))
-//            }
-//          }
-//      }
-//    }
-//
-//
-//    resourceDocs += ResourceDoc(
-//      getCardsForBank,
-//      apiVersion,
-//      "getCardsForBank",
-//      "GET",
-//      "/banks/BANK_ID/cards",
-//      "Get cards for the specified bank",
-//      "",
-//      EmptyBody,
-//      physicalCardsJSON,
-//      List(UserNotLoggedIn,BankNotFound, UnknownError),
-//      List(apiTagCard))
-//
-//    lazy val getCardsForBank : OBPEndpointFuture = {
-//      case "banks" :: BankId(bankId) :: "cards" :: Nil JsonGet _ => {
-//        cc => {
-//          implicit val ec = EndpointContext(Some(cc))
-//          for {
-//            (Full(u), callContext) <- authenticatedAccess(cc)
-//            httpParams <- NewStyle.function.extractHttpParamsFromUrl(cc.url)
-//            (obpQueryParams, callContext) <- createQueriesByHttpParamsFuture(httpParams, callContext)
-//            _ <- NewStyle.function.hasEntitlement(bankId.value, u.userId, ApiRole.canGetCardsForBank, callContext)
-//            (bank, callContext) <- NewStyle.function.getBank(bankId, callContext)
-//            (cards, callContext) <- NewStyle.function.getPhysicalCardsForBank(bank, u, obpQueryParams, callContext)
-//          } yield {
-//            (JSONFactory1_3_0.createPhysicalCardsJSON(cards, u), HttpCode.`200`(callContext))
-//          }
-//        }
-//      }
-//    }
+  val version: ApiVersion = ApiVersion.v1_3_0
+  val versionStatus = ApiVersionStatus.DEPRECATED.toString
+  val resourceDocs = ArrayBuffer[ResourceDoc]()
+  
+  val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
+
+//        resourceDocs += ResourceDoc(
+//          root,
+//          apiVersion,
+//          "root",
+//          "GET",
+//          "/root",
+//          "Get API Info (root)",
+//          """Returns information about:
+//            |
+//            |* API version
+//            |* Hosted by information
+//            |* Git Commit""",
+//          EmptyBody,
+//          apiInfoJSON,
+//          List(UnknownError, "no connector set"),
+//          apiTagApi :: Nil)
+
+    case req@GET -> Root / ApiPathZero / apiVersion / "root" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val json: String = JSONFactory.getApiInfoJSON(version, versionStatus)
+        Ok(json)
+      }(req)
+    
+    case req@GET -> Root / ApiPathZero / apiVersion / "cards" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val futureLogic = for {
+          (cards, updatedCtxOpt) <- NewStyle.function.getPhysicalCardsForUser(user, Some(callContext))
+          json: String = (JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
+        } yield (json, updatedCtxOpt.getOrElse(callContext))
+        IO.fromFuture(IO(futureLogic)).flatMap { case (json, _) => Ok(json) }
+      }(req)
+
+//        resourceDocs += ResourceDoc(
+//          getCards,
+//          apiVersion,
+//          "getCards",
+//          "GET",
+//          "/cards",
+//          "Get cards for the current user",
+//          "Returns data about all the physical cards a user has been issued. These could be debit cards, credit cards, etc.",
+//          EmptyBody,
+//          physicalCardsJSON,
+//          List(UserNotLoggedIn, UnknownError),
+//          List(apiTagCard))
+    
+    case req@GET -> Root / ApiPathZero / apiVersion / "banks" / bankId / "cards" =>
+      securedEndpoint { (user: User, callContext: CallContext) =>
+        val futureLogic = for {
+          httpParams <- NewStyle.function.extractHttpParamsFromUrl(req.uri.renderString)
+          (obpQueryParams, ctx1) <- createQueriesByHttpParamsFuture(httpParams, Some(callContext))
+          _ <- NewStyle.function.hasEntitlement(bankId, user.userId, ApiRole.canGetCardsForBank, ctx1)
+          (bank, ctx2) <- NewStyle.function.getBank(BankId(bankId), ctx1)
+          (cards, ctx3) <- NewStyle.function.getPhysicalCardsForBank(bank, user, obpQueryParams, ctx2)
+          json: String = (JSONFactory1_3_0.createPhysicalCardsJSON(cards, user))
+        } yield (json, ctx3)
+
+        IO.fromFuture(IO(futureLogic)).flatMap {
+          case (json, _) => Ok(json)
+        }
+      }(req)
+
   }
 }

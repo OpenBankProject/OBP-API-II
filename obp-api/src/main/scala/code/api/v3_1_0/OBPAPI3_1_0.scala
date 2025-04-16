@@ -30,7 +30,7 @@ import code.api.OBPRestHelper
 import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import com.openbankproject.commons.util.{ApiVersion,ApiVersionStatus}
 import code.api.util.VersionedOBPApis
-import code.api.v1_3_0.APIMethods130
+import code.api.v1_3_0.APIMethodsLegacy130
 import code.api.v1_4_0.APIMethods140
 import code.api.v2_0_0.APIMethods200
 import code.api.v2_1_0.APIMethods210
@@ -48,7 +48,7 @@ This file defines which endpoints from all the versions are available in v3.0.0
  */
 
 
-object OBPAPI3_1_0 extends OBPRestHelper with APIMethods130 with APIMethods140 with APIMethods200 with APIMethods210 with APIMethods220 with APIMethods300 with CustomAPIMethods300 with APIMethods310 with MdcLoggable with VersionedOBPApis{
+object OBPAPI3_1_0 extends OBPRestHelper with APIMethodsLegacy130 with APIMethods140 with APIMethods200 with APIMethods210 with APIMethods220 with APIMethods300 with CustomAPIMethods300 with APIMethods310 with MdcLoggable with VersionedOBPApis{
 
   val version : ApiVersion = ApiVersion.v3_1_0
 

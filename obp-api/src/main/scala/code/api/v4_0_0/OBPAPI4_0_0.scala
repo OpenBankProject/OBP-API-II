@@ -29,7 +29,7 @@ package code.api.v4_0_0
 import code.api.OBPRestHelper
 import code.api.util.APIUtil.{OBPEndpointFuture, getAllowedEndpoints}
 import code.api.util.{APIUtil, VersionedOBPApis}
-import code.api.v1_3_0.APIMethods130
+import code.api.v1_3_0.APIMethodsLegacy130
 import code.api.v1_4_0.APIMethods140
 import code.api.v2_0_0.APIMethods200
 import code.api.v2_1_0.APIMethods210
@@ -47,7 +47,7 @@ import org.apache.http.HttpStatus
 /*
 This file defines which endpoints from all the versions are available in v4.0.0
  */
-object OBPAPI4_0_0 extends OBPRestHelper with APIMethods130 with APIMethods140 with APIMethods200 with APIMethods210 with APIMethods220 with APIMethods300 with CustomAPIMethods300 with APIMethods310 with APIMethods400 with MdcLoggable with VersionedOBPApis{
+object OBPAPI4_0_0 extends OBPRestHelper with APIMethodsLegacy130 with APIMethods140 with APIMethods200 with APIMethods210 with APIMethods220 with APIMethods300 with CustomAPIMethods300 with APIMethods310 with APIMethods400 with MdcLoggable with VersionedOBPApis{
 
   val version : ApiVersion = ApiVersion.v4_0_0
 
