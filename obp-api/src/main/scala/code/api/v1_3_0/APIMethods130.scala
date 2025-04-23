@@ -2,63 +2,64 @@ package code.api.v1_3_0
 
 import bootstrap.http4s.middleware.AuthMiddleware._
 import cats.effect._
+import cats.syntax.all._
 import code.api.Constant._
 import code.api.util.APIUtil._
 import code.api.util.ErrorMessages._
 import code.api.util.{ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
+import code.api.util.ApiTag._
+import com.github.dwickern.macros.NameOf.nameOf
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.{BankId, User}
 import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
 import net.liftweb.json.{Extraction, Formats, prettyRender}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
-import cats.syntax.all._
-
+import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON._
 import scala.collection.mutable.ArrayBuffer
-
 object APIMethods130 {
 
   implicit val formats: Formats = CustomJsonFormats.formats
 
   implicit def convertAnyToJsonString(any: Any): String = prettyRender(Extraction.decompose(any))
 
-  val version: ApiVersion = ApiVersion.v1_3_0
+  val implementedInApiVersion: ApiVersion = ApiVersion.v1_3_0
   val versionStatus = ApiVersionStatus.DEPRECATED.toString
   val resourceDocs = ArrayBuffer[ResourceDoc]()
 
   object Implementations1_3_0 {
 
     // Common prefix: /obp/v1.3.0
-    val prefixPath = Root / ApiPathZero.toString / version.toString
+    val prefixPath = Root / ApiPathZero.toString / implementedInApiVersion.toString
 
-//    resourceDocs += ResourceDoc(
-//      root,
-//      apiVersion,
-//      "root",
-//      "GET",
-//      "/root",
-//      "Get API Info (root)",
-//      """Returns information about:
-//        |
-//        |* API version
-//        |* Hosted by information
-//        |* Git Commit""",
-//      EmptyBody,
-//      apiInfoJSON,
-//      List(UnknownError, "no connector set"),
-//      apiTagApi :: Nil)
+    resourceDocs += ResourceDoc(
+      root,
+      implementedInApiVersion,
+      nameOf(root),
+      "GET",
+      "/root",
+      "Get API Info (root)",
+      """Returns information about:
+        |
+        |* API version
+        |* Hosted by information
+        |* Git Commit""",
+      EmptyBody,
+      apiInfoJSON,
+      List(UnknownError, "no connector set"),
+      apiTagApi :: Nil)
     
     // Route: GET /obp/v1.3.0/root
     val root: HttpRoutes[IO] = HttpRoutes.of[IO] {
       case req@GET -> `prefixPath` / "root" =>
-        val json: String = JSONFactory.getApiInfoJSON(version, versionStatus)
+        val json: String = JSONFactory.getApiInfoJSON(implementedInApiVersion, versionStatus)
         Ok(json)
     }
 
 //    resourceDocs += ResourceDoc(
 //      getCards,
-//      apiVersion,
+//      implementedInApiVersion,
 //      "getCards",
 //      "GET",
 //      "/cards",
@@ -84,7 +85,7 @@ object APIMethods130 {
 
 //    resourceDocs += ResourceDoc(
 //      getCardsForBank,
-//      apiVersion,
+//      implementedInApiVersion,
 //      "getCardsForBank",
 //      "GET",
 //      "/banks/BANK_ID/cards",
