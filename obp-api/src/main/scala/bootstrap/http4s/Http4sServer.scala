@@ -15,6 +15,7 @@ import code.util.Helper.MdcLoggable
 import com.comcast.ip4s.{Host, Port}
 import fs2.io.net.tls.TLSContext
 import org.http4s._
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
 
@@ -30,17 +31,6 @@ object Http4sServer extends IOApp with MdcLoggable {
   //Start OBP relevant objects, and settings
   new bootstrap.liftweb.Boot().boot
   
-  
-  //this is the routers
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
-    code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes<+>
-      v130Services <+> 
-      bankServices <+> 
-      helloWorldService
-  )))
-
-  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
-
   // Define the host and port as variables
   val host: Host = Host.fromString(HostName).head
   val port: Option[Port] = DevPort.map(Port.fromInt(_)).toOption.flatten
@@ -80,38 +70,54 @@ object Http4sServer extends IOApp with MdcLoggable {
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
-    for {
-      sslContextOpt <- createSSLContext // Create the SSLContext (optional)
-      tlsContextOpt <- sslContextOpt match {
-        case Some(sslContext) => toTLSContext(sslContext).map(Some(_)) // Convert to TLSContext
-        case None => IO.pure(None) // No TLSContext if SSLContext is not available
-      }
-      exitCode <- {
-        // Start with the default EmberServerBuilder
-        val serverBuilder = EmberServerBuilder
-          .default[IO]
-          .withHost(host) // Use the extracted hostname
+    EmberClientBuilder.default[IO].build.use { client =>
+      val obpApiBaseUri = uri"http://localhost:8080"
+      val obpApiDispatch = new ObpApiDispatch(client, obpApiBaseUri).routes
 
-        // Conditionally add the port if it is provided
-        val serverBuilderWithPort = port match {
-          case Some(p) => serverBuilder.withPort(p)
-          case None => serverBuilder
+      //this is the routers
+      val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
+        code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+>
+          v130Services <+>
+          bankServices <+>
+          helloWorldService <+>
+          obpApiDispatch //just pass though any request to the obp api and get the response
+      )))
+
+      val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
+
+      for {
+        sslContextOpt <- createSSLContext // Create the SSLContext (optional)
+        tlsContextOpt <- sslContextOpt match {
+          case Some(sslContext) => toTLSContext(sslContext).map(Some(_)) // Convert to TLSContext
+          case None => IO.pure(None) // No TLSContext if SSLContext is not available
         }
+        exitCode <- {
+          // Start with the default EmberServerBuilder
+          val serverBuilder = EmberServerBuilder
+            .default[IO]
+            .withHost(host) // Use the extracted hostname
 
-        // Conditionally enable HTTPS if TLSContext is available
-        val serverBuilderWithTLS = tlsContextOpt match {
-          case Some(tlsContext) => serverBuilderWithPort.withTLS(tlsContext) // Enable HTTPS
-          case None => serverBuilderWithPort // Use HTTP
+          // Conditionally add the port if it is provided
+          val serverBuilderWithPort = port match {
+            case Some(p) => serverBuilder.withPort(p)
+            case None => serverBuilder
+          }
+
+          // Conditionally enable HTTPS if TLSContext is available
+          val serverBuilderWithTLS = tlsContextOpt match {
+            case Some(tlsContext) => serverBuilderWithPort.withTLS(tlsContext) // Enable HTTPS
+            case None => serverBuilderWithPort // Use HTTP
+          }
+
+          // Build and start the server
+          serverBuilderWithTLS
+            .withHttpApp(httpApp)
+            .build
+            .use(_ => IO.never) // Keep the server running indefinitely
+            .as(ExitCode.Success)
         }
-
-        // Build and start the server
-        serverBuilderWithTLS
-          .withHttpApp(httpApp)
-          .build
-          .use(_ => IO.never) // Keep the server running indefinitely
-          .as(ExitCode.Success)
-      }
-    } yield exitCode
+      } yield exitCode
+    }
   }
 }
 

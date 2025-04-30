@@ -80,6 +80,11 @@
       <version>${http4s.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.http4s</groupId>
+      <artifactId>http4s-ember-client_${scala.version}</artifactId>
+      <version>${http4s.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
       <version>1.70</version>
