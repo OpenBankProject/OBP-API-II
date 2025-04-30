@@ -25,6 +25,11 @@ import scala.language.higherKinds
 
 object Http4sServer extends IOApp with MdcLoggable {
   implicit val formats = CustomJsonFormats.formats
+
+
+  //Start OBP relevant objects, and settings
+  new bootstrap.liftweb.Boot().boot
+  
   
   //this is the routers
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
@@ -35,10 +40,6 @@ object Http4sServer extends IOApp with MdcLoggable {
   )))
 
   val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
-
-  
-  //Start OBP relevant objects, and settings
-  new bootstrap.liftweb.Boot().boot
 
   // Define the host and port as variables
   val host: Host = Host.fromString(HostName).head

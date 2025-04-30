@@ -1,6 +1,6 @@
 package code.api.builder.CommonServicesApi
 
-import code.api.berlin.group.v1_3.{JvalueCaseClass, OBP_BERLIN_GROUP_1_3}
+import code.api.berlin.group.v1_3.JvalueCaseClass
 import code.api.builder.AccountInformationServiceAISApi.APIMethods_AccountInformationServiceAISApi
 import code.api.builder.PaymentInitiationServicePISApi.APIMethods_PaymentInitiationServicePISApi
 import code.api.builder.SigningBasketsApi.APIMethods_SigningBasketsApi
@@ -9,7 +9,6 @@ import com.openbankproject.commons.util.ApiVersion
 import net.liftweb.http.rest.RestHelper
 import net.liftweb.json._
 
-import scala.collection.immutable.Nil
 import scala.collection.mutable.ArrayBuffer
 
 //TODO maybe we can remove this common services, it just show other apis in this tag. no new ones.
@@ -54,39 +53,39 @@ object APIMethods_CommonServicesApi extends RestHelper {
     APIMethods_AccountInformationServiceAISApi.getConsentScaStatus :: Nil
 
 
-  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.partialFunction == APIMethods_SigningBasketsApi.deleteSigningBasket).head
-  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.partialFunction == APIMethods_SigningBasketsApi.getSigningBasketAuthorisation).head
-  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.partialFunction == APIMethods_SigningBasketsApi.getSigningBasketScaStatus).head
-  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.partialFunction == APIMethods_SigningBasketsApi.startSigningBasketAuthorisation).head
-  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.partialFunction == APIMethods_SigningBasketsApi.getSigningBasketStatus).head
-  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.partialFunction == APIMethods_SigningBasketsApi.updateSigningBasketPsuData).head
+  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_SigningBasketsApi.deleteSigningBasket).head
+  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_SigningBasketsApi.getSigningBasketAuthorisation).head
+  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_SigningBasketsApi.getSigningBasketScaStatus).head
+  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_SigningBasketsApi.startSigningBasketAuthorisation).head
+  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_SigningBasketsApi.getSigningBasketStatus).head
+  resourceDocs += APIMethods_SigningBasketsApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_SigningBasketsApi.updateSigningBasketPsuData).head
   
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.getPaymentCancellationScaStatus).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationAuthorisation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationScaStatus).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationUpdatePsuAuthentication).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationSelectPsuAuthenticationMethod).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationTransactionAuthorisation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationTransactionAuthorisation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataUpdatePsuAuthentication).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataTransactionAuthorisation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataAuthorisationConfirmation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataTransactionAuthorisation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataAuthorisationConfirmation).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataSelectPsuAuthenticationMethod).head
-  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.partialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataAuthorisationConfirmation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.getPaymentCancellationScaStatus).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationAuthorisation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.getPaymentInitiationScaStatus).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationUpdatePsuAuthentication).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationSelectPsuAuthenticationMethod).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentAuthorisationTransactionAuthorisation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationTransactionAuthorisation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationUpdatePsuAuthentication).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.startPaymentInitiationCancellationAuthorisationSelectPsuAuthenticationMethod).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataUpdatePsuAuthentication).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataTransactionAuthorisation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataAuthorisationConfirmation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentCancellationPsuDataSelectPsuAuthenticationMethod).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataTransactionAuthorisation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataAuthorisationConfirmation).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataSelectPsuAuthenticationMethod).head
+  resourceDocs += APIMethods_PaymentInitiationServicePISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_PaymentInitiationServicePISApi.updatePaymentPsuDataAuthorisationConfirmation).head
   
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.startConsentAuthorisationTransactionAuthorisation).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.startConsentAuthorisationUpdatePsuAuthentication).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.startConsentAuthorisationSelectPsuAuthenticationMethod).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataTransactionAuthorisation).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataUpdatePsuAuthentication).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataUpdateAuthorisationConfirmation).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod).head
-  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.partialFunction == APIMethods_AccountInformationServiceAISApi.getConsentScaStatus).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.startConsentAuthorisationTransactionAuthorisation).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.startConsentAuthorisationUpdatePsuAuthentication).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.startConsentAuthorisationSelectPsuAuthenticationMethod).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataTransactionAuthorisation).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataUpdatePsuAuthentication).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataUpdateAuthorisationConfirmation).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.updateConsentsPsuDataUpdateSelectPsuAuthenticationMethod).head
+  resourceDocs += APIMethods_AccountInformationServiceAISApi.resourceDocs.filter(_.liftPartialFunction == APIMethods_AccountInformationServiceAISApi.getConsentScaStatus).head
   
 }
 

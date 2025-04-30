@@ -6,8 +6,6 @@ import code.dynamicResourceDoc.{DynamicResourceDocProvider, JsonDynamicResourceD
 import com.openbankproject.commons.util.{ApiVersion, ScannedApiVersion}
 import org.apache.commons.lang3.StringUtils
 
-import scala.collection.immutable.List
-
 object DynamicResourceDocsEndpointGroup extends EndpointGroup {
   override lazy val urlPrefix: String = APIUtil.getPropsValue("url.prefix.dynamic.resourceDoc", "dynamic-resource-doc")
 
@@ -37,7 +35,7 @@ object DynamicResourceDocsEndpointGroup extends EndpointGroup {
   private val toResourceDoc: JsonDynamicResourceDoc => ResourceDoc = { dynamicDoc =>
     val compiledObjects = CompiledObjects(dynamicDoc.exampleRequestBody, dynamicDoc.successResponseBody, dynamicDoc.methodBody)
     ResourceDoc(
-      partialFunction = compiledObjects.sandboxEndpoint(dynamicDoc.bankId),
+      liftPartialFunction = compiledObjects.sandboxEndpoint(dynamicDoc.bankId),
       implementedInApiVersion = apiVersion,
       partialFunctionName = dynamicDoc.partialFunctionName + "_" + (dynamicDoc.requestVerb + dynamicDoc.requestUrl).hashCode,
       requestVerb = dynamicDoc.requestVerb,

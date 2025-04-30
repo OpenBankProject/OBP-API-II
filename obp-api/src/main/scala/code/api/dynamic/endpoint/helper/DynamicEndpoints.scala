@@ -1,20 +1,18 @@
 package code.api.dynamic.endpoint.helper
 
 import code.api.dynamic.endpoint.helper.practise.{DynamicEndpointCodeGenerator, PractiseEndpointGroup}
-import code.api.dynamic.endpoint.helper.practise.PractiseEndpointGroup
-import code.api.util.DynamicUtil.{Sandbox, Validation}
 import code.api.util.APIUtil.{BooleanBody, DoubleBody, EmptyBody, LongBody, OBPEndpointFuture, PrimaryDataBody, ResourceDoc, StringBody, getDisabledEndpointOperationIds}
+import code.api.util.DynamicUtil.{Sandbox, Validation}
 import code.api.util.{CallContext, DynamicUtil}
 import net.liftweb.common.{Box, Failure, Full}
-import net.liftweb.http.{JsonResponse, Req}
-import net.liftweb.json.{JNothing, JValue}
+import net.liftweb.http.Req
 import net.liftweb.json.JsonAST.{JBool, JDouble, JInt, JString}
+import net.liftweb.json.{JNothing, JValue}
 import org.apache.commons.lang3.StringUtils
 
 import java.net.URLDecoder
-import scala.collection.immutable.List
-import scala.util.control.Breaks.{break, breakable}
 import scala.concurrent.Future
+import scala.util.control.Breaks.{break, breakable}
 
 object DynamicEndpoints {
   //TODO, better put all other dynamic endpoints into this list. eg: dynamicEntityEndpoints, dynamicSwaggerDocsEndpoints ....
@@ -92,7 +90,7 @@ trait EndpointGroup {
   //fill callContext with resourceDoc and operationId
   private def wrapEndpoint(resourceDoc: ResourceDoc): OBPEndpointFuture = {
 
-    val endpointFunction = resourceDoc.wrappedWithAuthCheck(resourceDoc.partialFunction)
+    val endpointFunction = resourceDoc.wrappedWithAuthCheck(resourceDoc.liftPartialFunction)
 
     new OBPEndpointFuture {
       override def isDefinedAt(req: Req): Boolean = req.requestType.method == resourceDoc.requestVerb && endpointFunction.isDefinedAt(req)

@@ -4,19 +4,20 @@ import bootstrap.http4s.middleware.AuthMiddleware._
 import cats.effect._
 import cats.syntax.all._
 import code.api.Constant._
+import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON._
 import code.api.util.APIUtil._
+import code.api.util.ApiTag._
 import code.api.util.ErrorMessages._
 import code.api.util.{ApiRole, CallContext, CustomJsonFormats, NewStyle}
 import code.api.v1_2_1.JSONFactory
-import code.api.util.ApiTag._
 import com.github.dwickern.macros.NameOf.nameOf
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.{BankId, User}
-import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
+import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus, ScannedApiVersion}
 import net.liftweb.json.{Extraction, Formats, prettyRender}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
-import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON._
+
 import scala.collection.mutable.ArrayBuffer
 object APIMethods130 {
 
@@ -24,7 +25,7 @@ object APIMethods130 {
 
   implicit def convertAnyToJsonString(any: Any): String = prettyRender(Extraction.decompose(any))
 
-  val implementedInApiVersion: ApiVersion = ApiVersion.v1_3_0
+  val implementedInApiVersion: ScannedApiVersion = ApiVersion.v1_3_0
   val versionStatus = ApiVersionStatus.DEPRECATED.toString
   val resourceDocs = ArrayBuffer[ResourceDoc]()
 
@@ -34,7 +35,7 @@ object APIMethods130 {
     val prefixPath = Root / ApiPathZero.toString / implementedInApiVersion.toString
 
     resourceDocs += ResourceDoc(
-      root,
+      null,
       implementedInApiVersion,
       nameOf(root),
       "GET",
@@ -48,7 +49,9 @@ object APIMethods130 {
       EmptyBody,
       apiInfoJSON,
       List(UnknownError, "no connector set"),
-      apiTagApi :: Nil)
+      apiTagApi :: Nil,
+      http4sPartialFunction = Some(root)
+    )
     
     // Route: GET /obp/v1.3.0/root
     val root: HttpRoutes[IO] = HttpRoutes.of[IO] {

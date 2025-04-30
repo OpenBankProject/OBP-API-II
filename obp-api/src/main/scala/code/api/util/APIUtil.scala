@@ -28,6 +28,7 @@ TESOBE (http://www.tesobe.com/)
 package code.api.util
 
 import bootstrap.liftweb.CustomDBVendor
+import cats.effect.IO
 import code.accountholders.AccountHolders
 import code.api.Constant._
 import code.api.OAuthHandshake._
@@ -60,7 +61,6 @@ import code.entitlement.Entitlement
 import code.etag.MappedETag
 import code.metrics._
 import code.model._
-import code.model.dataAccess.AuthUser
 import code.scope.Scope
 import code.usercustomerlinks.UserCustomerLink
 import code.users.Users
@@ -76,7 +76,6 @@ import com.openbankproject.commons.model._
 import com.openbankproject.commons.model.enums.StrongCustomerAuthentication.SCA
 import com.openbankproject.commons.model.enums.{ContentParam, PemCertificateRole, StrongCustomerAuthentication}
 import com.openbankproject.commons.util.Functions.Implicits._
-import com.openbankproject.commons.util.Functions.Memo
 import com.openbankproject.commons.util._
 import dispatch.url
 import javassist.expr.{ExprEditor, MethodCall}
@@ -88,14 +87,14 @@ import net.liftweb.http.js.JE.JsRaw
 import net.liftweb.http.provider.HTTPParam
 import net.liftweb.http.rest.RestContinuation
 import net.liftweb.json
-import net.liftweb.json.JsonAST.{JField, JNothing, JObject, JString, JValue}
+import net.liftweb.json.JsonAST.{JField, JNothing, JString, JValue}
 import net.liftweb.json.JsonParser.ParseException
 import net.liftweb.json._
 import net.liftweb.mapper.By
 import net.liftweb.util.Helpers._
 import net.liftweb.util._
-import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
+import org.http4s.{HttpRoutes, Request}
 
 import java.io.InputStream
 import java.net.URLDecoder
@@ -110,12 +109,9 @@ import scala.collection.immutable.{List, Nil}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.collection.{immutable, mutable}
 import scala.concurrent.{Future, Promise}
-import net.liftweb.actor.LAFuture
 import scala.io.BufferedSource
 import scala.util.control.Breaks.{break, breakable}
 import scala.xml.{Elem, XML}
-import cats.effect.IO
-import org.http4s.{HttpRoutes, Request, Response}
 
 object APIUtil extends MdcLoggable with CustomJsonFormats{
 
@@ -1596,7 +1592,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
   
   // Used to document the API calls
   case class ResourceDoc(
-                          partialFunction: OBPEndpointFuture, // PartialFunction[Req, Box[User] => Box[JsonResponse]],
+                          liftPartialFunction: OBPEndpointFuture, // PartialFunction[Req, Box[User] => Box[JsonResponse]],
                           implementedInApiVersion: ScannedApiVersion, // TODO: Use ApiVersion enumeration instead of string
                           partialFunctionName: String, // The string name of the partial function that implements this resource. Could use it to link to the source code that implements the call
                           requestVerb: String, // GET, POST etc. TODO: Constrain to GET, POST etc.
@@ -1611,7 +1607,8 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
                           isFeatured: Boolean = false,
                           specialInstructions: Option[String] = None,
                           var specifiedUrl: Option[String] = None, // A derived value: Contains the called version (added at run time). See the resource doc for resource doc!
-                          createdByBankId: Option[String] = None //we need to filter the resource Doc by BankId
+                          createdByBankId: Option[String] = None, //we need to filter the resource Doc by BankId
+                          http4sPartialFunction: Option[HttpRoutes[IO]] = None,
                         ) {
     // this code block will be merged to constructor.
     {
@@ -1658,7 +1655,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     def isNotEndpointAuthCheck = !_isEndpointAuthCheck
 //    code.api.util.APIUtil.ResourceDoc.connectorMethods
     // set dependent connector methods
-    var connectorMethods: List[String] = getDependentConnectorMethods(partialFunction)
+    var connectorMethods: List[String] = getDependentConnectorMethods(liftPartialFunction)
       .map(
         value => ("obp."+value).intern() //
       ) // add prefix "obp.", as MessageDoc#process
@@ -2289,11 +2286,11 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 
     val internalApiLinks: List[InternalApiLink] = for {
       relation <- relations.filter(r => r.fromPF == pf)
-      toResourceDoc <- resourceDocs.find(rd => rd.partialFunction == relation.toPF)
+      toResourceDoc <- resourceDocs.find(rd => rd.liftPartialFunction == relation.toPF)
     }
       yield new InternalApiLink(
         pf,
-        toResourceDoc.partialFunction,
+        toResourceDoc.liftPartialFunction,
         relation.rel,
         // Add the vVersion to the documented url
         s"/${toResourceDoc.implementedInApiVersion.vDottedApiVersion}${toResourceDoc.requestUrl}"
@@ -2784,7 +2781,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 
     val allowedResourceDocs: ArrayBuffer[ResourceDoc] = getAllowedResourceDocs(endpoints, resourceDocs)
 
-    allowedResourceDocs.map(_.partialFunction).toList
+    allowedResourceDocs.map(_.liftPartialFunction).toList
   }
 
   def getAllowedResourceDocs(endpoints: Iterable[OBPEndpointFuture], resourceDocs: ArrayBuffer[ResourceDoc]): ArrayBuffer[ResourceDoc] = {
@@ -2804,7 +2801,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
         (enabledEndpointOperationIds.contains(item.operationId) || enabledEndpointOperationIds.isEmpty) &&
         // Only allow Resource Doc if it matches one of the pre selected endpoints from the version list.
         // i.e. this function may receive more Resource Docs than version endpoints
-        endpoints.exists(_ == item.partialFunction)
+        endpoints.exists(_ == item.liftPartialFunction)
     )
       yield item
     routes

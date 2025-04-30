@@ -32,10 +32,11 @@
 package code.api.BahrainOBF.v1_0_0
 
 import code.api.OBPRestHelper
-import code.api.util.APIUtil.{OBPEndpointFuture, ResourceDoc, getAllowedEndpoints}
-import code.api.util.{ScannedApis}
+import code.api.util.APIUtil.{OBPEndpointFuture, ResourceDoc}
+import code.api.util.ScannedApis
 import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.util.{ApiVersionStatus, ScannedApiVersion}
+
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -95,7 +96,7 @@ object ApiCollector extends OBPRestHelper with MdcLoggable with ScannedApis {
     APIMethods_EventNotificationApi.resourceDocs
 
   private[this] def findResourceDoc(pf: OBPEndpointFuture): Option[ResourceDoc] = {
-    allResourceDocs.find(_.partialFunction==pf)
+    allResourceDocs.find(_.liftPartialFunction==pf)
   }
 
   // Filter the possible endpoints by the disabled / enabled Props settings and add them together
