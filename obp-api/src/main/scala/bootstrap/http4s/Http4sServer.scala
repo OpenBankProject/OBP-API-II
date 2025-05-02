@@ -1,9 +1,9 @@
 package bootstrap.http4s
 
-import bootstrap.http4s.Http4s130.v130Services
 import bootstrap.http4s.middleware.CallContextMiddleware.withCallContext
 import bootstrap.http4s.middleware.JsonErrorHandlerMiddleware
 import bootstrap.http4s.middleware.ResponseMiddleware.contentTypeMiddleware
+import bootstrap.http4s.test.Http4sObpMigrationTest.v130Services
 import bootstrap.http4s.test.RestRoutes.{bankServices, helloWorldService}
 import cats.data.{Kleisli, OptionT}
 import cats.effect.kernel.Async

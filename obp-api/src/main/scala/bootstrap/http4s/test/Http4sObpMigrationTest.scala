@@ -1,35 +1,24 @@
-package bootstrap.http4s
+package bootstrap.http4s.test
 
-import code.api.ResourceDocs1_4_0.SwaggerDefinitionsJSON._
-import code.api.util.APIUtil._
-import code.api.util.ApiTag._
-import code.api.util.ErrorMessages._
-import code.api.util.FutureUtil.EndpointContext
-import code.api.util.NewStyle.HttpCode
-import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
-import code.api.util.{APIUtil, ApiRole, CallContext, CustomJsonFormats, NewStyle}
-import code.api.v1_2_1.JSONFactory
+import bootstrap.http4s.LiftCompatUtils.createLiftRequestObject
 import bootstrap.http4s.middleware.AuthMiddleware._
-import com.openbankproject.commons.ExecutionContext.Implicits.global
-import com.openbankproject.commons.model.{BankId, ErrorMessage, User}
-import net.liftweb.common.Full
-
-import scala.concurrent.Future
 import cats.effect._
-import org.http4s.{HttpRoutes, _}
-import org.http4s.dsl.io._
-import net.liftweb.json.{Extraction, Formats, JsonAST, MappingException, parse, prettyRender}
-import code.api.v1_3_0.{JSONFactory1_3_0, PhysicalCardsJSON}
-import code.api.APIFailureNewStyle
 import code.api.Constant._
 import code.api.ResourceDocs1_4_0.ResourceDocs140.ImplementationsResourceDocs
-import net.liftweb.http.LiftResponse
-import net.liftweb.actor.LAFuture
-import bootstrap.http4s.LiftCompatUtils.createLiftRequestObject
+import code.api.util.APIUtil._
+import code.api.util.ErrorMessages._
+import code.api.util.{ApiRole, CallContext, CustomJsonFormats, NewStyle}
+import code.api.v1_2_1.JSONFactory
+import code.api.v1_3_0.JSONFactory1_3_0
 import code.bankconnectors.Connector
+import com.openbankproject.commons.model.{BankId, User}
+import com.openbankproject.commons.util.{ApiVersion, ApiVersionStatus}
+import net.liftweb.json.{Extraction, Formats, prettyRender}
+import org.http4s.HttpRoutes
+import org.http4s.dsl.io._
 
 
-object Http4s130 {
+object Http4sObpMigrationTest {
 
   implicit val formats: Formats = CustomJsonFormats.formats
   implicit def convertAnyToJsonString(any: Any): String = prettyRender(Extraction.decompose(any))
