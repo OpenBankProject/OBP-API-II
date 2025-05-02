@@ -10,8 +10,8 @@
     <relativePath>../pom.xml</relativePath>
     <version>1.10.1</version>
   </parent>
-  <artifactId>obp-api</artifactId>
-  <name>Open Bank Project API</name>
+  <artifactId>obp-api-ii</artifactId>
+  <name>Open Bank Project API II</name>
   <pluginRepositories>
     <pluginRepository>
       <id>org.sonatype.oss.groups.public</id>
