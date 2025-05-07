@@ -51,7 +51,7 @@ import code.util.Helper.booleanToBox
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 
 
-trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMethods210 with APIMethods200 with APIMethods140  with APIMethods121{
+trait ResourceDocsAPIMethodsLegacy extends MdcLoggable with APIMethods220 with APIMethods210 with APIMethods200 with APIMethods140  with APIMethods121{
   //needs to be a RestHelper to get access to JsonGet, JsonPost, etc.
   // We add previous APIMethods so we have access to the Resource Docs
   self: OBPRestHelper =>
