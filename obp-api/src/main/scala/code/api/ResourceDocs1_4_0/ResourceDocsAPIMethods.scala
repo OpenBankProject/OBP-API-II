@@ -1,6 +1,6 @@
 package code.api.ResourceDocs1_4_0
 
-import code.api.Constant.{GET_DYNAMIC_RESOURCE_DOCS_TTL, GET_STATIC_RESOURCE_DOCS_TTL}
+import code.api.Constant.{GET_DYNAMIC_RESOURCE_DOCS_TTL, GET_STATIC_RESOURCE_DOCS_TTL, PARAM_LOCALE}
 import code.api.OBPRestHelper
 import code.api.cache.Caching
 import code.api.util.APIUtil._
@@ -20,14 +20,14 @@ import code.api.v5_0_0.OBPAPI5_0_0
 import code.api.v5_1_0.OBPAPI5_1_0
 import code.apicollectionendpoint.MappedApiCollectionEndpointsProvider
 import code.util.Helper
-import code.util.Helper.{MdcLoggable, SILENCE_IS_GOLDEN}
+import code.util.Helper.{MdcLoggable, ObpS, SILENCE_IS_GOLDEN}
 import com.github.dwickern.macros.NameOf.nameOf
 import com.openbankproject.commons.model.enums.ContentParam
-import com.openbankproject.commons.model.enums.ContentParam.{DYNAMIC, STATIC}
+import com.openbankproject.commons.model.enums.ContentParam.{ALL, DYNAMIC, STATIC}
 import com.openbankproject.commons.model.{BankId, ListResult, User}
 import com.openbankproject.commons.util.ApiStandards._
 import com.openbankproject.commons.util.{ApiVersion, ScannedApiVersion}
-import net.liftweb.common.{Box, Full}
+import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.LiftRules
 import net.liftweb.json
 import net.liftweb.json.JsonAST.{JField, JString, JValue}
@@ -51,7 +51,7 @@ import code.util.Helper.booleanToBox
 import com.openbankproject.commons.ExecutionContext.Implicits.global
 
 
-trait ResourceDocsAPIMethodsLegacy extends MdcLoggable with APIMethods220 with APIMethods210 with APIMethods200 with APIMethods140  with APIMethods121{
+trait ResourceDocsAPIMethods extends MdcLoggable with APIMethods220 with APIMethods210 with APIMethods200 with APIMethods140  with APIMethods121{
   //needs to be a RestHelper to get access to JsonGet, JsonPost, etc.
   // We add previous APIMethods so we have access to the Resource Docs
   self: OBPRestHelper =>
@@ -846,3 +846,162 @@ trait ResourceDocsAPIMethodsLegacy extends MdcLoggable with APIMethods220 with A
     replaceJsonValue(replaceJsonKey(removeJsonKeyAndKeepChildObject(Extraction.decompose(resourceDocsJson)(CustomJsonFormats.formats))))
   }
 }
+
+object ResourceDocsAPIMethodsUtil extends MdcLoggable{
+
+
+
+  def stringToOptBoolean (x: String) : Option[Boolean] = x.toLowerCase match {
+    case "true" | "yes" | "1" | "-1" => Some(true)
+    case "false" | "no" | "0" => Some(false)
+    case _ => Empty
+  }
+
+  def stringToContentParam (x: String) : Option[ContentParam] = x.toLowerCase match {
+    case "dynamic"  => Some(DYNAMIC)
+    case "static"  => Some(STATIC)
+    case "all"  => Some(ALL)
+    case _ => None
+  }
+
+  def getParams() : (Option[List[ResourceDocTag]], Option[List[String]], Option[String], Option[ContentParam], Option[String]) = {
+
+    val rawTagsParam = ObpS.param("tags")
+
+
+    val tags: Option[List[ResourceDocTag]] =
+      rawTagsParam match {
+        // if tags= is supplied in the url, we want to ignore it
+        case Full("") => None
+        // if tags is not mentioned at all, we want to ignore it
+        case Empty => None
+        case _  => {
+          val commaSeparatedList : String = rawTagsParam.getOrElse("")
+          val tagList : List[String] = commaSeparatedList.trim().split(",").toList
+          val resourceDocTags =
+            for {
+              y <- tagList
+            } yield {
+              ResourceDocTag(y)
+            }
+          Some(resourceDocTags)
+        }
+      }
+    logger.debug(s"tagsOption is $tags")
+
+    // So we can produce a reduced list of resource docs to prevent manual editing of swagger files.
+    val rawPartialFunctionNames = ObpS.param("functions")
+
+    val partialFunctionNames: Option[List[String]] =
+      rawPartialFunctionNames match {
+        // if functions= is supplied in the url, we want to ignore it
+        case Full("") => None
+        // if functions is not mentioned at all, we want to ignore it
+        case Empty => None
+        case _  => {
+          val commaSeparatedList : String = rawPartialFunctionNames.getOrElse("")
+          val stringList : List[String] = commaSeparatedList.trim().split(",").toList
+          val pfns =
+            for {
+              y <- stringList
+            } yield {
+              y
+            }
+          Some(pfns)
+        }
+      }
+    logger.debug(s"partialFunctionNames is $partialFunctionNames")
+
+    val locale = ObpS.param(PARAM_LOCALE).or(ObpS.param("language")) // we used language before, so keep it there. 
+    logger.debug(s"locale is $locale")
+
+    // So we can produce a reduced list of resource docs to prevent manual editing of swagger files.
+    val contentParam = for {
+      x <- ObpS.param("content")
+      y <- stringToContentParam(x)
+    } yield y
+    logger.debug(s"content is $contentParam")
+
+    val apiCollectionIdParam = for {
+      x <- ObpS.param("api-collection-id")
+    } yield x
+    logger.debug(s"apiCollectionIdParam is $apiCollectionIdParam")
+    
+  
+
+    (tags, partialFunctionNames, locale, contentParam, apiCollectionIdParam)
+  }
+
+
+  /*
+Filter Resource Docs based on the query parameters, else return the full list.
+We don't assume a default catalog (as API Explorer does)
+so the caller must specify any required filtering by catalog explicitly.
+ */
+  def filterResourceDocs(
+    allResources: List[ResourceDoc], 
+    resourceDocTags: Option[List[ResourceDocTag]], 
+    partialFunctionNames: Option[List[String]]
+  ) : List[ResourceDoc] = {
+
+    // Filter (include, exclude or ignore)
+    val filteredResources1 : List[ResourceDoc] =  allResources
+
+    // Check if we have partialFunctionNames as the parameters, and if so filter by them
+    val filteredResources2 : List[ResourceDoc] = partialFunctionNames match {
+      case Some(pfNames) => {
+        // This can create duplicates to use toSet below
+        for {
+          rd <- filteredResources1
+          partialFunctionName <- pfNames
+          if rd.partialFunctionName.equals(partialFunctionName)
+        } yield {
+          rd
+        }
+      }
+      // tags param was not mentioned in url or was empty, so return all
+      case None => filteredResources1
+    }
+
+    val filteredResources3 : List[ResourceDoc] = filteredResources2
+
+
+    // Check if we have tags, and if so filter by them
+    val filteredResources4: List[ResourceDoc] = resourceDocTags match {
+      // We have tags
+      case Some(tags) => {
+        // This can create duplicates to use toSet below
+        for {
+          r <- filteredResources3
+          t <- tags
+          if r.tags.contains(t)
+        } yield {
+          r
+        }
+      }
+      // tags param was not mentioned in url or was empty, so return all
+      case None => filteredResources3
+    }
+    
+
+    val resourcesToUse = filteredResources4.toSet.toList
+
+
+    logger.debug(s"allResources count is ${allResources.length}")
+    logger.debug(s"filteredResources1 count is ${filteredResources1.length}")
+    logger.debug(s"filteredResources2 count is ${filteredResources2.length}")
+    logger.debug(s"filteredResources3 count is ${filteredResources3.length}")
+    logger.debug(s"filteredResources4 count is ${filteredResources4.length}")
+    logger.debug(s"resourcesToUse count is ${resourcesToUse.length}")
+
+
+    if (filteredResources4.length > 0 && resourcesToUse.length == 0) {
+      logger.debug("tags filter reduced the list of resource docs to zero")
+    }
+
+    resourcesToUse
+  }
+
+
+}
+
