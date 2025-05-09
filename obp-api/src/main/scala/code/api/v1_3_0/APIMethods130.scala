@@ -60,19 +60,19 @@ object APIMethods130 {
         Ok(json)
     }
 
-//    resourceDocs += ResourceDoc(
-//      getCards,
-//      implementedInApiVersion,
-//      "getCards",
-//      "GET",
-//      "/cards",
-//      "Get cards for the current user",
-//      "Returns data about all the physical cards a user has been issued. These could be debit cards, credit cards, etc.",
-//      EmptyBody,
-//      physicalCardsJSON,
-//      List(UserNotLoggedIn, UnknownError),
-//      List(apiTagCard))
-    
+    resourceDocs += ResourceDoc(
+      null,
+      implementedInApiVersion,
+      nameOf(getCardsRoute),
+      "GET",
+      "/cards",
+      "Get cards for the current user",
+      "Returns data about all the physical cards a user has been issued. These could be debit cards, credit cards, etc.",
+      EmptyBody,
+      physicalCardsJSON,
+      List(UserNotLoggedIn, UnknownError),
+      List(apiTagCard),
+      http4sPartialFunction = Some(getCardsRoute))
     // Route: GET /obp/v1.3.0/cards
     val getCardsRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
       case req @ GET -> `prefixPath` / "cards" =>
@@ -86,18 +86,20 @@ object APIMethods130 {
     }
 
 
-//    resourceDocs += ResourceDoc(
-//      getCardsForBank,
-//      implementedInApiVersion,
-//      "getCardsForBank",
-//      "GET",
-//      "/banks/BANK_ID/cards",
-//      "Get cards for the specified bank",
-//      "",
-//      EmptyBody,
-//      physicalCardsJSON,
-//      List(UserNotLoggedIn,BankNotFound, UnknownError),
-//      List(apiTagCard))
+    resourceDocs += ResourceDoc(
+      null,
+      implementedInApiVersion,
+      nameOf(getCardsForBankRoute),
+      "GET",
+      "/banks/BANK_ID/cards",
+      "Get cards for the specified bank",
+      "",
+      EmptyBody,
+      physicalCardsJSON,
+      List(UserNotLoggedIn,BankNotFound, UnknownError),
+      List(apiTagCard),
+      http4sPartialFunction = Some(getCardsForBankRoute)
+    )
     // Route: GET /obp/v1.3.0/banks/BANK_ID/cards
     val getCardsForBankRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
       case req @ GET -> `prefixPath` / "banks" / bankId / "cards" =>

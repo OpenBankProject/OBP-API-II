@@ -1,7 +1,6 @@
 package code.api.ResourceDocs1_4_0
 
 import code.api.Constant.{GET_DYNAMIC_RESOURCE_DOCS_TTL, GET_STATIC_RESOURCE_DOCS_TTL, PARAM_LOCALE}
-import code.api.ResourceDocs1_4_0.ResourceDocs140.ImplementationsResourceDocs
 import code.api.cache.Caching
 import code.api.util.APIUtil._
 import code.api.util.ApiRole.canReadResourceDoc
@@ -10,10 +9,12 @@ import code.api.util.ExampleValue.endpointMappingRequestBodyExample
 import code.api.util.NewStyle.HttpCode
 import code.api.util._
 import code.api.v1_2_1.OBPAPI1_2_1.Implementations1_2_1
+import code.api.v1_3_0.APIMethods130
 import code.api.v1_4_0.JSONFactory1_4_0
 import code.api.v1_4_0.JSONFactory1_4_0.ResourceDocsJson
 import code.api.v1_4_0.OBPAPI1_4_0.Implementations1_4_0
 import code.api.v2_0_0.OBPAPI2_0_0.Implementations2_0_0
+import code.api.v2_1_0.OBPAPI2_1_0
 import code.api.v2_2_0.OBPAPI2_2_0
 import code.api.v3_0_0.OBPAPI3_0_0
 import code.api.v3_1_0.OBPAPI3_1_0
@@ -27,7 +28,6 @@ import com.github.dwickern.macros.NameOf.nameOf
 import com.openbankproject.commons.model.enums.ContentParam
 import com.openbankproject.commons.model.enums.ContentParam.{ALL, DYNAMIC, STATIC}
 import com.openbankproject.commons.model.{ListResult, User}
-import com.openbankproject.commons.util.ApiStandards._
 import com.openbankproject.commons.util.{ApiVersion, ScannedApiVersion}
 import net.liftweb.common.{Box, Empty, Full}
 import net.liftweb.http.LiftRules
@@ -37,13 +37,8 @@ import net.liftweb.json._
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.immutable.{List, Nil}
-import scala.concurrent.Future
-
-// JObject creation
-//import code.api.v1_3_0.{APIMethods130, OBPAPI1_3_0}
-import code.api.v2_1_0.OBPAPI2_1_0
-
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
 
 // So we can include resource docs from future versions
 import code.api.util.ErrorMessages._
@@ -199,7 +194,7 @@ object ResourceDocsAPIMethodsUtil extends MdcLoggable{
 
     logger.debug(s"getResourceDocsList says requestedApiVersion is $requestedApiVersion")
 
-    val resourceDocs = requestedApiVersion match {
+    val activeResourceDocs = requestedApiVersion match {
       case ApiVersion.v5_1_0 => OBPAPI5_1_0.allResourceDocs
       case ApiVersion.v5_0_0 => OBPAPI5_0_0.allResourceDocs
       case ApiVersion.v4_0_0 => OBPAPI4_0_0.allResourceDocs
@@ -209,60 +204,38 @@ object ResourceDocsAPIMethodsUtil extends MdcLoggable{
       case ApiVersion.v2_1_0 => OBPAPI2_1_0.allResourceDocs
       case ApiVersion.v2_0_0 => Implementations2_0_0.resourceDocs ++ Implementations1_4_0.resourceDocs  ++ Implementations1_2_1.resourceDocs
       case ApiVersion.v1_4_0 => Implementations1_4_0.resourceDocs  ++ Implementations1_2_1.resourceDocs
-      case ApiVersion.v1_3_0 => Implementations1_2_1.resourceDocs
+      case ApiVersion.v1_3_0 => APIMethods130.resourceDocs
       case ApiVersion.v1_2_1 => Implementations1_2_1.resourceDocs
       case version: ScannedApiVersion => ScannedApis.versionMapScannedApis(version).allResourceDocs
       case _ => ArrayBuffer.empty[ResourceDoc]
     }
 
-    logger.debug(s"There are ${resourceDocs.length} resource docs available to $requestedApiVersion")
-
-    //      val versionRoutes = requestedApiVersion match {
-    //        case ApiVersion.v5_1_0 => OBPAPI5_1_0.routes
-    //        case ApiVersion.v5_0_0 => OBPAPI5_0_0.routes
-    //        case ApiVersion.v4_0_0 => OBPAPI4_0_0.routes
-    //        case ApiVersion.v3_1_0 => OBPAPI3_1_0.routes
-    //        case ApiVersion.v3_0_0 => OBPAPI3_0_0.routes
-    //        case ApiVersion.v2_2_0 => OBPAPI2_2_0.routes
-    //        case ApiVersion.v2_1_0 => OBPAPI2_1_0.routes
-    //        case ApiVersion.v2_0_0 => OBPAPI2_0_0.routes
-    //        case ApiVersion.v1_4_0 => OBPAPI1_4_0.routes
-    ////        case ApiVersion.v1_3_0 => OBPAPI1_3_0.routes
-    //        case ApiVersion.v1_2_1 => OBPAPI1_2_1.routes
-    //        case version: ScannedApiVersion => ScannedApis.versionMapScannedApis(version).routes
-    //        case _                 => Nil
-    //      }
-
-    //      logger.debug(s"There are ${versionRoutes.length} routes available to $requestedApiVersion")
+    logger.debug(s"There are ${activeResourceDocs.length} resource docs available to $requestedApiVersion")
 
 
-    // We only want the resource docs for which a API route exists else users will see 404s
-    // Get a list of the partial function classes represented in the routes available to this version.
-    //      val versionRoutesClasses = versionRoutes.map { vr => vr.getClass }
+//    //Only return the resource docs that have available routes
+//    val activeResourceDocs = resourceDocs.filter(rd => versionRoutesClasses.contains(rd.partialFunction.getClass))
 
-    // Only return the resource docs that have available routes
-    //      val activeResourceDocs = resourceDocs.filter(rd => versionRoutesClasses.contains(rd.partialFunction.getClass))
+    logger.debug(s"There are ${activeResourceDocs.length} resource docs available to $requestedApiVersion")
 
-    //      logger.debug(s"There are ${activeResourceDocs.length} resource docs available to $requestedApiVersion")
-
-
-    val activePlusLocalResourceDocs = ArrayBuffer[ResourceDoc]()
-
-    //      activePlusLocalResourceDocs ++= activeResourceDocs
-    requestedApiVersion match
-    {
-      // only `obp` standard show the `localResourceDocs`
-      case version: ScannedApiVersion
-        if(version.apiStandard == obp.toString) =>
-        activePlusLocalResourceDocs ++= ImplementationsResourceDocs.localResourceDocs
-      case _ => ; // all other standards only show their own apis.
-    }
+// can not use this resourceDoc at the moment, we still have both http4s and lift resourceDocs.
+//    val activePlusLocalResourceDocs = ArrayBuffer[ResourceDoc]()
+//
+//    activePlusLocalResourceDocs ++= activeResourceDocs
+//    requestedApiVersion match
+//    {
+//      // only `obp` standard show the `localResourceDocs`
+//      case version: ScannedApiVersion
+//        if(version.apiStandard == obp.toString) =>
+//        activePlusLocalResourceDocs ++= ImplementationsResourceDocs.localResourceDocs
+//      case _ => ; // all other standards only show their own apis.
+//    }
 
 
     // Add any featured status and special instructions from Props
 
     val theResourceDocs = for {
-      x <- activePlusLocalResourceDocs
+      x <- activeResourceDocs
 
       y = x.copy(
         isFeatured = getIsFeaturedApi(x.partialFunctionName),
@@ -278,7 +251,7 @@ object ResourceDocsAPIMethodsUtil extends MdcLoggable{
 
     logger.debug(s"There are ${theResourceDocs.length} resource docs (including local) available to $requestedApiVersion")
 
-    // Sort by endpoint, verb. Thus / is shown first then /accounts and /banks etc. Seems to read quite well like that.
+    // Sort by endpoint, verb. This / is shown first then /accounts and /banks etc. Seems to read quite well like that.
     Some(theResourceDocs.toList.sortBy(rd => (rd.requestUrl, rd.requestVerb)))
   }
 
