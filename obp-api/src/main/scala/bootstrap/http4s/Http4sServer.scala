@@ -34,6 +34,17 @@ object Http4sServer extends IOApp with MdcLoggable {
   val host: Host = Host.fromString(HostName).head
   val port: Option[Port] = DevPort.map(Port.fromInt(_)).toOption.flatten
 
+  //this is the routers
+  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
+    code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+>
+      v130Services <+>
+      bankServices <+>
+      helloWorldService
+  )))
+
+  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
+  
+
   // Convert SSLContext to TLSContext
   private def toTLSContext(sslContext: SSLContext): IO[TLSContext[IO]] = {
     IO(TLSContext.Builder.forAsync[IO](Async[IO]).fromSSLContext(sslContext))
@@ -69,15 +80,7 @@ object Http4sServer extends IOApp with MdcLoggable {
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
-    //this is the routers
-    val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
-      code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+>
-        v130Services <+>
-        bankServices <+>
-        helloWorldService
-    )))
-
-    val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
+    
 
     for {
       sslContextOpt <- createSSLContext // Create the SSLContext (optional)
