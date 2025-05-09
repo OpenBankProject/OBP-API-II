@@ -68,10 +68,11 @@ object ResourceDocsAPIMethods extends MdcLoggable {
 
           // Call the existing method
           result <- getApiLevelResourceDocs(callContext, requestedApiVersionString, tags, functionsParam, localeParam, contentParam, apiCollectionIdParam, true)
-        } yield result
+          jsonResult = result._1.map(_.json.toJsCmd).head
+        } yield jsonResult
 
         // Return the result
-        IO.fromFuture(IO(logic)).flatMap(result => Ok(result._1.toString))
+        IO.fromFuture(IO(logic)).flatMap(result => Ok(result))
     }
 
     // All routes combined
