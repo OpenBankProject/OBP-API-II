@@ -36,7 +36,8 @@ object Http4sServer extends IOApp with MdcLoggable {
 
   //this is the routers
   val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
-    code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+>
+    code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+> 
+      code.api.ResourceDocs1_4_0.ResourceDocsAPIMethods.ImplementationsResourceDocs.allRoutes <+>
       v130Services <+>
       bankServices <+>
       helloWorldService
