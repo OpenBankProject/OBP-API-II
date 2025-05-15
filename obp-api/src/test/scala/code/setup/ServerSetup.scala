@@ -27,8 +27,6 @@ TESOBE (http://www.tesobe.com/)
 
 package code.setup
 
-import java.net.URI
-
 import _root_.net.liftweb.json.JsonAST.JObject
 import code.TestServer
 import code.api.util.APIUtil._
@@ -45,15 +43,15 @@ trait ServerSetup extends FeatureSpec with SendServerRequests
   with BeforeAndAfterAll
   with Matchers with MdcLoggable with CustomJsonFormats with PropsReset{
 
-  override def beforeAll(): Unit = {
+//  override def beforeAll(): Unit = {
     TestServer.startServer() // start 
-    super.beforeAll()
-  }
+//    super.beforeAll()
+//  }
 
-  override def afterAll(): Unit = {
-    TestServer.stopServer() // stop server
-    super.afterAll()
-  }
+//  override def afterAll(): Unit = {
+//    TestServer.stopServer() // stop server
+//    super.afterAll()
+//  }
   
   setPropsValues("migration_scripts.execute_all" -> "true")
   setPropsValues("migration_scripts.execute" -> "true")

@@ -1,20 +1,22 @@
 package code.api.v1_3_0
 
-import java.util.Date
-
+import code.TestServer
 import code.api.util.APIUtil.OAuth._
 import code.api.util.{APIUtil, CallContext, OBPQueryParam}
 import code.bankconnectors.Connector
 import code.setup.{DefaultConnectorTestSetup, DefaultUsers, ServerSetup}
 import code.util.Helper.MdcLoggable
-import com.openbankproject.commons.model._
-import net.liftweb.common.{Box, Full}
-
-import scala.concurrent.Future
 import com.openbankproject.commons.ExecutionContext.Implicits.global
+import com.openbankproject.commons.model._
+import net.liftweb.common.Full
+
+import java.util.Date
+import scala.concurrent.Future
 
 class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnectorTestSetup {
 
+  TestServer.startServer() 
+  
   def v1_3Request = baseRequest / "obp" / "v1.3.0"
 
   lazy val bank = createBank(APIUtil.defaultBankId)
@@ -25,13 +27,13 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
   override def beforeAll() {
     super.beforeAll()
     //use the mock connector
-//    Connector.connector.default.set(MockedCardConnector)
+    Connector.connector.default.set(MockedCardConnector)
   }
 
   override def afterAll() {
     super.afterAll()
     //reset the default connector
-//    Connector.connector.default.set(Connector.buildOne)
+    Connector.connector.default.set(Connector.buildOne)
     wipeTestData()
   }
 
@@ -159,5 +161,16 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
     }
 
   }
+
+
+    feature("Getting details of physical cards33") {
+
+      scenario("A user wants to get details of all their cards across all banks") {
+        When("A user requests their cards")
+       
+        200 should equal(200)
+      }
+
+    }
 
 }

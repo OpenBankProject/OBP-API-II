@@ -31,11 +31,11 @@ object Http4sServer extends IOApp with MdcLoggable {
   new bootstrap.liftweb.Boot().boot
 
   // Define the host and port as variables
-  val host: Host = Host.fromString(HostName).head
-  val port: Option[Port] = DevPort.map(Port.fromInt(_)).toOption.flatten
+  lazy val host: Host = Host.fromString(HostName).head
+  lazy val port: Option[Port] = DevPort.map(Port.fromInt(_)).toOption.flatten
 
   //this is the routers
-  val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
+  lazy val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
     code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+> 
       code.api.ResourceDocs1_4_0.ResourceDocsAPIMethods.ImplementationsResourceDocs.allRoutes <+>
       v130Services <+>
@@ -43,7 +43,7 @@ object Http4sServer extends IOApp with MdcLoggable {
       helloWorldService
   )))
 
-  val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
+  lazy val httpApp: Kleisli[IO, Request[IO], Response[IO]] = (services).orNotFound
   
 
   // Convert SSLContext to TLSContext
