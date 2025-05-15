@@ -3245,8 +3245,9 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
                 Future { (Failure(ErrorMessages.ConsentHeaderValueInvalid), None) }
             }
         }
-      } else if (hasAnOAuthHeader(cc.authReqHeaderField)) { // OAuth 1
-        getUserFromOAuthHeaderFuture(cc)
+        //TODO, Auth 1 is in obp side, need to refactor it first. and the  it need 'oauthcallbackUrl' in the Authentication process, the dispatch is not working .
+//      } else if (hasAnOAuthHeader(cc.authReqHeaderField)) { // OAuth 1 
+//        getUserFromOAuthHeaderFuture(cc)
       } else if (hasAnOAuth2Header(cc.authReqHeaderField)) { // OAuth 2
         for {
           (user, callContext) <- OAuth2Login.getUserFuture(cc)
@@ -3255,7 +3256,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
         }
       } // Direct Login i.e DirectLogin: token=eyJhbGciOiJIUzI1NiJ9.eyIiOiIifQ.Y0jk1EQGB4XgdqmYZUHT6potmH3mKj5mEaA9qrIXXWQ
       else if (getPropsAsBoolValue("allow_direct_login", true) && has2021DirectLoginHeader(reqHeaders)) {
-        DirectLogin.getUserFromDirectLoginHeaderFuture(cc)
+        DirectLogin.getUserFromDirectLoginHeaderFutureHttp4s(req,cc)
       } // Direct Login Deprecated i.e Authorization: DirectLogin token=eyJhbGciOiJIUzI1NiJ9.eyIiOiIifQ.Y0jk1EQGB4XgdqmYZUHT6potmH3mKj5mEaA9qrIXXWQ
       else if (getPropsAsBoolValue("allow_direct_login", true) && hasDirectLoginHeader(authorizationHeaderValue)) {
         DirectLogin.getUserFromDirectLoginHeaderFutureHttp4s(req,cc)
@@ -3298,45 +3299,45 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
 //            Future { (Failure(ErrorMessages.GatewayLoginUnknownError), None) }
 //        }
 //      }  //TODO DAuth Login
-      else if (getPropsAsBoolValue("allow_dauth", false) && hasDAuthHeader(cc.requestHeaders)) {
-        logger.info("allow_dauth-getRemoteIpAddress: " + remoteIpAddress )
-        APIUtil.getPropsValue("dauth.host") match {
-          case Full(h) if h.split(",").toList.exists(_.equalsIgnoreCase(remoteIpAddress) == true) => // Only addresses from white list can use this feature
-            val dauthToken = DAuth.getDAuthToken(cc.requestHeaders)
-            dauthToken match {
-              case Some(token :: _) =>
-                val payload = DAuth.parseJwt(token)
-                payload match {
-                  case Full(payload) =>
-                    DAuth.getOrCreateResourceUserFuture(payload: String, Some(cc)) map {
-                      case Full((u,callContext)) => // Authentication is successful
-                        val consumer = DAuth.getConsumerByConsumerKey(payload)//TODO, need to verify the key later.
-                        val jwt = DAuth.createJwt(payload)
-                        val callContextUpdated = ApiSession.updateCallContext(DAuthResponseHeader(Some(jwt)), callContext)
-                        (Full(u), callContextUpdated.map(_.copy(consumer=consumer, user = Full(u))))
-                      case Failure(msg, t, c) =>
-                        (Failure(msg, t, c), None)
-                      case _ =>
-                        (Failure(payload), None)
-                    }
-                  case Failure(msg, t, c) =>
-                    Future { (Failure(msg, t, c), None) }
-                  case _ =>
-                    Future { (Failure(ErrorMessages.DAuthUnknownError), None) }
-                }
-              case _ =>
-                Future { (Failure(InvalidDAuthHeaderToken), None) }
-            }
-          case Full(h) if h.split(",").toList.exists(_.equalsIgnoreCase(remoteIpAddress) == false) => // All other addresses will be rejected
-            Future { (Failure(ErrorMessages.DAuthWhiteListAddresses), None) }
-          case Empty =>
-            Future { (Failure(ErrorMessages.DAuthHostPropertyMissing), None) } // There is no dauth.host in props file
-          case Failure(msg, t, c) =>
-            Future { (Failure(msg, t, c), None) }
-          case _ =>
-            Future { (Failure(ErrorMessages.DAuthUnknownError), None) }
-        }
-      } 
+//      else if (getPropsAsBoolValue("allow_dauth", false) && hasDAuthHeader(cc.requestHeaders)) {
+//        logger.info("allow_dauth-getRemoteIpAddress: " + remoteIpAddress )
+//        APIUtil.getPropsValue("dauth.host") match {
+//          case Full(h) if h.split(",").toList.exists(_.equalsIgnoreCase(remoteIpAddress) == true) => // Only addresses from white list can use this feature
+//            val dauthToken = DAuth.getDAuthToken(cc.requestHeaders)
+//            dauthToken match {
+//              case Some(token :: _) =>
+//                val payload = DAuth.parseJwt(token)
+//                payload match {
+//                  case Full(payload) =>
+//                    DAuth.getOrCreateResourceUserFuture(payload: String, Some(cc)) map {
+//                      case Full((u,callContext)) => // Authentication is successful
+//                        val consumer = DAuth.getConsumerByConsumerKey(payload)//TODO, need to verify the key later.
+//                        val jwt = DAuth.createJwt(payload)
+//                        val callContextUpdated = ApiSession.updateCallContext(DAuthResponseHeader(Some(jwt)), callContext)
+//                        (Full(u), callContextUpdated.map(_.copy(consumer=consumer, user = Full(u))))
+//                      case Failure(msg, t, c) =>
+//                        (Failure(msg, t, c), None)
+//                      case _ =>
+//                        (Failure(payload), None)
+//                    }
+//                  case Failure(msg, t, c) =>
+//                    Future { (Failure(msg, t, c), None) }
+//                  case _ =>
+//                    Future { (Failure(ErrorMessages.DAuthUnknownError), None) }
+//                }
+//              case _ =>
+//                Future { (Failure(InvalidDAuthHeaderToken), None) }
+//            }
+//          case Full(h) if h.split(",").toList.exists(_.equalsIgnoreCase(remoteIpAddress) == false) => // All other addresses will be rejected
+//            Future { (Failure(ErrorMessages.DAuthWhiteListAddresses), None) }
+//          case Empty =>
+//            Future { (Failure(ErrorMessages.DAuthHostPropertyMissing), None) } // There is no dauth.host in props file
+//          case Failure(msg, t, c) =>
+//            Future { (Failure(msg, t, c), None) }
+//          case _ =>
+//            Future { (Failure(ErrorMessages.DAuthUnknownError), None) }
+//        }
+//      } 
       else if(Option(cc).flatMap(_.user).isDefined) {
         Future{(cc.user, Some(cc))}
       }
