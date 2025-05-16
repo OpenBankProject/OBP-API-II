@@ -26,8 +26,6 @@ Berlin 13359, Germany
   */
 package code.api
 
-import java.util.Date
-
 import code.api.util.APIUtil._
 import code.api.util.ErrorMessages.{InvalidDirectLoginParameters, attemptedToOpenAnEmptyBox}
 import code.api.util.NewStyle.HttpCode
@@ -36,7 +34,6 @@ import code.consumer.Consumers._
 import code.model.dataAccess.AuthUser
 import code.model.{Consumer, Token, TokenType, UserX}
 import code.token.Tokens
-import code.transaction.MappedTransaction
 import code.util.Helper.{MdcLoggable, SILENCE_IS_GOLDEN}
 import com.nimbusds.jwt.JWTClaimsSet
 import com.openbankproject.commons.ExecutionContext.Implicits.global
@@ -44,10 +41,10 @@ import com.openbankproject.commons.model.User
 import net.liftweb.common._
 import net.liftweb.http._
 import net.liftweb.http.rest.RestHelper
-import net.liftweb.mapper.{By, By_>, Descending, OrderBy}
+import net.liftweb.mapper.{By, By_>}
 import net.liftweb.util.Helpers
-import net.liftweb.util.Helpers.tryo
 
+import java.util.Date
 import scala.compat.Platform
 import scala.concurrent.Future
 
@@ -420,7 +417,7 @@ object DirectLogin extends RestHelper with MdcLoggable {
       {
         APIUtil.registeredApplicationFuture(parameters.getOrElse("consumer_key", ""))
       } else {
-        Future{true}
+        Future.successful(true)
       }
 
     // Please note that after this point S.request for instance cannot be used directly
@@ -501,7 +498,7 @@ object DirectLogin extends RestHelper with MdcLoggable {
       {
         APIUtil.registeredApplicationFuture(parameters.getOrElse("consumer_key", ""))
       } else {
-        Future{true}
+        Future.successful(true)
       }
 
     // Please note that after this point S.request for instance cannot be used directly

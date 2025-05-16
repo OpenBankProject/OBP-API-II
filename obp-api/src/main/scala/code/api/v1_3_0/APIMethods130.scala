@@ -107,7 +107,7 @@ object APIMethods130 {
           val logic = for {
             httpParams <- NewStyle.function.extractHttpParamsFromUrl(req.uri.renderString)
             (queryParams, ctx1) <- createQueriesByHttpParamsFuture(httpParams, Some(callContext))
-            _ <- NewStyle.function.hasEntitlement(BankId(bankId), user.userId, ApiRole.canGetCardsForBank, ctx1)
+            _ <- NewStyle.function.hasEntitlement(bankId, user.userId, ApiRole.canGetCardsForBank, ctx1)
             (bank, ctx2) <- NewStyle.function.getBank(BankId(bankId), ctx1)
             (cards, ctx3) <- NewStyle.function.getPhysicalCardsForBank(bank, user, queryParams, ctx2)
             json: String = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)

@@ -1,9 +1,9 @@
 package code.api.v1_3_0
 
-import code.TestServer
 import code.api.util.APIUtil.OAuth._
-import code.api.util.{APIUtil, CallContext, OBPQueryParam}
+import code.api.util.{APIUtil, ApiRole, CallContext, OBPQueryParam}
 import code.bankconnectors.Connector
+import code.entitlement.Entitlement
 import code.setup.{DefaultConnectorTestSetup, DefaultUsers, ServerSetup}
 import code.util.Helper.MdcLoggable
 import com.openbankproject.commons.ExecutionContext.Implicits.global
@@ -15,8 +15,6 @@ import scala.concurrent.Future
 
 class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnectorTestSetup {
 
-  TestServer.startServer() 
-  
   def v1_3Request = baseRequest / "obp" / "v1.3.0"
 
   lazy val bank = createBank(APIUtil.defaultBankId)
@@ -123,28 +121,21 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
 
       returnedCardNumbers should equal(expectedCardNumbers)
     }
-    scenario("A user wants to get details of all their cards across all banks3") {
-      When("A user requests their cards")
-
-      val request = (v1_3Request / "banks").GET  <@ (user1)
-      val response = makeGetRequest(request)
-
-      Then("We should get a 200")
-      response.code should equal(200)
-
-      //dummy connector above tells us we should get back user1AllCards
-      //we are just testing that the api calls the connector properly
-      And("We should get the correct cards")
-      val json = response.body  
-      println(json)
-    }
 
     scenario("A user wants to get details of all their cards issued by a single bank") {
       When("A user requests their cards")
 
       //our dummy connector doesn't care about the value of the bank id, so we can just use "somebank"
       val request = (v1_3Request / "banks" / bank.bankId.value / "cards").GET <@ (user1)
+      val response1 = makeGetRequest(request)
+
+      Then("We should get a 403")
+      response1.code should equal(403)
+
+      When("We add one required entitlement")
+      Entitlement.entitlement.vend.addEntitlement(bank.bankId.value, resourceUser1.userId, ApiRole.CanGetCardsForBank.toString)
       val response = makeGetRequest(request)
+
 
       Then("We should get a 200")
       response.code should equal(200)
@@ -161,16 +152,5 @@ class PhysicalCardsTest extends ServerSetup with DefaultUsers with DefaultConnec
     }
 
   }
-
-
-    feature("Getting details of physical cards33") {
-
-      scenario("A user wants to get details of all their cards across all banks") {
-        When("A user requests their cards")
-       
-        200 should equal(200)
-      }
-
-    }
 
 }

@@ -26,20 +26,18 @@ TESOBE (http://www.tesobe.com/)
  */
 package code.api
 
-import java.net.{URLDecoder, URLEncoder}
-import java.util.Date
-
 import code.api.Constant._
 import code.api.oauth1a.Arithmetics
 import code.api.oauth1a.OauthParams._
 import code.api.util.ErrorMessages._
 import code.api.util._
 import code.consumer.Consumers
-import code.model.{Consumer, TokenType, UserX}
+import code.model.{Consumer, TokenType}
 import code.nonce.Nonces
 import code.token.Tokens
 import code.users.Users
 import code.util.Helper.{MdcLoggable, ObpS}
+import com.openbankproject.commons.ExecutionContext.Implicits.global
 import com.openbankproject.commons.model.User
 import net.liftweb.common._
 import net.liftweb.http.rest.RestHelper
@@ -47,8 +45,9 @@ import net.liftweb.http.{InMemoryResponse, PostRequest, Req, S}
 import net.liftweb.util.Helpers
 import net.liftweb.util.Helpers.tryo
 
+import java.net.{URLDecoder, URLEncoder}
+import java.util.Date
 import scala.compat.Platform
-import com.openbankproject.commons.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
@@ -370,7 +369,7 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
 
 
   //Check if the request (access token or request token) is valid and return a tuple
-  def validatorFuture(requestType : String, httpMethod : String) : Future[(Int, String, Map[String,String])] = {
+  def validatorFuture(requestType : String, httpMethod : String, cc: CallContext) : Future[(Int, String, Map[String,String])] = {
     //return a Map containing the OAuth parameters : oauth_prameter -> value
     def getAllParameters : Map[String,String]= {
 
@@ -408,20 +407,13 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
         val cleanedParameterList = parametersList.stripPrefix("OAuth").replaceAll("\\s","")
         Map(cleanedParameterList.split(",").flatMap(dynamicListExtract _): _*)
       }
-
-      S.request match {
-        case Full(a) =>  a.header("Authorization") match {
-          case Full(parameters) => toMap(parameters)
-          case _ => Map(("",""))
-        }
-        case _ => Map(("",""))
-      }
+      cc.authReqHeaderField.map(toMap).getOrElse(Map.empty)
     }
     //return true if the authorization header has a duplicated parameter
-    def duplicatedParameters(req1: Box[Req]) = {
+    def duplicatedParameters = {
       logger.debug("duplicatedParameters 1")
       var output=false
-      val authorizationParameters = req1.openOrThrowException(attemptedToOpenAnEmptyBox).header("Authorization").openOrThrowException(attemptedToOpenAnEmptyBox).split(",")
+      val authorizationParameters = cc.authReqHeaderField.map(_.split(",")).getOrElse(Array.empty[String])
       logger.debug("duplicatedParameters 2")
       //count the iterations of a parameter in the authorization header
       def countPram(parameterName : String, parametersArray :Array[String] )={
@@ -544,24 +536,28 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
     var httpCode : Int = 500
 
     var parameters = getAllParameters
-    
-    val sRequest = S.request
-    val urlParams: Map[String, List[String]] = sRequest.map(_.params).getOrElse(Map.empty)
-    val sUri = ObpS.uri
 
-    // Please note that after this point S.request for instance cannot be used directly
-    // If you need it later assign it to some variable and pass it
+    val parsedUri = new java.net.URI(cc.url)
+    val urlParams: Map[String, List[String]] = Option(parsedUri.getQuery)
+      .map(_.split("&").toList.map(_.split("=")).collect {
+          case Array(k, v) => k -> java.net.URLDecoder.decode(v, "UTF-8")
+        }.groupBy(_._1)
+        .map { case (k, v) => k -> v.map(_._2) }) 
+      .getOrElse(Map.empty)
+
+    val sUri = cc.url
+
     for {
       alreadyUsedNonce <- alreadyUsedNonceFuture(parameters)
       validToken2 <- requestType match {
         case value if value == "protectedResource" => 
           validToken2Future(parameters.get(TokenName).get)
-        case _ => Future{true}
+        case _ => Future.successful(true)
       }
       validToken <- requestType match {
         case value if value == "authorizationToken" => 
           validTokenFuture(parameters.get(TokenName).get, parameters.get(VerifierName).get)
-        case _ => Future{true}
+        case _ => Future.successful(true)
       }
       registeredApplication <- APIUtil.registeredApplicationFuture(parameters.get("oauth_consumer_key").get)
 
@@ -575,7 +571,7 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
         httpCode = 400
       }
       //no parameter exists more than one times
-      else if (duplicatedParameters(sRequest))
+      else if (duplicatedParameters)
       {
         message = "Duplicated oauth protocol parameters"
         logger.error(s"validator duplicatedParameters error: $message ")
@@ -938,18 +934,16 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
     else
       Empty
 
-  def getUserFromOAuthHeaderFuture(sc: CallContext): Future[(Box[User], Option[CallContext])] = {
-    val httpMethod = S.request match {
-      case Full(r) => r.request.method
-      case _ => "GET"
-    }
+  def getUserFromOAuthHeaderFuture(cc: CallContext): Future[(Box[User], Option[CallContext])] = {
+    val httpMethod = cc.verb
+    
     for {
-      (httpCode, message, oAuthParameters) <- validatorFuture("protectedResource", httpMethod)
+      (httpCode, message, oAuthParameters) <- validatorFuture("protectedResource", httpMethod, cc)
       _ <- Future { if (httpCode == 200) Full("ok") else Empty } map { x => APIUtil.fullBoxOrException(x ?~! message) }
       consumer <- getConsumerFromTokenFuture(httpCode, oAuthParameters.get(TokenName))
       user <- getUserFromTokenFuture(httpCode, oAuthParameters.get(TokenName))
     } yield {
-      (user, Some(sc.copy(user = user, oAuthParams = oAuthParameters, consumer=consumer)))
+      (user, Some(cc.copy(user = user, oAuthParams = oAuthParameters, consumer=consumer)))
     }
   }
   def getUserFromTokenFuture(httpCode : Int, key: Box[String]) : Future[Box[User]] = {

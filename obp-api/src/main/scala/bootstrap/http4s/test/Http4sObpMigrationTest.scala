@@ -28,7 +28,7 @@ object Http4sObpMigrationTest {
 
   val v130Services: HttpRoutes[IO] = HttpRoutes.of[IO] {
 
-    case req@GET -> Root / ApiPathZero / apiVersion / "rootIO" =>
+    case req@GET -> Root / "test" /ApiPathZero / apiVersion / "rootIO" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
 
         val json: IO[String] = JSONFactory.getApiInfoJSONIO(version, versionStatus).map(convertAnyToJsonString)
@@ -148,12 +148,12 @@ object Http4sObpMigrationTest {
 //      }(req)
     
 
-    case GET -> Root  / ApiPathZero / apiVersion / "banks"  =>
+    case GET -> Root  /"test"/ ApiPathZero / apiVersion / "banks"  =>
       val banks = Connector.connector.vend.getBanksLegacy(None).map(_._1).openOrThrowException("xxxxx")
       Ok(prettyRender(Extraction.decompose(banks)))
 
  
-    case req @ GET -> Root / ApiPathZero / apiVersion / "cardsIO" =>
+    case req @ GET ->  Root /"test"/ ApiPathZero / apiVersion / "cardsIO" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
 
         val ioLogic = for {
@@ -169,7 +169,7 @@ object Http4sObpMigrationTest {
           }
       }(req)
 
-    case req @ GET -> Root / ApiPathZero / apiVersion / "banks" / bankId / "cardsIO" =>
+    case req @ GET -> Root /"test"/ ApiPathZero / apiVersion / "banks" / bankId / "cardsIO" =>
       securedEndpoint { (user: User, callContext: CallContext) =>
          val ioLogic = for {
            httpParams <- NewStyle.function.extractHttpParamsFromUrlIO(req.uri.renderString)
