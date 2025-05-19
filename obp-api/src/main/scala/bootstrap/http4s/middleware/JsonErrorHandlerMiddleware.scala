@@ -20,12 +20,12 @@ object JsonErrorHandlerMiddleware {
   private val logger = Slf4jLogger.getLogger[IO]
 
   def executeWithErrorHandling(
-    logic: => Future[(String, Option[CallContext])]
+    obpResponse: => Future[(String, Option[CallContext])]
   ): IO[Response[IO]] = {
     import net.liftweb.json._
     implicit val formats = DefaultFormats
 
-    IO.fromFuture(IO(logic)).attempt.flatMap {
+    IO.fromFuture(IO(obpResponse)).attempt.flatMap {
       case Right((json, _)) =>
         Ok(json).map(_.withContentType(`Content-Type`(MediaType.application.json)))
 

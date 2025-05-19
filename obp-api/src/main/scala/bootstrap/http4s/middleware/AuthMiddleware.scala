@@ -1,9 +1,10 @@
 package bootstrap.http4s.middleware
 
-import bootstrap.http4s.RestHelperChecks._
 import bootstrap.http4s.CallContextKeyProvider.callContextKey
+import bootstrap.http4s.RestHelperChecks._
 import cats.effect._
 import code.api.util.CallContext
+import code.api.util.ErrorMessages._
 import com.openbankproject.commons.model.User
 import org.http4s._
 import org.http4s.dsl.io._
@@ -20,12 +21,12 @@ object AuthMiddleware {
           (userOpt, updatedCtx) = result
           response <- userOpt match {
             case Some(user) => handler(user, updatedCtx)
-            case None       => Forbidden("User not logged in.")
+            case None       => Forbidden(UserNotLoggedIn)
           }
         } yield response
 
       case None =>
-        InternalServerError("CallContext missing")
+        InternalServerError(s"$UnknownError CallContext missing")
     }
   }
 }

@@ -78,11 +78,12 @@ object APIMethods130 {
     val getCardsRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
       case req @ GET -> `prefixPath` / "cards" =>
         securedEndpoint { (user: User, callContext: CallContext) =>
-          val logic = for {
+          val obpResponse = for {
             (cards, updatedCtx) <- NewStyle.function.getPhysicalCardsForUser(user, Some(callContext))
             json: String = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
           } yield (json, updatedCtx.getOrElse(callContext))
-          IO.fromFuture(IO(logic)).flatMap { case (json, _) => Ok(json) }
+          
+          executeWithErrorHandling(obpResponse)
         }(req)
     }
 
@@ -105,7 +106,7 @@ object APIMethods130 {
     val getCardsForBankRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
       case req @ GET -> `prefixPath` / "banks" / bankId / "cards" =>
         securedEndpoint { (user: User, callContext: CallContext) =>
-          val logic = for {
+          val obpResponse = for {
             httpParams <- NewStyle.function.extractHttpParamsFromUrl(req.uri.renderString)
             (queryParams, ctx1) <- createQueriesByHttpParamsFuture(httpParams, Some(callContext))
             _ <- NewStyle.function.hasEntitlement(bankId, user.userId, ApiRole.canGetCardsForBank, ctx1)
@@ -114,7 +115,7 @@ object APIMethods130 {
             json: String = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
           } yield (json, ctx3)
           
-          executeWithErrorHandling(logic)
+          executeWithErrorHandling(obpResponse)
           
         }(req)
     }
