@@ -2,7 +2,7 @@ package bootstrap.http4s
 
 import bootstrap.http4s.middleware.CallContextMiddleware.withCallContext
 import bootstrap.http4s.middleware.JsonErrorHandlerMiddleware
-import bootstrap.http4s.middleware.ResponseMiddleware.contentTypeMiddleware
+//import bootstrap.http4s.middleware.ResponseMiddleware.contentTypeMiddleware
 import bootstrap.http4s.test.Http4sObpMigrationTest.v130Services
 import bootstrap.http4s.test.RestRoutes.{bankServices, helloWorldService}
 import cats.data.{Kleisli, OptionT}
@@ -35,7 +35,7 @@ object Http4sServer extends IOApp with MdcLoggable {
   lazy val port: Option[Port] = DevPort.map(Port.fromInt(_)).toOption.flatten
 
   //this is the routers
-  lazy val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = contentTypeMiddleware(JsonErrorHandlerMiddleware(withCallContext(
+  lazy val services: Kleisli[({type λ[β$0$] = OptionT[IO, β$0$]})#λ, Request[IO], Response[IO]] = (JsonErrorHandlerMiddleware(withCallContext(
     code.api.v1_3_0.APIMethods130.Implementations1_3_0.allRoutes <+> 
       code.api.ResourceDocs1_4_0.ResourceDocsAPIMethods.ImplementationsResourceDocs.allRoutes <+>
       v130Services <+>

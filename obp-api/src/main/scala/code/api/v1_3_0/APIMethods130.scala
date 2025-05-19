@@ -1,6 +1,7 @@
 package code.api.v1_3_0
 
 import bootstrap.http4s.middleware.AuthMiddleware._
+import bootstrap.http4s.middleware.JsonErrorHandlerMiddleware.executeWithErrorHandling
 import cats.effect._
 import cats.syntax.all._
 import code.api.Constant._
@@ -112,7 +113,9 @@ object APIMethods130 {
             (cards, ctx3) <- NewStyle.function.getPhysicalCardsForBank(bank, user, queryParams, ctx2)
             json: String = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
           } yield (json, ctx3)
-          IO.fromFuture(IO(logic)).flatMap { case (json, _) => Ok(json) }
+          
+          executeWithErrorHandling(logic)
+          
         }(req)
     }
 
