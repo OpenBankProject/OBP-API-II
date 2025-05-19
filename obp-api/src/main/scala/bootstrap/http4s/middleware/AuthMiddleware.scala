@@ -4,7 +4,7 @@ import bootstrap.http4s.CallContextKeyProvider.callContextKey
 import bootstrap.http4s.RestHelperChecks._
 import cats.effect._
 import code.api.util.CallContext
-import code.api.util.ErrorMessages._
+import code.api.util.ErrorMessages.{UnknownError, UserNotLoggedIn}
 import com.openbankproject.commons.model.User
 import org.http4s._
 import org.http4s.dsl.io._

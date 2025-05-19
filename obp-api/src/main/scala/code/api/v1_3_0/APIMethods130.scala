@@ -81,7 +81,7 @@ object APIMethods130 {
           val obpResponse = for {
             (cards, updatedCtx) <- NewStyle.function.getPhysicalCardsForUser(user, Some(callContext))
             json: String = JSONFactory1_3_0.createPhysicalCardsJSON(cards, user)
-          } yield (json, updatedCtx.getOrElse(callContext))
+          } yield (json, updatedCtx)
           
           executeWithErrorHandling(obpResponse)
         }(req)

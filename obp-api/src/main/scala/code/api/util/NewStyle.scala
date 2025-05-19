@@ -1,92 +1,69 @@
 package code.api.util
 
 
-import java.util.Date
-import java.util.UUID.randomUUID
 import akka.http.scaladsl.model.HttpMethod
+import cats.effect._
 import code.DynamicEndpoint.{DynamicEndpointProvider, DynamicEndpointT}
-import code.api.{APIFailureNewStyle, Constant, JsonResponseException}
 import code.api.Constant.SYSTEM_READ_ACCOUNTS_BERLIN_GROUP_VIEW_ID
+import code.api.builder.PaymentInitiationServicePISApi.APIMethods_PaymentInitiationServicePISApi.checkPaymentServerTypeError
 import code.api.cache.Caching
+import code.api.dynamic.endpoint.helper.DynamicEndpointHelper
+import code.api.dynamic.entity.helper.{DynamicEntityHelper, DynamicEntityInfo}
 import code.api.util.APIUtil._
-import code.api.util.ApiRole.canCreateAnyTransactionRequest
 import code.api.util.ErrorMessages.{InsufficientAuthorisationToCreateTransactionRequest, _}
-import code.api.ResourceDocs1_4_0.ResourceDocs140.ImplementationsResourceDocs
-import code.api.v1_2_1.OBPAPI1_2_1.Implementations1_2_1
-import code.api.v1_4_0.OBPAPI1_4_0.Implementations1_4_0
-import code.api.v2_0_0.OBPAPI2_0_0.Implementations2_0_0
-import code.api.v2_1_0.OBPAPI2_1_0.Implementations2_1_0
-import code.api.v2_2_0.OBPAPI2_2_0.Implementations2_2_0
+import code.api.{APIFailureNewStyle, Constant, JsonResponseException}
+import code.apicollection.{ApiCollectionTrait, MappedApiCollectionsProvider}
+import code.apicollectionendpoint.{ApiCollectionEndpointTrait, MappedApiCollectionEndpointsProvider}
+import code.atmattribute.AtmAttribute
 import code.authtypevalidation.{AuthenticationTypeValidationProvider, JsonAuthTypeValidation}
+import code.bankattribute.BankAttribute
 import code.bankconnectors.Connector
 import code.branches.Branches.{Branch, DriveUpString, LobbyString}
+import code.connectormethod.{ConnectorMethodProvider, JsonConnectorMethod}
 import code.consumer.Consumers
-import com.openbankproject.commons.model.DirectDebitTrait
+import code.crm.CrmEvent
+import code.crm.CrmEvent.CrmEvent
 import code.dynamicEntity.{DynamicEntityProvider, DynamicEntityT}
+import code.dynamicMessageDoc.{DynamicMessageDocProvider, JsonDynamicMessageDoc}
+import code.dynamicResourceDoc.{DynamicResourceDocProvider, JsonDynamicResourceDoc}
+import code.endpointMapping.{EndpointMappingProvider, EndpointMappingT}
 import code.entitlement.Entitlement
 import code.entitlementrequest.EntitlementRequest
 import code.fx.{MappedFXRate, fx}
-import com.openbankproject.commons.model.FXRate
 import code.metadata.counterparties.Counterparties
 import code.methodrouting.{MethodRoutingCommons, MethodRoutingProvider, MethodRoutingT}
 import code.model._
-import code.apicollectionendpoint.{ApiCollectionEndpointTrait, MappedApiCollectionEndpointsProvider}
-import code.apicollection.{ApiCollectionTrait, MappedApiCollectionsProvider}
 import code.model.dataAccess.{AuthUser, BankAccountRouting}
-import com.openbankproject.commons.model.StandingOrderTrait
 import code.usercustomerlinks.UserCustomerLink
-import code.users.{UserAgreement, UserAgreementProvider, UserAttribute, UserInvitation, UserInvitationProvider, Users}
+import code.users._
 import code.util.Helper
-import com.openbankproject.commons.util.{ApiVersion, JsonUtils}
+import code.util.Helper.MdcLoggable
+import code.validation.{JsonSchemaValidationProvider, JsonValidation}
 import code.views.Views
 import code.webhook.AccountWebhook
 import com.github.dwickern.macros.NameOf.nameOf
 import com.openbankproject.commons.dto.{CustomerAndAttribute, GetProductsParam, ProductCollectionItemsTree}
 import com.openbankproject.commons.model.enums.StrongCustomerAuthentication.SCA
 import com.openbankproject.commons.model.enums.StrongCustomerAuthenticationStatus.SCAStatus
-import com.openbankproject.commons.model.enums.TransactionRequestTypes._
-import com.openbankproject.commons.model.enums.PaymentServiceTypes._
-import com.openbankproject.commons.model.enums._
-import com.openbankproject.commons.model.{AccountApplication, Bank, Customer, CustomerAddress, Product, ProductCollection, ProductCollectionItem, TaxResidence, UserAuthContext, UserAuthContextUpdate, _}
+import com.openbankproject.commons.model.enums.{SuppliedAnswerType, _}
+import com.openbankproject.commons.model.{TransactionRequestStatus, _}
+import com.openbankproject.commons.util.JsonUtils
 import com.tesobe.CacheKeyFromArguments
-import net.liftweb.common.{Box, Empty, Failure, Full, ParamFailure}
+import net.liftweb.common._
+import net.liftweb.http.JsonResponse
 import net.liftweb.http.provider.HTTPParam
 import net.liftweb.json.JsonDSL._
-import net.liftweb.json.{JField, JInt, JNothing, JNull, JObject, JString, JValue, _}
+import net.liftweb.json.{Meta, _}
 import net.liftweb.util.Helpers.tryo
+import net.liftweb.util.Props
 import org.apache.commons.lang3.StringUtils
 
 import java.security.AccessControlException
-import scala.collection.immutable.{List, Nil}
+import java.util.Date
+import java.util.UUID.randomUUID
+import scala.collection.immutable.List
 import scala.concurrent.Future
-import scala.math.BigDecimal
 import scala.reflect.runtime.universe.MethodSymbol
-import code.validation.{JsonSchemaValidationProvider, JsonValidation}
-import net.liftweb.http.JsonResponse
-import net.liftweb.util.Props
-import code.api.JsonResponseException
-import code.api.builder.PaymentInitiationServicePISApi.APIMethods_PaymentInitiationServicePISApi.{checkPaymentProductError, checkPaymentServerTypeError, checkPaymentServiceType}
-import code.api.dynamic.endpoint.helper.DynamicEndpointHelper
-import code.api.v4_0_0.JSONFactory400
-import code.api.dynamic.endpoint.helper.DynamicEndpointHelper
-import code.api.dynamic.entity.helper.{DynamicEntityHelper, DynamicEntityInfo}
-import code.atmattribute.AtmAttribute
-import code.bankattribute.BankAttribute
-import code.connectormethod.{ConnectorMethodProvider, JsonConnectorMethod}
-import code.counterpartylimit.{CounterpartyLimit}
-import com.openbankproject.commons.model.CounterpartyLimitTrait
-import code.crm.CrmEvent
-import code.crm.CrmEvent.CrmEvent
-import com.openbankproject.commons.model.{CustomerAccountLinkTrait, AgentAccountLinkTrait}
-import code.dynamicMessageDoc.{DynamicMessageDocProvider, JsonDynamicMessageDoc}
-import code.dynamicResourceDoc.{DynamicResourceDocProvider, JsonDynamicResourceDoc}
-import code.endpointMapping.{EndpointMappingProvider, EndpointMappingT}
-import com.openbankproject.commons.model.EndpointTagT
-import code.util.Helper.MdcLoggable
-import code.views.system.AccountAccess
-import com.openbankproject.commons.model.enums.SuppliedAnswerType
-import net.liftweb.mapper.By
-import cats.effect._
 
 
 object NewStyle extends MdcLoggable{
@@ -1018,7 +995,7 @@ object NewStyle extends MdcLoggable{
         else if(StringUtils.isBlank(errorMsg)&& bankId.isEmpty) UserHasMissingRoles + role.toString() 
         else errorMsg
 
-      Helper.booleanToFuture(errorInfo, cc=callContext) {
+      Helper.booleanToFuture(errorInfo, 403, cc=callContext) {
         APIUtil.hasEntitlement(bankId, userId, role)
       } map validateRequestPayload(callContext)
     }
