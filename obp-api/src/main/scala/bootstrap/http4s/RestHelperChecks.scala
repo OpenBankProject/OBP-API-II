@@ -1,18 +1,13 @@
 package bootstrap.http4s
 
 import cats.effect.IO
-import com.openbankproject.commons.model._
-import code.api.util.CallContext
-import code.model.dataAccess.AuthUser
-import net.liftweb.common.Full
 import code.api.util.APIUtil._
 import code.api.util.CallContext
 import com.openbankproject.commons.model.User
-import net.liftweb.common.{Box, Empty, Full}
+import net.liftweb.common.Full
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import cats.effect.IO
-import cats.effect.unsafe.IORuntime
 import scala.util.{Failure, Success}
 
 object RestHelperChecks {
@@ -30,8 +25,9 @@ object RestHelperChecks {
   def checkAuth(req: org.http4s.Request[cats.effect.IO],cc: CallContext): IO[(Option[User], CallContext)] = {
     val resultF =
       //TODO  here should be `isNeedCheckAuth`,we should use resourceDos here.
-      if (false) authenticatedAccessFunHttp4s(req,cc)
-      else anonymousAccessFunHttp4s(req,cc) 
+//      if (false) authenticatedAccessFunHttp4s(req,cc)
+//      else 
+        anonymousAccessFunHttp4s(req,cc) 
         
 
     futureToIO(resultF).map {

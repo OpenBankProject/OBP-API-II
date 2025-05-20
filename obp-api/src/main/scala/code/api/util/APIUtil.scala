@@ -31,7 +31,6 @@ import bootstrap.liftweb.CustomDBVendor
 import cats.effect.IO
 import code.accountholders.AccountHolders
 import code.api.Constant._
-import code.api.OAuthHandshake._
 import code.api.UKOpenBanking.v2_0_0.OBP_UKOpenBanking_200
 import code.api.UKOpenBanking.v3_1_0.OBP_UKOpenBanking_310
 import code.api._
@@ -3203,29 +3202,10 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
    * The only difference is that this function use Akka's Future in non-blocking way i.e. without using Await.result
    * @return A Tuple of an User wrapped into a Future and optional session context data
    */
-  def getUserAndSessionContextFutureHttp4s(req: org.http4s.Request[cats.effect.IO], callContext: CallContext): OBPReturnType[Box[User]] = {
-    val spelling = getSpellingParam()
-    val body: Box[String] = getRequestBody(S.request)
-    val implementedInVersion = "1"//TODO S.request.openOrThrowException(attemptedToOpenAnEmptyBox).view
-    val verb = req.method.name //S.request.openOrThrowException(attemptedToOpenAnEmptyBox).requestType.method
-    val url = URLDecoder.decode(req.uri.renderString,"UTF-8")//URLDecoder.decode(ObpS.uriAndQueryString.getOrElse(""),"UTF-8")
-    val correlationId = "2"//TODO getCorrelationId()
-    val reqHeaders = req.headers.headers.map(header => HTTPParam(header.name.toString, List(header.value))) //S.request.openOrThrowException(attemptedToOpenAnEmptyBox).request.headers
-    val authorizationHeaderValue = reqHeaders.find(_.name.equals("Authorization")).map(_.values.head).toBox
-    val cc = callContext.copy(
-      url= url,
-      verb = req.method.name,
-      authReqHeaderField = authorizationHeaderValue,
-      directLoginParams = req.params,
-      oAuthParams = req.params
-    )
-      
-//    val title = s"Request Headers for verb: $verb, URL: $url"
-//    surroundDebugMessage(reqHeaders.map(h => h.name + ": " + h.values.mkString(",")).mkString, title)
-    val remoteIpAddress = "3"//TODO getRemoteIpAddress()
-
-    val authHeaders = AuthorisationUtil.getAuthorisationHeaders(reqHeaders)
-
+  def getUserAndSessionContextFutureHttp4s(req: org.http4s.Request[cats.effect.IO], cc: CallContext): OBPReturnType[Box[User]] = {
+    val reqHeaders = cc.requestHeaders
+    val authHeaders = AuthorisationUtil.getAuthorisationHeaders(cc.requestHeaders)
+    val authorizationHeaderValue= cc.authReqHeaderField
     // Identify consumer via certificate
     val consumerByCertificate = Consent.getCurrentConsumerViaMtls(callContext = cc)
 
@@ -3254,8 +3234,8 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
             }
         }
         //TODO, Auth 1 is in obp side, need to refactor it first. and the  it need 'oauthcallbackUrl' in the Authentication process, the dispatch is not working .
-      } else if (hasAnOAuthHeader(authorizationHeaderValue)) { // OAuth 1 
-        getUserFromOAuthHeaderFuture(cc)
+//      } else if (hasAnOAuthHeader(authorizationHeaderValue)) { // OAuth 1 
+//        getUserFromOAuthHeaderFuture(cc)
       } else if (hasAnOAuth2Header(authorizationHeaderValue)) { // OAuth 2
         for {
           (user, callContext) <- OAuth2Login.getUserFuture(cc)
@@ -3371,23 +3351,7 @@ object APIUtil extends MdcLoggable with CustomJsonFormats{
     val resultWithUserInitActions: Future[(Box[User], Option[CallContext])] = AfterApiAuth.outerLoginUserInitAction(resultWithRateLimiting)
 
     // Update Call Context
-    resultWithUserInitActions map {
-      x => (x._1, ApiSession.updateCallContext(Spelling(spelling), x._2))
-    } map {
-      x => (x._1, x._2.map(_.copy(implementedInVersion = implementedInVersion)))
-    } map {
-      x => (x._1, x._2.map(_.copy(verb = verb)))
-    } map {
-      x => (x._1, x._2.map(_.copy(url = url)))
-    } map {
-      x => (x._1, x._2.map(_.copy(correlationId = correlationId)))
-    } map {
-      x => (x._1, x._2.map(_.copy(requestHeaders = reqHeaders)))
-    } map {
-      x => (x._1, x._2.map(_.copy(ipAddress = remoteIpAddress)))
-    }  map {
-      x => (x._1, x._2.map(_.copy(httpBody = body.toOption)))
-    } map { // Inject logged in user into CallContext data
+    resultWithUserInitActions map { // Inject logged in user into CallContext data
       x => (x._1, x._2.map(_.copy(user = x._1)))
     }
 
