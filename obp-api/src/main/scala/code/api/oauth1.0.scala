@@ -756,7 +756,7 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
   }
 
 
-  private def generateTokenAndSecret() =
+  def generateTokenAndSecret() =
   {
     // generate some random strings
     val token_message = Helpers.randomString(40)
@@ -765,7 +765,7 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
     (token_message, secret_message)
   }
 
-  private def saveRequestToken(oAuthParameters : Map[String, String], tokenKey : String, tokenSecret : String) =
+  def saveRequestToken(oAuthParameters : Map[String, String], tokenKey : String, tokenSecret : String) =
   {
     import code.model.TokenType
 
@@ -809,7 +809,7 @@ object OAuthHandshake extends RestHelper with MdcLoggable {
     nonceSaved && tokenSaved
   }
 
-  private def saveAuthorizationToken(oAuthParameters : Map[String, String], tokenKey : String, tokenSecret : String) =
+  def saveAuthorizationToken(oAuthParameters : Map[String, String], tokenKey : String, tokenSecret : String) =
   {
     import code.model.TokenType
 
